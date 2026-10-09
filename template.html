@@ -5,59 +5,64 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#F5F5F7">
+<meta name="theme-color" content="#0065BD">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="MMDT Planner">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiMyRThFRkYiLz48c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwMDcxRTMiLz48L2xpbmVhckdyYWRpZW50PjwvZGVmcz48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjI1NiIgeT0iMzI0IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iLWFwcGxlLXN5c3RlbSwnSGVsdmV0aWNhIE5ldWUnLEhlbHZldGljYSxBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjIxMiIgZm9udC13ZWlnaHQ9IjcwMCIgbGV0dGVyLXNwYWNpbmc9Ii04IiBmaWxsPSIjZmZmIj5NUDwvdGV4dD48L3N2Zz4=">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA1MTIgNTEyJz48cmVjdCB3aWR0aD0nNTEyJyBoZWlnaHQ9JzUxMicgcng9JzY0JyBmaWxsPScjMDA2NUJEJy8+PHRleHQgeD0nMjU2JyB5PSczMjQnIHRleHQtYW5jaG9yPSdtaWRkbGUnIGZvbnQtZmFtaWx5PSdBcmlhbCxIZWx2ZXRpY2Esc2Fucy1zZXJpZicgZm9udC1zaXplPScyMTInIGZvbnQtd2VpZ2h0PSc3MDAnIGZpbGw9JyNmZmYnPk1QPC90ZXh0Pjwvc3ZnPg==">
 <link rel="apple-touch-icon" sizes="180x180" href="data:image/png;base64,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">
 <title>MMDT · Study Dashboard</title>
 <style>
   :root {
-    --bg: #F5F5F7; --bg-elevated: #FFFFFF; --bg-tinted: #FBFBFD;
-    --separator: rgba(60, 60, 67, 0.12); --separator-strong: rgba(60, 60, 67, 0.18);
-    --label: #1D1D1F; --label-2: #6E6E73; --label-3: #86868B; --label-4: #A1A1A6;
-    --blue: #0071E3; --blue-soft: rgba(0, 113, 227, 0.1);
-    --green: #30A46C; --green-soft: rgba(48, 164, 108, 0.1);
-    --orange: #E8890B; --orange-soft: rgba(232, 137, 11, 0.1);
+    /* TUM Corporate Design (tum-design.json): Primaer Schwarz/Weiss + TUM-Blau #0065BD, Sekundaerblau #005293/#64A0C8/#98C6EA,
+       neutrale Toene Beige #DAD7CB / Hellgrau #EEECE1, Akzente Gruen #A2AD00 / Orange #E37222. Schrift Arial. */
+    --tum-blau: #0065BD; --tum-blau-dunkel: #005293; --tum-blau-mittel: #64A0C8; --tum-blau-hell: #98C6EA;
+    --tum-beige: #DAD7CB; --tum-hellgrau: #EEECE1; --tum-gruen: #A2AD00; --tum-orange: #E37222;
+    --bg: var(--tum-hellgrau); --bg-elevated: #FFFFFF; --bg-tinted: #F6F5F0;
+    --separator: rgba(0, 0, 0, 0.12); --separator-strong: var(--tum-beige);
+    --label: #000000; --label-2: #4D4D4D; --label-3: #6E6E6E; --label-4: #9A9A9A;
+    --blue: var(--tum-blau); --blue-soft: rgba(0, 101, 189, 0.1);
+    --green: var(--tum-gruen); --green-soft: rgba(162, 173, 0, 0.14);
+    --orange: var(--tum-orange); --orange-soft: rgba(227, 114, 34, 0.12);
     --red: #D7443E; --red-soft: rgba(215, 68, 62, 0.1);
-    --purple: #6E4FF5;
-    --cat-methods: #5B7FE8; --cat-digital: #30A46C; --cat-family: #C2410C;
-    --cat-digital-spec: #9333EA; --cat-electives: #6E6E73;
-    --cat-project: #EAB308; --cat-thesis: #1D1D1F;
-    --ff: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Helvetica, Arial, sans-serif;
-    --ff-mono: "SF Mono", ui-monospace, "Menlo", Monaco, monospace;
-    --r-sm: 8px; --r-md: 12px; --r-lg: 18px; --r-xl: 24px;
+    --purple: var(--tum-blau-dunkel);
+    --cat-methods: var(--tum-blau-dunkel); --cat-digital: var(--tum-blau); --cat-family: var(--tum-orange);
+    --cat-digital-spec: var(--tum-blau-mittel); --cat-electives: #6E6E6E;
+    --cat-project: var(--tum-gruen); --cat-thesis: #000000;
+    --ff: Arial, Helvetica, sans-serif;
+    --ff-mono: Consolas, "Courier New", monospace;
+    --r-sm: 4px; --r-md: 6px; --r-lg: 8px; --r-xl: 10px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #000000; --bg-elevated: #1C1C1E; --bg-tinted: #2C2C2E;
       --separator: rgba(255, 255, 255, 0.1); --separator-strong: rgba(255, 255, 255, 0.16);
-      --label: #F5F5F7; --label-2: #A1A1A6; --label-3: #86868B; --label-4: #6E6E73;
-      --blue-soft: rgba(10, 132, 255, 0.2); --green-soft: rgba(48, 209, 88, 0.2);
-      --orange-soft: rgba(255, 159, 10, 0.2); --red-soft: rgba(255, 69, 58, 0.2);
+      --label: #FFFFFF; --label-2: #DAD7CB; --label-3: #A1A1A1; --label-4: #6E6E6E;
+      --blue: var(--tum-blau-mittel); --blue-soft: rgba(100, 160, 200, 0.2); --green-soft: rgba(162, 173, 0, 0.22);
+      --orange-soft: rgba(227, 114, 34, 0.22); --red-soft: rgba(215, 68, 62, 0.2);
+      --cat-methods: var(--tum-blau-hell); --cat-digital: var(--tum-blau-mittel); --cat-thesis: #FFFFFF;
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-  body { font-family: var(--ff); color: var(--label); background: var(--bg); font-size: 15px; line-height: 1.4; letter-spacing: -0.01em; min-height: 100vh; }
+  body { font-family: var(--ff); color: var(--label); background: var(--bg); font-size: 15px; line-height: 1.4; min-height: 100vh; }
   .container { max-width: 980px; margin: 0 auto; padding: 48px 24px 80px; }
 
   .hero { margin-bottom: 48px; }
-  .hero-eyebrow { font-size: 13px; color: var(--label-2); font-weight: 500; margin-bottom: 10px; }
-  .hero-title { font-size: 44px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; margin-bottom: 16px; }
+  .hero-eyebrow { font-size: 13px; color: var(--tum-blau); font-weight: 700; margin-bottom: 10px; }
+  .hero-title { font-size: 44px; font-weight: 700; line-height: 1.05; margin-bottom: 16px; }
   .hero-sub { font-size: 19px; color: var(--label-2); font-weight: 400; max-width: 580px; }
   .hero-ring { margin-top: 28px; display: flex; align-items: center; gap: 20px; padding: 20px 24px; background: var(--bg-elevated); border-radius: var(--r-xl); box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04); }
   .hero-ring-svg { width: 84px; height: 84px; flex-shrink: 0; }
   .hero-ring-info { flex: 1; }
-  .hero-ring-num { font-size: 40px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+  .hero-ring-num { font-size: 40px; font-weight: 700; line-height: 1; }
   .hero-ring-num .total { color: var(--label-3); font-weight: 500; }
   .hero-ring-label { font-size: 14px; color: var(--label-2); margin-top: 4px; }
 
   section { margin-bottom: 40px; }
   .section-head { margin-bottom: 16px; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-  .section-title { font-size: 22px; font-weight: 600; letter-spacing: -0.02em; }
+  .section-title { font-size: 22px; font-weight: 600; }
   .section-meta { font-size: 13px; color: var(--label-3); }
 
   .card { background: var(--bg-elevated); border-radius: var(--r-lg); padding: 20px; box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04); }
@@ -77,11 +82,13 @@
   .progress-status.ok { background: var(--green-soft); color: var(--green); }
   .progress-status.warn { background: var(--orange-soft); color: var(--orange); }
   .progress-status.info { background: var(--blue-soft); color: var(--blue); }
-  .progress-num { font-size: 28px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+  .progress-num { font-size: 28px; font-weight: 600; line-height: 1; }
   .progress-num .slash { color: var(--label-3); font-weight: 400; font-size: 20px; margin: 0 2px; }
   .progress-num .of { color: var(--label-3); font-weight: 400; font-size: 18px; }
-  .progress-track { height: 6px; background: var(--bg-tinted); border-radius: 3px; margin-top: 12px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1); }
+  .progress-track { height: 6px; background: var(--bg-tinted); border-radius: 3px; margin-top: 12px; overflow: hidden; position: relative; }
+  .progress-fill { height: 100%; border-radius: 3px; transition: width 0.6s cubic-bezier(0.25, 0.1, 0.25, 1); position: absolute; left: 0; top: 0; }
+  .progress-fill.plan { background: var(--separator-strong); }
+  .progress-plan { font-size: 12px; font-weight: 500; color: var(--label-3); margin-left: 8px; letter-spacing: 0; }
   .progress-fill.ok { background: var(--green); }
   .progress-fill.warn { background: var(--orange); }
   .progress-fill.default { background: var(--blue); }
@@ -118,7 +125,7 @@
   .pruef-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--separator); border-radius: var(--r-md); overflow: hidden; margin-bottom: 16px; }
   .pruef-sum-cell { background: var(--bg-elevated); padding: 14px 16px; }
   .pruef-sum-label { font-size: 11px; color: var(--label-2); font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
-  .pruef-sum-num { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; line-height: 1; }
+  .pruef-sum-num { font-size: 24px; font-weight: 700; line-height: 1; }
   .pruef-sum-num.zero { color: var(--label-3); font-weight: 500; }
   .pruef-list { display: flex; flex-direction: column; gap: 10px; }
   .pruef-card { background: var(--bg-elevated); border-radius: var(--r-md); padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
@@ -152,7 +159,7 @@
   .spec-buckets { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
   .spec-bucket { padding: 14px 16px; background: var(--bg-tinted); border-radius: var(--r-md); }
   .spec-bucket-label { font-size: 12px; color: var(--label-2); font-weight: 500; margin-bottom: 6px; }
-  .spec-bucket-num { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .spec-bucket-num { font-size: 20px; font-weight: 600; }
   .spec-bucket-num .of { color: var(--label-3); font-weight: 400; font-size: 14px; }
   .spec-bucket-hint { font-size: 11px; color: var(--label-3); margin-top: 4px; }
   .spec-notice { margin-top: 16px; padding: 12px 16px; background: var(--blue-soft); border-radius: var(--r-sm); font-size: 13px; color: var(--label); line-height: 1.5; }
@@ -183,7 +190,7 @@
   .check:checked { background: var(--blue); border-color: var(--blue); }
   .check:checked::after { content: ''; width: 10px; height: 5px; border-left: 2px solid white; border-bottom: 2px solid white; transform: rotate(-45deg) translate(1px, -1px); }
   .mod-info { min-width: 0; cursor: pointer; }
-  .mod-name { font-size: 14px; font-weight: 500; letter-spacing: -0.01em; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .mod-name { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
   .mod-tag { font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 20px; letter-spacing: 0.02em; text-transform: uppercase; }
   .mod-tag.advseminar { background: var(--red-soft); color: var(--red); }
   .mod-tag.bachelor { background: var(--orange-soft); color: var(--orange); }
@@ -233,7 +240,7 @@
   .btn { padding: 9px 16px; font-family: var(--ff); font-size: 14px; font-weight: 500; border-radius: 980px; border: 1px solid var(--separator-strong); background: var(--bg-elevated); color: var(--label); cursor: pointer; transition: all 0.15s; }
   .btn:hover { background: var(--bg-tinted); }
   .btn.primary { background: var(--blue); color: white; border-color: var(--blue); }
-  .btn.primary:hover { background: #0077ED; border-color: #0077ED; }
+  .btn.primary:hover { background: var(--tum-blau-dunkel); border-color: var(--tum-blau-dunkel); }
   .btn.danger-ghost { color: var(--red); border-color: var(--red-soft); }
   .btn.danger-ghost:hover { background: var(--red-soft); }
 
@@ -351,15 +358,15 @@
 
   /* ===== v13: Kalender WS 26/27 (aus semesterkalender_ws2627.html, Namespace skal-) ===== */
 .skal-root{
-  --skal-bg:#f5f5f7; --skal-card:#ffffff; --skal-card2:#fafafc; --skal-text:#1d1d1f; --skal-muted:#6e6e73;
-  --skal-line:#e5e5ea; --skal-line2:#d2d2d7;
-  --skal-accent:#0071e3; --skal-accent-ink:#ffffff; --skal-accent-soft:rgba(0,113,227,.10);
+  --skal-bg:#EEECE1; --skal-card:#ffffff; --skal-card2:#F6F5F0; --skal-text:#000000; --skal-muted:#4D4D4D;
+  --skal-line:#DAD7CB; --skal-line2:#c9c5b6;
+  --skal-accent:#0065BD; --skal-accent-ink:#ffffff; --skal-accent-soft:rgba(0,101,189,.10);
   --skal-danger:#d92d20; --skal-danger-soft:rgba(217,45,32,.09);
   --skal-ov:rgba(255,149,0,.20); --skal-ov-line:#c77700; --skal-ov-soft:rgba(255,149,0,.12);
-  --skal-ok:#1a7f37; --skal-ok-soft:rgba(26,127,55,.12); --skal-amber:#9a5b00; --skal-amber-soft:rgba(255,149,0,.15);
+  --skal-ok:#A2AD00; --skal-ok-soft:rgba(162,173,0,.16); --skal-amber:#E37222; --skal-amber-soft:rgba(227,114,34,.15);
   --skal-shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.05);
   --skal-radius:18px; --skal-H:56px;
-  --skal-c1:#0a84ff; --skal-c2:#2fb344; --skal-c3:#ff9500; --skal-c4:#af52de; --skal-c5:#14a9bd; --skal-c6:#d63fb8; --skal-c7:#a2845e;
+  --skal-c1:#0065BD; --skal-c2:#A2AD00; --skal-c3:#E37222; --skal-c4:#005293; --skal-c5:#64A0C8; --skal-c6:#98C6EA; --skal-c7:#a2845e;
   --skal-c8:#5856d6; --skal-c9:#7fa800; --skal-c10:#6b7a90; --skal-c11:#d4a300; --skal-c12:#c2622d; --skal-c13:#0f8a6a;
   --skal-c14:#e0425a; --skal-c15:#3d7a9e; --skal-c16:#8a5cf6;
 }
@@ -367,7 +374,7 @@
   .skal-root{
     --skal-bg:#000000; --skal-card:#1c1c1e; --skal-card2:#242426; --skal-text:#f5f5f7; --skal-muted:#a1a1a6;
     --skal-line:#2c2c2e; --skal-line2:#3a3a3c;
-    --skal-accent:#0a84ff; --skal-accent-ink:#ffffff; --skal-accent-soft:rgba(10,132,255,.18);
+    --skal-accent:#64A0C8; --skal-accent-ink:#000000; --skal-accent-soft:rgba(100,160,200,.18);
     --skal-danger:#ff6961; --skal-danger-soft:rgba(255,105,97,.14);
     --skal-ov:rgba(255,159,10,.22); --skal-ov-line:#ffb340; --skal-ov-soft:rgba(255,159,10,.14);
     --skal-ok:#32d74b; --skal-ok-soft:rgba(50,215,75,.15); --skal-amber:#ffb340; --skal-amber-soft:rgba(255,159,10,.16);
@@ -577,6 +584,8 @@
 .container > section, #top { scroll-margin-top: 12px; }
 .stand-bar { display: flex; align-items: center; gap: 8px; margin: -24px 0 24px; font-size: 12px; font-weight: 500; color: var(--label-2); }
 .stand-bar .stand-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; }
+.stand-bar .tum-logo { margin-left: auto; height: 22px; width: auto; flex-shrink: 0; }
+@media (prefers-color-scheme: dark) { .stand-bar .tum-logo { filter: brightness(0) invert(1); } }
 .bnav { display: none; }
 @media (max-width: 767px) {
   .container { padding: 28px 16px calc(96px + env(safe-area-inset-bottom, 0px)); }
@@ -618,20 +627,7 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
 .sec-intro { font-size: 13px; color: var(--label-2); margin-bottom: 14px; max-width: 70ch; line-height: 1.5; }
 
 /* Supabase-Einstellungen */
-.sb-details { margin-top: 12px; background: var(--bg-elevated); border-radius: var(--r-lg); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-.sb-details > summary { list-style: none; cursor: pointer; padding: 14px 20px; font-size: 14px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.sb-details > summary::-webkit-details-marker { display: none; }
-.sb-details > summary::after { content: ""; width: 7px; height: 7px; border-right: 2px solid var(--label-3); border-bottom: 2px solid var(--label-3); transform: rotate(45deg); transition: transform 0.2s; flex-shrink: 0; }
-.sb-details[open] > summary::after { transform: rotate(-135deg); }
 .sb-body { padding: 0 20px 18px; display: flex; flex-direction: column; gap: 12px; }
-.sb-details .sb-sum-art, .sb-details #sb-art-note { display: none; }
-.sb-details.art-mode .sb-sum-sb { display: none; }
-.sb-details.art-mode .sb-sum-art, .sb-details.art-mode #sb-art-note { display: block; }
-.sb-details.art-mode .sb-body > :not(#sb-art-note) { display: none; }
-.rv-mine { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
-.rv-mine[hidden], #rv-art-note[hidden] { display: none; }
-.rv-mine h4 { margin: 0; font-size: 13px; font-weight: 600; color: var(--label-2); }
-#rv-art-note { margin-top: 12px; }
 .sb-state { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; background: var(--bg-tinted); color: var(--label-2); }
 .sb-state.on { background: var(--green-soft); color: var(--green-ink); }
 .sb-state.err { background: var(--red-soft, rgba(255,59,48,0.15)); color: var(--red-ink, #c0392b); }
@@ -732,35 +728,8 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
 .st-excl { color: var(--red-ink); font-weight: 600; }
 
 /* Reviews */
-.rv-top { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 16px; align-items: start; }
-@media (max-width: 860px) { .rv-top { grid-template-columns: minmax(0, 1fr); } }
-.rv-card { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-.rv-card h3 { font-size: 15px; font-weight: 600; }
-.rv-backend { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 12px; color: var(--label-3); }
-.st-stars { display: inline-flex; gap: 2px; }
 .st-star { border: none; background: transparent; font-size: 28px; line-height: 1; cursor: pointer; color: var(--separator-strong); padding: 2px 3px; border-radius: 6px; font-family: var(--ff); }
 .st-star.on { color: var(--cat-project); }
-.rv-count { font-size: 11px; color: var(--label-3); text-align: right; font-variant-numeric: tabular-nums; }
-.rv-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
-.rv-item { background: var(--bg-elevated); border-radius: var(--r-md); padding: 14px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); min-width: 0; }
-.rv-item.pending { box-shadow: 0 0 0 1.5px var(--orange); }
-.rv-item-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; margin-bottom: 6px; }
-.rv-stars { color: var(--cat-project); letter-spacing: 1px; font-size: 14px; white-space: nowrap; }
-.rv-stars .off { color: var(--separator-strong); }
-.rv-course { font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
-.rv-meta { font-size: 11.5px; color: var(--label-3); }
-.rv-text { font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
-.rv-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.03em; }
-.rv-badge.pending { background: var(--orange-soft); color: var(--orange-ink); }
-.rv-badge.est { background: var(--bg-tinted); color: var(--label-3); box-shadow: inset 0 0 0 1px var(--separator-strong); }
-.rv-actions { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
-.rv-avg { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 12px 16px; background: var(--bg-elevated); border-radius: var(--r-md); margin-top: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
-.rv-avg-n { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
-.rv-badge-mod { font-size: 11px; font-weight: 600; color: var(--label-2); white-space: nowrap; cursor: pointer; border: none; background: transparent; font-family: var(--ff); padding: 0 2px; }
-.rv-badge-mod .s { color: var(--cat-project); }
-.rv-badge-mod:hover { color: var(--label); }
-.rv-filter { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 18px; }
-.rv-filter .fld { flex: 1 1 240px; }
 
 /* Thesis-Timeline */
 .th-card { padding: 20px 20px 22px; display: flex; flex-direction: column; gap: 18px; }
@@ -802,7 +771,7 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
 <body>
 <div class="container">
 
-  <div class="stand-bar" id="stand-bar"><span class="stand-dot" aria-hidden="true"></span><span data-t="stand_line">Blanko-Vorlage · Kursdaten Stand 02.10.2026</span></div>
+  <div class="stand-bar" id="stand-bar"><span class="stand-dot" aria-hidden="true"></span><span data-t="stand_line">Blanko-Vorlage · Kursdaten Stand 02.10.2026</span><img class="tum-logo" alt="TUM" src="data:image/png;base64,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"></div>
 
   <div class="hero" id="top" data-nav="overview">
     <div class="hero-eyebrow">M.Sc. Management and Digital Technology</div>
@@ -811,11 +780,12 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
     <div class="hero-ring">
       <svg class="hero-ring-svg" viewBox="0 0 84 84">
         <circle cx="42" cy="42" r="36" fill="none" stroke="currentColor" stroke-width="6" opacity="0.12"/>
+        <circle id="hero-ring-plan" cx="42" cy="42" r="36" fill="none" stroke="var(--blue)" opacity="0.3" stroke-width="6" stroke-linecap="round" stroke-dasharray="226.19" stroke-dashoffset="226.19" transform="rotate(-90 42 42)"/>
         <circle id="hero-ring-fill" cx="42" cy="42" r="36" fill="none" stroke="var(--blue)" stroke-width="6" stroke-linecap="round" stroke-dasharray="226.19" stroke-dashoffset="226.19" transform="rotate(-90 42 42)" style="transition: stroke-dashoffset 0.8s cubic-bezier(0.25, 0.1, 0.25, 1);"/>
       </svg>
       <div class="hero-ring-info">
         <div class="hero-ring-num"><span id="total-ects">0</span><span class="total"> / 120</span></div>
-        <div class="hero-ring-label" data-t="ects_planned">ECTS geplant</div>
+        <div class="hero-ring-label" data-t="ects_passed">ECTS bestanden</div>
         <div class="hero-ring-sub" id="hero-ring-sub"></div>
       </div>
     </div>
@@ -867,22 +837,6 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
         </select>
       </div>
     </div>
-    <details class="sb-details" id="sb-details">
-      <summary><span class="sb-sum-sb" data-t="sb_summary">Community-Reviews (Supabase, optional)</span><span class="sb-sum-art" data-t="sb_summary_art">Community-Reviews (Claude-Datenbank)</span><span class="sb-state" id="sb-state"></span></summary>
-      <div class="sb-body">
-        <p class="note" id="sb-art-note" data-t="sb_art_note">Im Claude-Artifact nicht nutzbar: Die Claude-Datenbank ist aktiv, Supabase-Einstellungen werden hier ignoriert.</p>
-        <p class="note" data-t="sb_intro">Ohne Angaben speichert das Dashboard Reviews nur lokal in diesem Browser. Mit Supabase URL und Anon Key werden freigegebene Reviews geladen und neue zur Prüfung eingereicht (Tabelle mmdt_reviews, siehe supabase_mmdt_reviews.sql).</p>
-        <div class="fld"><label for="sb-url" data-t="sb_url">Supabase URL</label><input class="inp" id="sb-url" type="url" placeholder="https://xxxx.supabase.co" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-        <div class="fld"><label for="sb-anon" data-t="sb_anon">Anon Key</label><input class="inp" id="sb-anon" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-        <div class="fld" style="display:none"><label for="sb-admin" data-t="sb_admin">Admin Key (optional, Service-Role)</label><input class="inp" id="sb-admin" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"></div>
-        <p class="note warn" style="display:none" data-t="sb_admin_hint">Der Service-Role-Key umgeht alle Zugriffsregeln. Er wird nur in diesem Browser (localStorage) auf deinem eigenen Gerät gespeichert, nie an Dritte gesendet. Trage ihn nicht auf fremden oder geteilten Geräten ein.</p>
-        <div class="btn-row">
-          <button class="btn primary small" id="sb-save" type="button" data-t="sb_save">Speichern und verbinden</button>
-          <button class="btn danger-ghost small" id="sb-clear" type="button" data-t="sb_clear">Entfernen</button>
-        </div>
-        <div class="msg" id="sb-msg" role="status" aria-live="polite"></div>
-      </div>
-    </details>
   </section>
 
   <section id="spec-tracker-section" data-nav="overview">
@@ -982,7 +936,10 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
       <div class="section-meta" id="th-meta"></div>
     </div>
     <div class="card th-card">
-      <div class="fld th-date"><label for="th-start" data-t="th_start">Geplanter Starttermin (Semester 4)</label><input class="inp" id="th-start" type="date"></div>
+      <div class="fld-row">
+        <div class="fld"><label for="th-sem" data-t="th_sem">Thesis-Semester</label><select id="th-sem"><option value="">–</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option></select></div>
+        <div class="fld th-date"><label for="th-start" data-t="th_start">Geplanter Starttermin</label><input class="inp" id="th-start" type="date"></div>
+      </div>
       <ol class="th-line" id="th-line"></ol>
       <p class="note" data-t="th_hint">6 Monate Bearbeitungszeit laut Dashboard-Daten; Details mit Lehrstuhl und APSO/FPSO abstimmen.</p>
     </div>
@@ -1074,43 +1031,6 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
     <input type="file" id="file-input" accept="application/json" style="display:none"/>
   </section>
 
-  <section id="reviews-section" data-nav="module">
-    <div class="section-head">
-      <div class="section-title" data-t="rv_title">Reviews</div>
-      <div class="section-meta" id="rv-meta"></div>
-    </div>
-    <p class="sec-intro" data-t="rv_intro">Erfahrungen zu Kursen aus der Community.</p>
-    <div class="rv-top">
-      <div class="card rv-card">
-        <h3 data-t="rv_form_title">Review schreiben</h3>
-        <form id="rv-form" autocomplete="off" style="display:flex;flex-direction:column;gap:12px">
-          <div class="fld"><label for="rv-course" data-t="rv_f_course">Kurs</label><select id="rv-course"></select></div>
-          <div class="fld"><span class="fld-l" id="rv-stars-l" data-t="rv_f_rating">Bewertung</span><div class="st-stars" id="rv-stars" role="radiogroup" aria-labelledby="rv-stars-l"></div></div>
-          <div class="fld"><label for="rv-text" data-t="rv_f_text">Erfahrung (max. 600 Zeichen)</label><textarea class="inp" id="rv-text" maxlength="600" rows="4"></textarea><div class="rv-count" id="rv-count">0 / 600</div></div>
-          <div class="fld-row">
-            <div class="fld"><label for="rv-sem" data-t="rv_f_sem">Semester</label><input class="inp" id="rv-sem" list="rv-sem-list" maxlength="30" data-t-ph="rv_f_sem_ph"><datalist id="rv-sem-list"><option value="WiSe 2026/27"></option><option value="SoSe 2026"></option><option value="WiSe 2025/26"></option><option value="SoSe 2025"></option><option value="WiSe 2024/25"></option></datalist></div>
-            <div class="fld"><label for="rv-alias" data-t="rv_f_alias">Alias (optional)</label><input class="inp" id="rv-alias" maxlength="40"></div>
-          </div>
-          <div class="btn-row"><button class="btn primary" id="rv-submit" type="submit" data-t="rv_submit">Review absenden</button></div>
-          <div class="msg" id="rv-msg" role="status" aria-live="polite"></div>
-        </form>
-        <div class="note warn" id="rv-art-note" role="status" hidden></div>
-        <div class="rv-mine" id="rv-mine" hidden></div>
-      </div>
-      <div class="card rv-card">
-        <h3 data-t="rv_src_title">Quelle und Moderation</h3>
-        <div class="rv-backend" id="rv-backend"></div>
-        <div class="note" id="rv-backend-note"></div>
-        <label class="chk-line" id="rv-admin-wrap" hidden><input type="checkbox" class="check" id="rv-admin"><span data-t="rv_admin">Admin-Modus (ausstehende Reviews prüfen)</span></label>
-        <div class="msg" id="rv-src-msg" role="status" aria-live="polite"></div>
-      </div>
-    </div>
-    <div class="rv-filter">
-      <div class="fld"><label for="rv-filter" data-t="rv_filter">Filter nach Kurs</label><select id="rv-filter"></select></div>
-    </div>
-    <div id="rv-avg"></div>
-    <div class="rv-list" id="rv-list"></div>
-  </section>
 
   <section id="wochenplan-section" data-nav="module">
     <div class="section-head">
@@ -2403,6 +2323,14 @@ function getCatLabels() {
 // STATE · Blanko-Vorlage
 // ============================================================
 // Eigener STORAGE_KEY: die Vorlage teilt keinen Speicher mit anderen Dashboard-Versionen.
+// Fortschritt nur aus bestandenen Pruefungen, Thesis-Semester
+Object.assign(I18N.de, { ects_passed: 'ECTS bestanden', hero_plan: n => `${n} ECTS geplant (inkl. laufender Kurse)`, hero_plan_span: (n, hi) => `${n} ECTS geplant · bis zu ${hi} bei voller Zuteilung`,
+  status_on_track: 'Auf Kurs', progress_planned: n => `+${n} geplant`, th_sem: 'Thesis-Semester', th_start: 'Geplanter Starttermin' });
+Object.assign(I18N.en, { ects_passed: 'ECTS passed', hero_plan: n => `${n} ECTS planned (incl. running courses)`, hero_plan_span: (n, hi) => `${n} ECTS planned · up to ${hi} if all places are granted`,
+  status_on_track: 'On track', progress_planned: n => `+${n} planned`, th_sem: 'Thesis semester', th_start: 'Planned start date' });
+Object.assign(I18N.it, { ects_passed: 'ECTS superati', hero_plan: n => `${n} ECTS pianificati (incl. corsi in corso)`, hero_plan_span: (n, hi) => `${n} ECTS pianificati · fino a ${hi}`,
+  status_on_track: 'In linea', progress_planned: n => `+${n} pianificati`, th_sem: 'Semestre della tesi', th_start: 'Data di inizio prevista' });
+
 const STORAGE_KEY = 'mmdt_blank_v1';
 const STATE_VERSION = 14;
 const DEFAULT_STATE = {
@@ -2578,15 +2506,16 @@ function dueText(frist) {
 function dueClass(frist) { const d = dueDays(frist); return d < 0 ? 'past' : d <= 7 ? 'soon' : ''; }
 
 function renderHero() {
-  const totalE = total(), maxE = totalMax();
-  document.getElementById('total-ects').textContent = totalE;
+  const doneE = csPassedStats().ects, totalE = total(), maxE = totalMax();
+  document.getElementById('total-ects').textContent = doneE;
   const sub = document.getElementById('hero-ring-sub');
-  if (sub) sub.textContent = maxE > totalE ? t('hero_span', maxE) : '';
-  const ring = document.getElementById('hero-ring-fill');
+  if (sub) sub.textContent = totalE > doneE ? (maxE > totalE ? t('hero_plan_span', totalE, maxE) : t('hero_plan', totalE)) : '';
   const circ = 2 * Math.PI * 36;
-  const pct = Math.min(1, totalE / 120);
-  ring.setAttribute('stroke-dashoffset', circ * (1 - pct));
-  ring.setAttribute('stroke', totalE >= 120 ? 'var(--green)' : 'var(--blue)');
+  const ring = document.getElementById('hero-ring-fill');
+  ring.setAttribute('stroke-dashoffset', circ * (1 - Math.min(1, doneE / 120)));
+  ring.setAttribute('stroke', doneE >= 120 ? 'var(--green)' : 'var(--blue)');
+  const plan = document.getElementById('hero-ring-plan');
+  if (plan) plan.setAttribute('stroke-dashoffset', circ * (1 - Math.min(1, Math.max(totalE, doneE) / 120)));
 }
 
 function renderSpecTracker() {
@@ -2628,25 +2557,28 @@ function renderSpecTracker() {
 
 function renderProgress() {
   const el = document.getElementById('progress');
+  const done = csPassedStats();   // nur bestandene Pruefungen zaehlen als Fortschritt
   const items = [
-    {label:t('cat_methods'), have: ectsByCat('methods'), target: 12},
-    {label:t('cat_digital_tech'), have: ectsByCat('digital_tech'), target: 30},
-    {label:t('cat_specialization'), have: specEcts(), target: 30, specOpt: !specCat()},
-    {label:t('cat_electives'), have: electivesMgmtEcts(), target: 18},
-    {label:t('cat_project'), have: ectsByCat('project'), target: 12, optional: true},
-    {label:t('cat_thesis'), have: ectsByCat('thesis'), target: 30},
+    {label:t('cat_methods'), done: done.methods, plan: ectsByCat('methods'), target: 12},
+    {label:t('cat_digital_tech'), done: done.dt, plan: ectsByCat('digital_tech'), target: 30},
+    {label:t('cat_specialization'), done: done.spec, plan: specEcts(), target: 30, specOpt: !specCat()},
+    {label:t('cat_electives'), done: done.el, plan: electivesMgmtEcts(), target: 18},
+    {label:t('cat_project'), done: sumE(pickedMods().filter(m => m.cat === 'project' && COURSE_STATUS[m.id] && COURSE_STATUS[m.id].status === 'bestanden')), plan: ectsByCat('project'), target: 12, optional: true},
+    {label:t('cat_thesis'), done: done.thesis, plan: ectsByCat('thesis'), target: 30},
   ];
   el.innerHTML = items.map(it => {
-    const pct = it.target > 0 ? Math.min(100, Math.round((it.have/it.target)*100)) : 0;
+    const pct = v => it.target > 0 ? Math.min(100, Math.round((v / it.target) * 100)) : 0;
+    const plan = Math.max(it.plan, it.done), open = Math.max(0, plan - it.done);
     let statusClass = 'info', statusText = t('status_open'), fillClass = 'default';
     if (it.specOpt) { statusText = t('status_choose'); }
-    else if (it.have >= it.target) { statusClass = 'ok'; statusText = t('status_ok'); fillClass = 'ok'; }
-    else if (it.have > 0) { statusClass = 'warn'; statusText = t('status_partial'); fillClass = 'warn'; }
-    if (it.optional && it.have === 0) { statusText = t('status_optional'); }
+    else if (it.done >= it.target) { statusClass = 'ok'; statusText = t('status_ok'); fillClass = 'ok'; }
+    else if (plan >= it.target) { statusClass = 'info'; statusText = t('status_on_track'); fillClass = 'default'; }
+    else if (it.done > 0 || open > 0) { statusClass = 'warn'; statusText = t('status_partial'); fillClass = 'warn'; }
+    if (it.optional && plan === 0) { statusText = t('status_optional'); }
     return `<div class="progress-card">
       <div class="progress-top"><span class="progress-label">${it.label}</span><span class="progress-status ${statusClass}">${statusText}</span></div>
-      <div class="progress-num">${it.have}<span class="slash">/</span><span class="of">${it.target}</span></div>
-      <div class="progress-track"><div class="progress-fill ${fillClass}" style="width: ${pct}%"></div></div>
+      <div class="progress-num">${it.done}<span class="slash">/</span><span class="of">${it.target}</span>${open ? `<span class="progress-plan">${escH(t('progress_planned', open))}</span>` : ''}</div>
+      <div class="progress-track"><div class="progress-fill plan" style="width: ${pct(plan)}%"></div><div class="progress-fill ${fillClass}" style="width: ${pct(it.done)}%"></div></div>
     </div>`;
   }).join('');
 }
@@ -2714,7 +2646,7 @@ function renderSemesters() {
       ? `<div class="sem-span"><strong>${t('sem_span_head', sp.lo, sp.hi)}</strong><br>${sp.nAlt > 1 ? t('sem_as_hint', sp.nAlt) + '<br>' : ''}${t('sem_span_detail', sp.sure, sp.lo, sp.hi)}</div>` : '';
     html += `<div class="sem">
       <div class="sem-head"><div class="sem-name">${t('semester_n', s)}</div><div class="sem-ects" title="${escH(t('sem_span_detail', sp.sure, sp.lo, sp.hi))}">${ectsTxt} ECTS</div></div>
-      <div class="sem-items">${items}</div>${span}${s === 4 ? `<div class="sem-thesis">${escH(t('th_sem_note', D14.fmt(thesisStartDn())))}</div>` : ''}
+      <div class="sem-items">${items}</div>${span}${String(s) === thesisSem() ? `<div class="sem-thesis">${escH(t('th_sem_note', D14.fmt(thesisStartDn())))}</div>` : ''}
     </div>`;
   }
   el.innerHTML = html;
@@ -2944,7 +2876,6 @@ function renderModList() {
         <div class="mod-name">
           <span>${m.t}</span>
           ${csBadge(m.id)}
-          ${revBadge(m.id)}
           ${isAdv ? '<span class="mod-tag advseminar">Adv. Seminar</span>' : ''}
           ${isBach ? '<span class="mod-tag bachelor">Bachelor</span>' : ''}
           ${m.neu ? '<span class="mod-tag neu">Neu 26W</span>' : ''}
@@ -2992,7 +2923,6 @@ function renderModList() {
     });
   });
 
-  el.querySelectorAll('[data-rv-jump]').forEach(b => b.addEventListener('click', ev => { ev.stopPropagation(); revJump(b.dataset.rvJump); }));   // v14
   document.getElementById('mod-count').textContent = t('mod_count', pickedMods().length);
 }
 
@@ -4271,6 +4201,19 @@ const THESIS_MS = [
 ];
 const THESIS_DEFAULT_START = '2028-04-01';
 function thesisStartDn() { const d = D14.fromIso(state.thesis && state.thesis.start); return d == null ? D14.fromIso(THESIS_DEFAULT_START) : d; }
+function thesisSem() { const s = state.picked['THESIS']; return /^[1-4]$/.test(String(s)) ? String(s) : ''; }   // Semester, in dem die Thesis geplant ist
+function semesterStartIso(n) {   // Kalenderstart von Studiensemester n, abgeleitet aus heutigem Datum und aktuellem Semester (Sommer: 01.04., Winter: 01.10.)
+  const now = new Date(), y = now.getFullYear(), m = now.getMonth() + 1;
+  const curWinter = m >= 10 || m <= 3, curYear = (m <= 3) ? y - 1 : y;   // Winter 26/27 beginnt im Oktober 2026
+  const idx = curYear * 2 + (curWinter ? 1 : 0) + (Number(n) - Number(state.cursem || 1));
+  const yy = Math.floor(idx / 2), winter = idx % 2 === 1;
+  return `${yy}-${winter ? '10' : '04'}-01`;
+}
+function setThesisSem(n) {
+  if (!/^[1-4]$/.test(String(n))) { delete state.picked['THESIS']; }
+  else { state.picked['THESIS'] = String(n); state.thesis.start = semesterStartIso(n); }
+  save(); renderAll();
+}
 function thesisMilestones() {
   const s = thesisStartDn();
   return THESIS_MS.map(ms => ({ id: ms.id, name: L(ms.name), off: L(ms.off), opt: !!ms.opt,
@@ -4279,6 +4222,7 @@ function thesisMilestones() {
 function renderThesis() {
   const ol = $id('th-line'); if (!ol) return;
   const inp = $id('th-start'); if (inp && inp.value !== D14.toIso(thesisStartDn()) && document.activeElement !== inp) inp.value = D14.toIso(thesisStartDn());
+  const sel = $id('th-sem'); if (sel && sel.value !== thesisSem()) sel.value = thesisSem();
   const ms = thesisMilestones(), today = D14.today();
   const nextIdx = ms.findIndex(m => !m.done);
   ol.innerHTML = ms.map((m, i) => {
@@ -4717,385 +4661,11 @@ function initStrategy() {
 }
 
 // ============================================================
-// KURS-REVIEWS (v14) · Adapter-Interface mit zwei Backends
-// Datenmodell: {id, course_code, rating 1-5, text, semester, author_alias, status: pending|approved, created_at}
-// Zusatzfeld nur clientseitig: estimated:true (geschaetzte Bewertung) und local:true (selbst geschrieben, loeschbar).
-//   ArtifactDbAdapter (v14.2, nur im Claude-Artifact mit Capability db + user): Collection reviews/<id> (freigegeben), Einreichungen unter
-//     submissions/<uid>/items/<rid> (pro Viewer) plus Viewer-Dokument submissions/<uid>; Admin = user.canEdit(). Vorrang vor Supabase und Lokal.
-//   LocalAdapter (Default): Reviews in localStorage, neue Reviews sofort approved.
-//   SupabaseAdapter: PostgREST auf /rest/v1/mmdt_reviews; Einreichen = POST mit status 'pending'; Admin (Admin-Key): pending laden, PATCH/DELETE.
-// ============================================================
-const REVIEW_MAX = 600;
-const REV_KEY = 'mmdt_blank_reviews_v1';
-const SB_KEYS = { url: 'mmdt_blank_sb_url', anon: 'mmdt_blank_sb_anon', admin: 'mmdt_blank_sb_admin', off: 'mmdt_blank_sb_off' };
-// Voreingestelltes Community-Projekt. Der Publishable Key ist laut Supabase fuer den Browser bestimmt
-// ("can be safely shared publicly"); Schutz kommt aus Row Level Security (siehe supabase_mmdt_reviews.sql).
-// "Entfernen" schaltet auf lokal um.
-const SB_DEFAULT = { url: 'https://egvprafymplalbfrqlmg.supabase.co', anon: 'sb_publishable_GtkqLSXCsVNCd71KCOAPyg__1DQghJP' };
-
-function revSanitize(r) {   // Daten aus localStorage/Supabase nie ungeprueft rendern
-  const rating = Math.round(Number(r && r.rating));
-  if (!r || !r.course_code || !(rating >= 1 && rating <= 5)) return null;
-  return { id: String(r.id), course_code: String(r.course_code).slice(0, 40), rating, text: String(r.text == null ? '' : r.text).slice(0, REVIEW_MAX),
-    semester: String(r.semester == null ? '' : r.semester).slice(0, 30), author_alias: String(r.author_alias == null ? '' : r.author_alias).slice(0, 40),
-    status: r.status === 'pending' ? 'pending' : 'approved', created_at: String(r.created_at || ''), estimated: !!r.estimated, local: !!r.local };
-}
-const LocalAdapter = {
-  name: 'local',
-  async list() {
-    let own = []; try { own = JSON.parse(lsGet(REV_KEY) || '[]'); } catch (e) { own = []; }
-    return (Array.isArray(own) ? own : []).map(r => revSanitize(Object.assign({}, r, { local: true, status: 'approved' }))).filter(Boolean);
-  },
-  async submit(r) {
-    let own = []; try { own = JSON.parse(lsGet(REV_KEY) || '[]'); } catch (e) { own = []; }
-    if (!Array.isArray(own)) own = [];
-    own.push({ id: 'loc-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7), course_code: r.course_code, rating: r.rating, text: r.text,
-      semester: r.semester, author_alias: r.author_alias, status: 'approved', created_at: new Date().toISOString() });
-    lsSet(REV_KEY, JSON.stringify(own));
-    return 'approved';
-  },
-  async remove(id) {
-    let own = []; try { own = JSON.parse(lsGet(REV_KEY) || '[]'); } catch (e) { own = []; }
-    lsSet(REV_KEY, JSON.stringify((Array.isArray(own) ? own : []).filter(r => r.id !== id)));
-  },
-};
-function makeSupabaseAdapter(cfg) {
-  const call = async (path, opts, admin) => {
-    const key = admin ? cfg.admin : cfg.anon;
-    const res = await fetch(cfg.url + '/rest/v1/' + path, Object.assign({}, opts, { headers: Object.assign({ apikey: key, Authorization: 'Bearer ' + key, 'Content-Type': 'application/json' }, (opts && opts.headers) || {}) }));
-    if (!res.ok) { let b = ''; try { b = (await res.text()).slice(0, 160); } catch (e) {} throw new Error('HTTP ' + res.status + (b ? ': ' + b : '')); }
-    return res;
-  };
-  const rows = async (q, admin) => (await (await call('mmdt_reviews?' + q, { method: 'GET' }, admin)).json()).map(revSanitize).filter(Boolean);
-  return {
-    name: 'supabase',
-    list: () => rows('status=eq.approved&select=*&order=created_at.desc', false),
-    listPending: () => rows('status=eq.pending&select=*&order=created_at.asc', true),
-    async submit(r) {
-      // return=minimal: anon darf pending-Zeilen nicht zurueck-lesen (RLS), daher keine Repraesentation anfordern
-      await call('mmdt_reviews', { method: 'POST', headers: { Prefer: 'return=minimal' },
-        body: JSON.stringify({ course_code: r.course_code, rating: r.rating, text: r.text, semester: r.semester, author_alias: r.author_alias, status: 'pending' }) }, false);
-      return 'pending';
-    },
-    async approve(id) { await call('mmdt_reviews?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ status: 'approved' }) }, true); },
-    async remove(id) { await call('mmdt_reviews?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: { Prefer: 'return=minimal' } }, true); },
-  };
-}
-// ---- ArtifactDbAdapter (v14.2) ------------------------------------------------------------------
-// window.claude gibt es nur im Claude-Artifact. Zugriff nie im ersten synchronen Lauf abwarten: erst lokal rendern, dann asynchron pruefen.
-const ART = { db: null, user: null, uid: null, admin: false, checked: false, noWrite: false };
-const ART_CODES = ['invalid_argument', 'resource_exhausted', 'quota_exceeded', 'unavailable', 'revoked', 'not_granted', 'capability_disabled', 'capability_removed', 'transform_error'];
-let artInitP = null;
-function artHasClaude() { try { return !!(window.claude && typeof window.claude.use === 'function'); } catch (e) { return false; } }
-function artPending() { return artHasClaude() && !ART.checked; }   // Capability-Pruefung laeuft noch (Claude-Seite vorhanden, Antwort offen)
-function artInit() {
-  if (artInitP) return artInitP;
-  artInitP = (async () => {
-    try {
-      if (!artHasClaude()) return false;
-      const db = await window.claude.use('db');
-      if (!db) return false;
-      let user = null; try { user = await window.claude.use('user'); } catch (e) { user = null; }
-      let uid = null, admin = false;
-      if (user) {
-        try { uid = await user.id(); } catch (e) { uid = null; }
-        try { admin = (await user.canEdit()) === true; } catch (e) { admin = false; }
-      }
-      ART.db = db; ART.user = user; ART.uid = (typeof uid === 'string' && uid) ? uid : null; ART.admin = admin;
-      return true;
-    } catch (e) { return false; }
-    finally { ART.checked = true; }
-  })();
-  return artInitP;
-}
-const artSleep = ms => new Promise(r => setTimeout(r, ms));
-async function artRun(fn) {   // 'unavailable' (und unbekannte Codes): einmal nach kurzer, zufaelliger Pause wiederholen
-  try { return await fn(); }
-  catch (e) {
-    const c = e && e.code;
-    if (c === 'unavailable' || (c && ART_CODES.indexOf(c) < 0)) { await artSleep(300 + Math.random() * 500); return await fn(); }
-    throw e;
-  }
-}
-function artFail(e, write) {   // DbError-Code -> lesbarer Hinweis (Fehlertext landet im bestehenden "Fehler: ..."-Pfad)
-  const c = e && e.code; let key = null;
-  if (c === 'invalid_argument' && write) key = 'rv_db_noperm';
-  else if (c === 'quota_exceeded') key = 'rv_db_quota';
-  else if (c === 'resource_exhausted') key = 'rv_db_rate';
-  else if (c === 'revoked' || c === 'not_granted' || c === 'capability_disabled' || c === 'capability_removed') key = 'rv_db_gone';
-  else if (c === 'unavailable') key = 'rv_db_unavail';
-  const err = new Error(key ? t(key) : String(e && e.message || e)); err.code = c || ''; return err;
-}
-function artNewId() {
-  try { if (window.crypto && typeof crypto.randomUUID === 'function') return crypto.randomUUID(); } catch (e) {}
-  return 'r-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-}
-function artMap(d, status, uid) {
-  const r = revSanitize(Object.assign({}, d.data() || {}, { id: d.id, status }));
-  if (r && uid) r._uid = uid;
-  return r;
-}
-function artFind(x, status) {
-  if (x && typeof x === 'object') return x;
-  const pool = status === 'pending' ? REV.pending : status === 'approved' ? REV.items : REV.pending.concat(REV.items);
-  return pool.find(r => r.id === x) || null;
-}
-const ArtifactDbAdapter = {
-  name: 'artifact',
-  async list() {
-    try {
-      const snap = await artRun(() => ART.db.collection('reviews').orderBy('created_at', 'desc').limit(500).get());
-      return snap.docs.map(d => artMap(d, 'approved')).filter(Boolean);
-    } catch (e) { throw artFail(e, false); }
-  },
-  async listPending() {   // Admin: alle Einreichungen; sonst nur die eigenen
-    try {
-      const out = [];
-      const readItems = async uid => {
-        let snap;
-        try { snap = await artRun(() => ART.db.doc('submissions/' + uid).collection('items').get()); }
-        catch (e) { if (e instanceof TypeError) return; throw e; }   // unzulaessige Viewer-Id als Pfadsegment: ueberspringen
-        snap.docs.forEach(d => { const r = artMap(d, 'pending', uid); if (r) out.push(r); });
-      };
-      if (ART.admin) {
-        const vs = await artRun(() => ART.db.collection('submissions').limit(1000).get());
-        const ids = vs.docs.map(d => d.id);
-        if (ART.uid && ids.indexOf(ART.uid) < 0) ids.push(ART.uid);
-        for (let i = 0; i < ids.length; i += 5) await Promise.all(ids.slice(i, i + 5).map(readItems));
-      } else if (ART.uid) await readItems(ART.uid);
-      return out.sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
-    } catch (e) { throw artFail(e, false); }
-  },
-  async submit(r) {
-    if (!ART.uid) { const e = new Error(t('rv_signin')); e.code = 'no_user'; throw e; }
-    const rid = artNewId(), now = new Date().toISOString();
-    const body = { course_code: r.course_code, rating: r.rating, text: r.text, semester: r.semester, author_alias: r.author_alias, status: 'pending', created_at: now, author_id: ART.uid };
-    try {
-      await artRun(() => ART.db.doc('submissions/' + ART.uid).set({ updated_at: now }));   // Viewer-Dokument, damit Admins die Viewer per collection('submissions') finden
-      await artRun(() => ART.db.doc('submissions/' + ART.uid + '/items/' + rid).set(body));
-    } catch (e) { if (e && e.code === 'invalid_argument') ART.noWrite = true; throw artFail(e, true); }
-    return 'pending';
-  },
-  async approve(x) {
-    const it = artFind(x, 'pending'); if (!it || !it._uid) throw new Error('not found');
-    const body = { course_code: it.course_code, rating: it.rating, text: it.text, semester: it.semester, author_alias: it.author_alias, status: 'approved', created_at: it.created_at || new Date().toISOString(), author_id: it._uid };
-    try {
-      await artRun(() => ART.db.doc('reviews/' + it.id).set(body));
-      await artRun(() => ART.db.doc('submissions/' + it._uid + '/items/' + it.id).delete());
-    } catch (e) { throw artFail(e, true); }
-  },
-  async remove(x, status) {
-    const it = artFind(x, status); if (!it || it.estimated) return;
-    try {
-      if (it.status === 'pending' && it._uid) await artRun(() => ART.db.doc('submissions/' + it._uid + '/items/' + it.id).delete());
-      else await artRun(() => ART.db.doc('reviews/' + it.id).delete());
-    } catch (e) { throw artFail(e, true); }
-  },
-};
-const REV = { adapter: LocalAdapter, items: [], pending: [], filter: 'all', admin: false, busy: false, error: '', stars: 0, cfg: { url: '', anon: '', admin: '' } };
-function sbCfg() {
-  let url = (lsGet(SB_KEYS.url) || '').trim().replace(/\/+$/, ''), anon = (lsGet(SB_KEYS.anon) || '').trim();
-  if (!url && !anon && lsGet(SB_KEYS.off) !== '1') { url = SB_DEFAULT.url; anon = SB_DEFAULT.anon; }
-  return { url, anon, admin: (lsGet(SB_KEYS.admin) || '').trim() };
-}
-function sbUrlOk(u) { return /^https:\/\/[^\s/]+/i.test(u) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(u); }
-// Reihenfolge: Claude-Artifact-DB (wenn verfuegbar) > Supabase (wenn konfiguriert) > Lokal.
-// Solange die Capability-Pruefung im Artifact noch laeuft, wird nur lokal gerendert (kein Netzwerkzugriff).
-let revSeq = 0;
-async function revReload() {
-  const seq = ++revSeq;   // veraltete (ueberholte) Ladevorgaenge verwerfen
-  const cfg = sbCfg(); REV.cfg = cfg;
-  const art = !!ART.db;
-  const remote = !art && !artPending() && !!(cfg.url && cfg.anon && sbUrlOk(cfg.url));
-  REV.adapter = art ? ArtifactDbAdapter : (remote ? makeSupabaseAdapter(cfg) : LocalAdapter);
-  if (art) REV.admin = ART.admin;   // Admin-Modus = user.canEdit(), kein manueller Schalter
-  REV.busy = true; REV.error = '';
-  try {
-    let items = await REV.adapter.list();
-    REV.items = items;
-    if (art) {
-      try { REV.pending = await REV.adapter.listPending(); }   // Admin: alle Einreichungen, sonst die eigenen
-      catch (e) { REV.pending = []; REV.error = String(e && e.message || e); }
-    } else REV.pending = (remote && REV.admin && cfg.admin) ? await REV.adapter.listPending() : [];
-  } catch (e) {
-    REV.error = String(e && e.message || e); REV.items = []; REV.pending = [];
-  }
-  if (seq !== revSeq) return;
-  REV.busy = false;
-  // Verbindungsstatus im Einstellungs-Badge: zeigt das Ergebnis des echten Abrufs (nicht nur die Konfiguration)
-  const stEl = $id('sb-state');
-  if (stEl && (remote || art)) {
-    const n = REV.items.filter(r => !r.estimated).length, lbl = art ? 'Claude-DB' : t('sb_on');
-    stEl.textContent = REV.error ? (lbl + ' · Fehler') : (lbl + ' · ' + n + ' online');
-    stEl.className = 'sb-state' + (REV.error ? ' err' : ' on');
-    stEl.title = REV.error || '';
-  }
-  renderReviews(); renderModList();
-}
-function revAdminOn() {   // Moderationsansicht aktiv?
-  const n = REV.adapter && REV.adapter.name;
-  return n === 'artifact' ? ART.admin : (n === 'supabase' && REV.admin && !!REV.cfg.admin);
-}
-function revStats(code) {
-  const l = REV.items.filter(r => r.course_code === code);
-  if (!l.length) return null;
-  return { n: l.length, avg: l.reduce((a, r) => a + r.rating, 0) / l.length, est: l.filter(r => r.estimated).length };
-}
-const fmtAvg = v => { const s = v.toFixed(1); return state.lang === 'de' || state.lang === 'it' ? s.replace('.', ',') : s; };
-function revBadge(code) {   // Sterne-Durchschnitt und Anzahl an der Modulkarte
-  const s = revStats(code); if (!s) return '';
-  const allEst = s.est === s.n;
-  const tip = t('rv_badge_tip', fmtAvg(s.avg), s.n, s.est);
-  return `<button type="button" class="rv-badge-mod" data-rv-jump="${escH(code)}" title="${escH(tip)}" aria-label="${escH(tip)}"><span class="s">★</span> ${allEst ? '≈ ' : ''}${fmtAvg(s.avg)} · ${s.n}</button>`;
-}
-function revStarsHtml(n) { return '★'.repeat(n) + (n < 5 ? `<span class="off">${'★'.repeat(5 - n)}</span>` : ''); }
-function revCourseName(code) { const m = MODULES.find(x => x.id === code); return m ? m.t : code; }
-function revItemHtml(r, admin) {
-  const date = r.created_at ? D14.fmt(D14.fromIso(r.created_at.slice(0, 10)) || 0) : '';
-  const meta = [r.author_alias || t('rv_anon'), r.semester, date].filter(Boolean).join(' · ');
-  const acts = [];
-  if (admin && r.status === 'pending') acts.push(`<button type="button" class="btn small primary" data-rv-act="approve" data-rv-id="${escH(r.id)}" data-rv-st="pending">${escH(t('rv_approve'))}</button>`);
-  if (admin && !r.estimated) acts.push(`<button type="button" class="btn small danger-ghost" data-rv-act="delete" data-rv-id="${escH(r.id)}" data-rv-st="${r.status === 'pending' ? 'pending' : 'approved'}">${escH(t('rv_delete'))}</button>`);
-  else if (r.local) acts.push(`<button type="button" class="btn small danger-ghost" data-rv-act="delete" data-rv-id="${escH(r.id)}">${escH(t('rv_delete'))}</button>`);
-  return `<article class="rv-item${r.status === 'pending' ? ' pending' : ''}">
-    <div class="rv-item-head"><span class="rv-stars" role="img" aria-label="${r.rating} / 5">${revStarsHtml(r.rating)}</span><span class="rv-course">${escH(r.course_code)} · ${escH(revCourseName(r.course_code))}</span>
-      ${r.status === 'pending' ? `<span class="rv-badge pending">${escH(t('rv_pending'))}</span>` : ''}${r.estimated ? `<span class="rv-badge est" title="${escH(t('rv_est_tip'))}">${escH(t('rv_estimated'))}</span>` : ''}</div>
-    ${r.text ? `<div class="rv-text">${escH(r.text)}</div>` : ''}
-    <div class="rv-meta">${escH(meta)}</div>
-    ${acts.length ? `<div class="rv-actions">${acts.join('')}</div>` : ''}
-  </article>`;
-}
-function revBuildSelects() {
-  const sel = $id('rv-course'), flt = $id('rv-filter'); if (!sel || !flt) return;
-  const prevC = sel.value, prevF = REV.filter;
-  const opt = m => `<option value="${escH(m.id)}">${escH(m.id)} · ${escH(m.t)}</option>`;
-  sel.innerHTML = `<optgroup label="${escH(t('rv_grp_ws'))}">${MODULES.filter(m => WS2627.has(m.id)).map(opt).join('')}</optgroup><optgroup label="${escH(t('rv_grp_other'))}">${MODULES.filter(m => !WS2627.has(m.id)).map(opt).join('')}</optgroup>`;
-  if (prevC && MODULES.some(m => m.id === prevC)) sel.value = prevC;
-  const codes = Array.from(new Set(REV.items.concat(revAdminOn() ? REV.pending : []).map(r => r.course_code)));
-  codes.sort((a, b) => revCourseName(a).localeCompare(revCourseName(b)));
-  flt.innerHTML = `<option value="all">${escH(t('rv_all', REV.items.length))}</option>` + codes.map(c => `<option value="${escH(c)}">${escH(c)} · ${escH(revCourseName(c))} (${REV.items.filter(r => r.course_code === c).length})</option>`).join('');
-  flt.value = codes.indexOf(prevF) >= 0 ? prevF : 'all'; REV.filter = flt.value;
-}
-function renderRevStars() {
-  const box = $id('rv-stars'); if (!box) return;
-  box.innerHTML = [1, 2, 3, 4, 5].map(v => `<button type="button" class="st-star${v <= REV.stars ? ' on' : ''}" role="radio" aria-checked="${v === REV.stars}" data-v="${v}" aria-label="${escH(t('rv_star_aria', v))}">★</button>`).join('');
-}
-function renderReviews() {
-  if (!$id('rv-list')) return;
-  revBuildSelects();
-  const art = REV.adapter.name === 'artifact', remote = REV.adapter.name === 'supabase' || art, cfg = REV.cfg;
-  const admin = revAdminOn();
-  const srcName = art ? 'Claude-DB' : (remote ? 'Supabase' : t('rv_local'));
-  $id('rv-meta').textContent = t('rv_meta', REV.items.length, srcName);
-  $id('rv-backend').innerHTML = `<span class="sb-state${remote ? ' on' : ''}">${escH(srcName)}</span><span>${escH(art ? t('rv_art_note') : remote ? t('rv_remote_note') : t('rv_local_note'))}</span>`;
-  $id('rv-backend-note').textContent = REV.busy ? t('rv_loading') : '';
-  $id('rv-admin-wrap').hidden = art || !(remote && cfg.admin);   // Artifact: Admin-Modus ergibt sich aus user.canEdit()
-  $id('rv-admin').checked = !!REV.admin;
-  const sbd = $id('sb-details'); if (sbd) sbd.classList.toggle('art-mode', art);
-  // Artifact: Einreichen nur mit Viewer-Id; eigene Einreichungen (Nicht-Admin) unter dem Formular
-  const blocked = art && (!ART.uid || ART.noWrite);
-  const subBtn = $id('rv-submit'); if (subBtn && !REV.sending) subBtn.disabled = blocked;
-  const aNote = $id('rv-art-note'); if (aNote) { aNote.hidden = !blocked; aNote.textContent = blocked ? (!ART.uid ? t('rv_signin') : t('rv_db_noperm')) : ''; }
-  const mineBox = $id('rv-mine');
-  if (mineBox) {
-    const own = (art && !ART.admin) ? REV.pending : [];
-    mineBox.hidden = !own.length;
-    mineBox.innerHTML = own.length ? `<h4>${escH(t('rv_mine_title'))}</h4>` + own.map(r => revItemHtml(r, false)).join('') : '';
-  }
-  const srcMsg = $id('rv-src-msg'); srcMsg.className = 'msg' + (REV.error ? ' err' : ''); srcMsg.textContent = REV.error ? t('rv_err', REV.error) : '';
-  const f = REV.filter;
-  const list = REV.items.filter(r => f === 'all' || r.course_code === f).sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)));
-  const pend = admin ? REV.pending.filter(r => f === 'all' || r.course_code === f) : [];
-  const avgBox = $id('rv-avg');
-  if (f !== 'all') {
-    const s = revStats(f);
-    avgBox.innerHTML = s ? `<div class="rv-avg"><span class="rv-avg-n">${s.est === s.n ? '≈ ' : ''}${fmtAvg(s.avg)}</span><span class="rv-stars" aria-hidden="true">${revStarsHtml(Math.round(s.avg))}</span><span class="rv-meta">${escH(t('rv_avg_of', s.n))}${s.est ? ' · ' + escH(t('rv_avg_est', s.est)) : ''}</span></div>` : '';
-  } else avgBox.innerHTML = '';
-  $id('rv-list').innerHTML = pend.map(r => revItemHtml(r, true)).join('') + list.map(r => revItemHtml(r, admin)).join('') || `<div class="st-empty">${escH(t('rv_empty'))}</div>`;
-  renderRevStars();
-}
-function revJump(code) {
-  REV.filter = code;
-  const sel = $id('rv-course'); if (sel && MODULES.some(m => m.id === code)) sel.value = code;
-  renderReviews();
-  const sec = $id('reviews-section'); if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
-}
-async function revSubmit(ev) {
-  ev.preventDefault();
-  const msg = $id('rv-msg'), btn = $id('rv-submit');
-  const code = $id('rv-course').value, text = $id('rv-text').value.trim().slice(0, REVIEW_MAX);
-  if (!code || REV.stars < 1) { msg.className = 'msg err'; msg.textContent = t('rv_invalid'); return; }
-  btn.disabled = true; REV.sending = true; msg.className = 'msg'; msg.textContent = t('rv_sending');
-  try {
-    const st = await REV.adapter.submit({ course_code: code, rating: REV.stars, text, semester: $id('rv-sem').value.trim().slice(0, 30), author_alias: $id('rv-alias').value.trim().slice(0, 40) });
-    msg.className = 'msg ok'; msg.textContent = st === 'pending' ? t('rv_sent_pending') : t('rv_sent_ok');
-    $id('rv-text').value = ''; $id('rv-count').textContent = '0 / ' + REVIEW_MAX; REV.stars = 0;
-    if (st === 'approved') REV.filter = code;
-    await revReload();
-  } catch (e) { msg.className = 'msg err'; msg.textContent = t('rv_err', String(e && e.message || e)); }
-  REV.sending = false; btn.disabled = REV.adapter.name === 'artifact' && (!ART.uid || ART.noWrite);
-  if (REV.adapter.name === 'artifact') renderReviews();
-}
-async function revAct(act, id, st) {
-  try {
-    const target = REV.adapter.name === 'artifact' ? (artFind(id, st) || id) : id;   // Artifact-Adapter braucht das ganze Item (_uid, Status)
-    if (act === 'approve') await REV.adapter.approve(target);
-    else if (act === 'delete') { if (!confirm(t('rv_delete_confirm'))) return; await REV.adapter.remove(target); }
-    await revReload();
-  } catch (e) { REV.error = String(e && e.message || e); renderReviews(); }
-}
-function sbSync() {
-  const c = sbCfg();
-  const set = (id, v) => { const el = $id(id); if (el && document.activeElement !== el) el.value = v; };
-  set('sb-url', c.url); set('sb-anon', c.anon); set('sb-admin', c.admin);
-  const remote = !!(c.url && c.anon && sbUrlOk(c.url));
-  const st = $id('sb-state');
-  if (REV.adapter && REV.adapter.name === 'artifact') {   // Artifact: Badge zeigt den Stand der Claude-DB, nicht die Supabase-Konfiguration
-    const n = REV.items.filter(r => !r.estimated).length;
-    st.textContent = REV.error ? 'Claude-DB · Fehler' : 'Claude-DB · ' + n + ' online'; st.className = 'sb-state' + (REV.error ? ' err' : ' on'); return;
-  }
-  if (artPending()) { st.textContent = '…'; st.className = 'sb-state'; return; }
-  st.textContent = remote ? t('sb_on') : t('sb_off'); st.className = 'sb-state' + (remote ? ' on' : '');
-}
-function sbSave() {
-  const msg = $id('sb-msg'), url = $id('sb-url').value.trim().replace(/\/+$/, ''), anon = $id('sb-anon').value.trim(), adm = $id('sb-admin').value.trim();
-  if (!url && !anon && !adm) { sbClear(); return; }
-  if (!sbUrlOk(url) || !anon) { msg.className = 'msg err'; msg.textContent = t('sb_invalid'); return; }
-  lsSet(SB_KEYS.url, url); lsSet(SB_KEYS.anon, anon); lsSet(SB_KEYS.admin, adm); lsSet(SB_KEYS.off, '');
-  if (!adm) REV.admin = false;
-  msg.className = 'msg ok'; msg.textContent = t('sb_saved'); sbSync();
-  revReload().then(() => { if (!REV.error) { msg.className = 'msg ok'; msg.textContent = t('sb_connected', REV.items.filter(r => !r.estimated).length); } });
-}
-function sbClear() {
-  lsSet(SB_KEYS.url, ''); lsSet(SB_KEYS.anon, ''); lsSet(SB_KEYS.admin, ''); lsSet(SB_KEYS.off, '1'); REV.admin = false;
-  ['sb-url', 'sb-anon', 'sb-admin'].forEach(id => { $id(id).value = ''; });
-  const msg = $id('sb-msg'); msg.className = 'msg'; msg.textContent = t('sb_cleared'); sbSync(); revReload();
-}
-function initReviews() {
-  $id('rv-stars').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if (!b) return; REV.stars = +b.dataset.v; renderRevStars(); });
-  $id('rv-stars').addEventListener('keydown', e => {
-    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { REV.stars = Math.min(5, (REV.stars || 0) + 1); }
-    else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { REV.stars = Math.max(1, (REV.stars || 2) - 1); }
-    else return;
-    e.preventDefault(); renderRevStars(); const b = $id('rv-stars').querySelector('[data-v="' + REV.stars + '"]'); if (b) b.focus();
-  });
-  $id('rv-text').addEventListener('input', e => { $id('rv-count').textContent = e.target.value.length + ' / ' + REVIEW_MAX; });
-  $id('rv-form').addEventListener('submit', revSubmit);
-  $id('rv-filter').addEventListener('change', e => { REV.filter = e.target.value; renderReviews(); });
-  $id('rv-admin').addEventListener('change', e => { REV.admin = e.target.checked; revReload(); });
-  $id('rv-list').addEventListener('click', e => { const b = e.target.closest('[data-rv-act]'); if (b) revAct(b.dataset.rvAct, b.dataset.rvId, b.dataset.rvSt); });
-  $id('sb-save').addEventListener('click', sbSave);
-  $id('sb-clear').addEventListener('click', sbClear);
-  sbSync(); renderReviews(); revReload();
-  if (artHasClaude()) artInit().then(ok => { if (ok) revReload(); else { sbSync(); revReload(); } });   // erst lokal rendern, dann Capability pruefen
-}
-
-// ============================================================
-// v14 Verdrahtung: Fristen, Thesis, Strategie, Reviews
+// v14 Verdrahtung: Fristen, Thesis, Strategie
 // ============================================================
 function syncV14Forms() {
   $id('dl-ics-thesis').checked = !!state.thesis.ics;
-  stratSyncForm(); sbSync();
+  stratSyncForm();
   const th = $id('th-start'); if (th) th.value = D14.toIso(thesisStartDn());
 }
 let v14Ready = false;
@@ -5105,7 +4675,7 @@ function renderV14() {   // leichte Teile, werden bei jedem renderAll() aktualis
     if (stratCtx.sig !== stratSig()) stratScheduleRecompute();   // Auswahl, Status, Semester oder Specialization geaendert: neu berechnen
     else renderStratResults();
   }
-  renderReviews(); updateNotifyUI(); sbSync();
+  updateNotifyUI();
 }
 function initV14() {
   $id('dl-list').addEventListener('change', e => {
@@ -5121,6 +4691,7 @@ function initV14() {
   $id('dl-notify').addEventListener('click', requestNotify);
   $id('dl-ics-btn').addEventListener('click', exportFristenIcs);
   $id('dl-ics-thesis').addEventListener('change', e => { state.thesis.ics = e.target.checked; save(); });
+  $id('th-sem').addEventListener('change', e => setThesisSem(e.target.value));
   $id('th-start').addEventListener('change', e => {
     if (D14.fromIso(e.target.value) == null) { e.target.value = D14.toIso(thesisStartDn()); return; }
     state.thesis.start = e.target.value; save(); renderThesis(); renderSemesters();
@@ -5130,7 +4701,7 @@ function initV14() {
     if (e.target.checked) state.thesis.done[id] = true; else delete state.thesis.done[id];
     save(); renderThesis();
   });
-  initStrategy(); initReviews(); syncV14Forms(); v14Ready = true; renderV14();
+  initStrategy(); syncV14Forms(); v14Ready = true; renderV14();
   checkDeadlineNotifications();
   setInterval(() => { renderDeadlines(); renderThesis(); checkDeadlineNotifications(); }, 60 * 60 * 1000);   // stuendlich: Countdown auffrischen + Erinnerungen pruefen
 }
@@ -5223,7 +4794,7 @@ function init() {
   window.SKAL = createSkal();   // Kalender WS 26/27 (Namespace skal-)
   initBottomNav();
   initRegistration();
-  initV14();   // v14: Fristen, Strategie, Reviews, Thesis
+  initV14();   // v14: Fristen, Strategie, Thesis
 }
 
 document.addEventListener('DOMContentLoaded', init);
