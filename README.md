@@ -53,12 +53,21 @@ and saved to `data/build-report.md`.
 The build only needs the token, no login, so it can run on a schedule:
 
 - **Windows:** `scripts\schedule-windows.ps1` registers a daily task (06:00) in Task Scheduler.
-- **Raspberry Pi / Linux / macOS:** add to `crontab -e`:
-  `0 6 * * * cd /path/to/mmdt-dashboard && python3 scripts/build_dashboard.py >> data/build.log 2>&1`
+- **Raspberry Pi / Linux / macOS:** create a virtualenv once and add a cron line:
+  ```bash
+  cd /path/to/mmdt-dashboard && python3 -m venv venv && ./venv/bin/pip install pymupdf
+  crontab -e   # then add:
+  0 6 * * * cd /path/to/mmdt-dashboard && flock -n /tmp/mmdt_dashboard.lock ./venv/bin/python scripts/build_dashboard.py >> data/build.log 2>&1
+  ```
+  `flock` makes sure two builds never run at the same time.
 
 Serve `data/` with any static web server inside your home network (for example
-`python3 -m http.server 8080 --directory data` on the Pi) and open `http://<pi>:8080/dashboard.html`
-on your phone. **Do not publish the generated file**: it contains your grades.
+`python3 -m http.server 8080 --directory data` on the Pi, or a symlink to `data/` inside a web
+root you already serve) and open `http://<pi>:8080/dashboard.html` on your phone.
+**Do not publish the generated file**: it contains your grades.
+
+If the repo folder is mirrored between PC and Pi (for example with Syncthing), the Pi can build
+in place and the finished dashboard shows up on the PC by itself. Exclude `venv/` from the sync.
 
 ## Options
 

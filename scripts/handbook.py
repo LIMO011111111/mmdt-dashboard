@@ -83,7 +83,10 @@ def _param(url, key):
 # ------------------------------------------------------------------ text
 def pdf_text(path):
     try:
-        import fitz  # PyMuPDF
+        try:
+            import pymupdf as fitz  # PyMuPDF >= 1.24
+        except ImportError:
+            import fitz  # older PyMuPDF
         with fitz.open(path) as doc:
             return "\n".join(page.get_text() for page in doc)
     except ImportError:

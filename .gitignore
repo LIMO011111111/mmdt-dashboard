@@ -11,3 +11,6 @@ __pycache__/
 
 # playwright-cli session files
 .playwright-cli/
+
+# local virtualenv (e.g. on the Raspberry Pi)
+venv/
