@@ -1,0 +1,87 @@
+MGTHN0105  # Advanced Multivariate Analysis
+MGTHN0107  # Applied Case Study Methodology
+MGTHN0112  # Simulation in Production and Logistics
+MGTHN0150  # Applied Regression Analysis
+MGTHN0157  # Stochastic Models in Production and Logistics
+MGTHN0175  # Meta-Analysis in Management Research
+MGTHN0176  # Social Network Analysis
+MGTHN0179  # Marketing Analytics
+MGTHN0180  # Empirical Consumer Research
+MGTHN0182  # Game Theory
+MGTHN0186  # Research Methods in Business Psychology
+MGTHN0188  # Customer Relationship Management
+MGTHN0189  # Marketing Research
+MGTHN0194  # Adv. Seminar: Quantum Computing
+MGTHN0196  # Adv. Seminar: Language Analytics & LLMs
+MGTHN0094  # Python and Advanced Data Science
+MGTHN0116  # Adv. Seminar: Eyetracking & Decision Making
+MGTHN0125  # Data Science in Business & Economics with R
+MGTHN0178  # Data Science in Finance
+MGTHN0198S  # Advanced Analytics in Operations
+MGTHN0199V  # Practical: Constraint Programming & Scheduling
+INHN0012  # Computer Networking & IT Security
+INHN0017  # Enterprise Architecture Management
+INHN0019  # Business Process Management
+CITHN2001  # Advanced Software Testing & Analysis
+CITHN2004  # Process Mining
+CITHN2013  # Process Mining Project
+CITHN2014  # Foundations of Generative AI
+CITHN7501  # Master Seminar Information Engineering
+WIHN0012  # Digital Finance
+WIHN0039  # Business Analytics with Python and R
+WIHN0043  # Adv. Seminar: Deep Reinforcement Learning
+MGTHN0096  # Adv. Seminar: Corporate Social Responsibility
+MGTHN0110  # Adv. Seminar: Mgmt practices in (family) enterprises
+MGTHN0171  # Adv. Seminar: Tech Change, AI & Labor
+WIHN0028  # Adv. Seminar: Topics in Corporate Entrepreneurship
+WIHN0029  # Adv. Seminar: Managing the Family Enterprise
+WIHN0046  # Adv. Seminar: Sustainability in Entrepreneurship
+MGTHN0077  # Int. Study Trip: Family firms around the world
+MGTHN0097  # CEO Leadership Series
+MGTHN0108  # Start-up law for founders of family enterprises
+MGTHN0109  # Taxation of Family Enterprises
+MGTHN0154  # Managing Legal Sustainability in Family Enterprises
+WIHN0014  # Corporate Campus Challenge
+MGTHN0099  # Adv. Seminar: Supply Chain Tactics
+MGTHN0115  # Adv. Seminar: Digital Technologies in Operations
+MGTHN0123  # Adv. Seminar: AI & Sustainable Development Goals
+MGTHN0177  # Adv. Seminar: Immersive Technologies
+MGTHN0181  # Adv. Seminar: Analytics in Manufacturing
+WIHN0013  # Adv. Seminar: Digital Finance Research
+WIHN0017  # Adv. Seminar: Digital Innovation
+WIHN0031  # Adv. Seminar: Digital Operations
+WIHN0037  # Adv. Seminar: B2B Contract Negotiations
+MGTHN0074  # Contemporary Strategies in Automotive
+MGTHN0084  # Adv. International Excursion: Global Strategy
+MGTHN0095  # Social Media Marketing
+MGTHN0111  # Cases in Industry 4.0
+MGTHN0113  # How to launch a platform start-up
+WIHN0018  # Economics & Management of Platforms
+WIHN0019  # Inventory Management
+WIHN0032  # Business Forecasting
+MGTHN0073  # Doing Business in Asia
+MGTHN0071  # Adv. Seminar Strategic Management
+MGTHN0121  # Transformative Impacts of GenAI in Marketing
+MGTHN0122  # Campus Challenge: Investing with AI & LLMs
+MGTHN0130  # CEO Strategy Series
+MGTHN0165  # Sustainable Management
+MGTHN0173  # Project & Innovation Management: Design Thinking
+WIHN0020  # Empirical Research Project in Finance
+WIHN0049  # Economic Analysis of Contracts & Competition
+MGTHN0185  # Methods and Databases in Empirical Finance
+MGTHN0195  # Adv. Seminar: Machine Learning
+WIHN0034  # Adv. Seminar: Business Analytics in Healthcare
+MGTHN0090  # Master Thesis Seminar: Strategic Management
+WIHN0033  # Deep Reinforcement Learning
+MGTHN0208  # Adv. Seminar: Smart Transportation
+MGTHN0211  # Agentic AI in Modern Business (Blockkurs)
+MGTHN0209  # Adv. Seminar: Emotional Measurement for Consumer Research
+MGTHN0207  # Causal Data Science for Business Decision Making
+MGTHN0203  # Deep Learning and Decision Making
+MGTHN0200  # Intelligent Scheduling: Algorithms, Complexity & AI
+MGTHN0205  # Adv. Seminar: Forecasting
+MGTHN0206  # Digital Business Models
+MGT001522  # Agentic AI Business Cases (deutsch)
+MGTHN0212  # Adv. Seminar: Organization Studies
+MGTHN0213  # Managing Transformation in the Digital Workplace
+CIT643002  # 1.000+ Project Week

@@ -1,0 +1,13 @@
+# Personal: never commit
+.env
+data/*
+!data/.gitkeep
+!data/codes.txt
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# playwright-cli session files
+.playwright-cli/
