@@ -626,7 +626,6 @@ textarea.inp { resize: vertical; min-height: 84px; line-height: 1.4; }
 .btn-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .sec-intro { font-size: 13px; color: var(--label-2); margin-bottom: 14px; max-width: 70ch; line-height: 1.5; }
 
-/* Supabase-Einstellungen */
 .sb-body { padding: 0 20px 18px; display: flex; flex-direction: column; gap: 12px; }
 .sb-state { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px; background: var(--bg-tinted); color: var(--label-2); }
 .sb-state.on { background: var(--green-soft); color: var(--green-ink); }
@@ -2088,30 +2087,6 @@ const I18N_V14 = {
     st_col_course: 'Kurs', st_col_area: 'Bereich', st_col_ects: 'ECTS', st_col_exam: 'Klausur', st_col_dates: 'Termine', st_col_proc: 'Verfahren / Status', st_col_excl: 'Ausschluss',
     st_src_weekly: 'Konflikte aus Wochenplan hochgerechnet',
     // Reviews
-    rv_title: 'Reviews', 
-    rv_meta: (n, src) => `${n} Reviews · ${src}`, rv_local: 'Lokal', rv_form_title: 'Review schreiben', rv_f_course: 'Kurs', rv_f_rating: 'Bewertung',
-    rv_f_text: 'Erfahrung (max. 600 Zeichen)', rv_f_sem: 'Semester', rv_f_sem_ph: 'z. B. SoSe 2026', rv_f_alias: 'Alias (optional)', rv_submit: 'Review absenden',
-    rv_src_title: 'Quelle und Moderation', rv_admin: 'Admin-Modus (ausstehende Reviews prüfen)', rv_filter: 'Filter nach Kurs',
-    rv_local_note: 'Reviews liegen nur in diesem Browser und sind sofort sichtbar.', rv_remote_note: 'Freigegebene Reviews aus Supabase; neue Reviews werden nach Prüfung veröffentlicht.',
-    rv_loading: 'Lade …', rv_err: m => `Fehler: ${m}`, rv_empty: 'Noch keine Reviews für diese Auswahl.', rv_all: n => `Alle Kurse (${n})`,
-    rv_grp_ws: 'WS 26/27', rv_grp_other: 'Weitere Module', rv_star_aria: v => `${v} von 5 Sternen`, rv_anon: 'anonym',
-    rv_pending: 'pending', rv_estimated: 'geschätzt', 
-    rv_approve: 'Freigeben', rv_delete: 'Löschen', rv_delete_confirm: 'Review wirklich löschen?',
-    rv_badge_tip: (avg, n, est) => `Ø ${avg} Sterne aus ${n} Review${n === 1 ? '' : 's'}${est ? `, davon ${est} geschätzt` : ''}`,
-    rv_avg_of: n => `aus ${n} Review${n === 1 ? '' : 's'}`, rv_avg_est: n => `${n} geschätzt`,
-    rv_invalid: 'Bitte Kurs wählen und Sterne vergeben.', rv_sending: 'Sende …', rv_sent_ok: 'Danke, deine Review ist gespeichert.',
-    rv_sent_pending: 'Danke, deine Review wurde eingereicht und erscheint nach Freigabe.',
-    sb_summary: 'Community-Reviews (Supabase, optional)', sb_on: 'verbunden', sb_off: 'nur lokal',
-    sb_intro: 'Ohne Angaben speichert das Dashboard Reviews nur lokal in diesem Browser. Mit Supabase URL und Anon Key werden freigegebene Reviews geladen und neue zur Prüfung eingereicht (Tabelle mmdt_reviews, siehe supabase_mmdt_reviews.sql).',
-    sb_url: 'Supabase URL', sb_anon: 'Anon Key', sb_admin: 'Admin Key (optional, Service-Role)',
-    sb_admin_hint: 'Der Service-Role-Key umgeht alle Zugriffsregeln. Er wird nur in diesem Browser (localStorage) auf deinem eigenen Gerät gespeichert, nie an Dritte gesendet. Trage ihn nicht auf fremden oder geteilten Geräten ein.',
-    sb_save: 'Speichern und verbinden', sb_clear: 'Entfernen', sb_invalid: 'Bitte eine gültige https-URL und den Anon Key angeben.',
-    rv_art_note: 'Freigegebene Reviews aus der Claude-Datenbank; neue Reviews werden nach Prüfung veröffentlicht.',
-    rv_mine_title: 'Deine Einreichungen, warten auf Freigabe', rv_signin: 'Einreichen nicht möglich: Anmeldung nötig.',
-    rv_db_noperm: 'Keine Schreibrechte (Contributor nötig).', rv_db_quota: 'Speicherlimit der Claude-Datenbank erreicht. Bitte später erneut versuchen oder den Admin informieren.',
-    rv_db_rate: 'Zu viele Anfragen, bitte kurz warten und erneut versuchen.', rv_db_gone: 'Claude-Datenbank nicht mehr verfügbar.', rv_db_unavail: 'Claude-Datenbank vorübergehend nicht erreichbar.',
-    sb_summary_art: 'Community-Reviews (Claude-Datenbank)', sb_art_note: 'Im Claude-Artifact nicht nutzbar: Die Claude-Datenbank ist aktiv, Supabase-Einstellungen werden hier ignoriert.',
-    sb_saved: 'Gespeichert, verbinde …', sb_connected: n => `Verbunden, ${n} freigegebene Reviews geladen.`, sb_cleared: 'Supabase-Angaben entfernt, Reviews nur noch lokal.',
   },
   en: {
     nav_deadlines: 'Deadlines',
@@ -2161,37 +2136,13 @@ const I18N_V14 = {
     st_offer_sum: (n, a) => `Course offer WS 26/27 · ${n} courses, ${a} in the running`,
     st_col_course: 'Course', st_col_area: 'Area', st_col_ects: 'ECTS', st_col_exam: 'Exam', st_col_dates: 'Dates', st_col_proc: 'Procedure / status', st_col_excl: 'Excluded',
     st_src_weekly: 'conflicts extrapolated from the weekly plan',
-    rv_title: 'Reviews', 
-    rv_meta: (n, src) => `${n} reviews · ${src}`, rv_local: 'Local', rv_form_title: 'Write a review', rv_f_course: 'Course', rv_f_rating: 'Rating',
-    rv_f_text: 'Experience (max. 600 characters)', rv_f_sem: 'Semester', rv_f_sem_ph: 'e.g. SoSe 2026', rv_f_alias: 'Alias (optional)', rv_submit: 'Submit review',
-    rv_src_title: 'Source and moderation', rv_admin: 'Admin mode (review pending submissions)', rv_filter: 'Filter by course',
-    rv_local_note: 'Reviews are stored in this browser only and are visible immediately.', rv_remote_note: 'Approved reviews from Supabase; new reviews are published after moderation.',
-    rv_loading: 'Loading …', rv_err: m => `Error: ${m}`, rv_empty: 'No reviews for this selection yet.', rv_all: n => `All courses (${n})`,
-    rv_grp_ws: 'WS 26/27', rv_grp_other: 'Other modules', rv_star_aria: v => `${v} of 5 stars`, rv_anon: 'anonymous',
-    rv_pending: 'pending', rv_estimated: 'estimated', 
-    rv_approve: 'Approve', rv_delete: 'Delete', rv_delete_confirm: 'Really delete this review?',
-    rv_badge_tip: (avg, n, est) => `Avg. ${avg} stars from ${n} review${n === 1 ? '' : 's'}${est ? `, ${est} estimated` : ''}`,
-    rv_avg_of: n => `from ${n} review${n === 1 ? '' : 's'}`, rv_avg_est: n => `${n} estimated`,
-    rv_invalid: 'Please choose a course and give a star rating.', rv_sending: 'Sending …', rv_sent_ok: 'Thanks, your review is saved.',
-    rv_sent_pending: 'Thanks, your review was submitted and will appear after approval.',
-    sb_summary: 'Community reviews (Supabase, optional)', sb_on: 'connected', sb_off: 'local only',
-    sb_intro: 'Without these values the dashboard stores reviews only locally in this browser. With a Supabase URL and anon key, approved reviews are loaded and new ones submitted for moderation (table mmdt_reviews, see supabase_mmdt_reviews.sql).',
-    sb_url: 'Supabase URL', sb_anon: 'Anon key', sb_admin: 'Admin key (optional, service role)',
-    sb_admin_hint: 'The service-role key bypasses all access rules. It is stored only in this browser (localStorage) on your own device and never sent to third parties. Do not enter it on foreign or shared devices.',
-    sb_save: 'Save and connect', sb_clear: 'Remove', sb_invalid: 'Please enter a valid https URL and the anon key.',
-    rv_art_note: 'Approved reviews from the Claude database; new reviews are published after moderation.',
-    rv_mine_title: 'Your submissions, awaiting approval', rv_signin: 'Submitting is not possible: sign-in required.',
-    rv_db_noperm: 'No write permission (Contributor access required).', rv_db_quota: 'The Claude database storage limit has been reached. Please try again later or tell the admin.',
-    rv_db_rate: 'Too many requests, please wait a moment and try again.', rv_db_gone: 'The Claude database is no longer available.', rv_db_unavail: 'The Claude database is temporarily unavailable.',
-    sb_summary_art: 'Community reviews (Claude database)', sb_art_note: 'Not usable inside the Claude artifact: the Claude database is active, Supabase settings are ignored here.',
-    sb_saved: 'Saved, connecting …', sb_connected: n => `Connected, ${n} approved reviews loaded.`, sb_cleared: 'Supabase values removed, reviews are local only.',
   },
 };
 Object.assign(I18N.de, I18N_V14.de);
 Object.assign(I18N.en, I18N_V14.en);
 Object.keys(I18N_V14.en).forEach(k => { if (!(k in I18N.it)) I18N.it[k] = I18N_V14.en[k]; });   // IT = EN-Fallback fuer neue Keys
 Object.assign(I18N.it, {   // v14: IT-Texte fuer Stand-Zeile und Navigation
-  nav_deadlines: 'Scadenze', dl_title: 'Scadenze', st_title: 'Strategia', rv_title: 'Recensioni', th_title: 'Tesi di Master',
+  nav_deadlines: 'Scadenze', dl_title: 'Scadenze', st_title: 'Strategia', th_title: 'Tesi di Master',
   u_day: n => n === 1 ? 'giorno' : 'giorni', u_week: n => n === 1 ? 'settimana' : 'settimane', u_month: n => n === 1 ? 'mese' : 'mesi',
   rel_in: (n, u) => `tra ${n} ${u}`, rel_ago: (n, u) => `${n} ${u} fa`,
 });
@@ -2240,8 +2191,6 @@ const I18N_BLANK = {
     st_needs_note: 'Vorbelegt mit den Gesamtanforderungen des Studiengangs. „Standard-Constraints“ zieht deine bestandenen Kurse ab; laufende Kurse sind nicht abgezogen.',
     st_apply_confirm: (cur, n) => `Die Kurse deines aktuellen Semesters (${cur} Kurse) werden durch diese ${n} Kurse ersetzt. Fortfahren?`,
     st_apply_moved: l => `Aus anderen Semestern ins aktuelle Semester verschoben: ${l}`, st_applied: n => `Auswahl übernommen (${n} Kurse).`,
-    rv_intro: 'Erfahrungen zu Kursen aus der Community.',
-    rv_est_tip: 'Geschätzte Bewertung, keine echte Sternevergabe',
   },
   en: {
     stand_line: 'Blank template · course data as of 02.10.2026',
@@ -2283,8 +2232,6 @@ const I18N_BLANK = {
     st_needs_note: 'Pre-filled with the overall programme requirements. “Default constraints” subtracts your passed courses; running courses are not subtracted.',
     st_apply_confirm: (cur, n) => `The courses of your current semester (${cur} courses) will be replaced by these ${n} courses. Continue?`,
     st_apply_moved: l => `Moved from other semesters to the current one: ${l}`, st_applied: n => `Selection applied (${n} courses).`,
-    rv_intro: 'Course experiences from the community.',
-    rv_est_tip: 'Estimated rating, not an actual star rating',
   },
   it: {
     stand_line: 'Modello vuoto · dati dei corsi al 02.10.2026',
