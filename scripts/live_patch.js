@@ -43,9 +43,20 @@
   const me = L.me;
   if (me && typeof state !== 'undefined') {
     if (/^[1-4]$/.test(String(me.cursem))) state.cursem = String(me.cursem);
-    Object.keys(me.picked || {}).forEach(c => { if (known.has(c) && /^[1-4]$/.test(String(me.picked[c]))) state.picked[c] = String(me.picked[c]); });
+    // wait list from Moodle is only a guess: never overrides a semester or status you chose yourself
+    const guess = c => me.cs && me.cs[c] && me.cs[c].src === 'moodle';
+    const ownStatus = c => state.cs && state.cs[c] && state.cs[c].s && state.cs[c].s !== 'geplant';
+    // a course you crossed out ("Abgemeldet") stays out, even if TUMonline still lists a place; only a passed exam overrides it
+    const dropped = c => state.cs && state.cs[c] && state.cs[c].s === 'abgemeldet';
+    Object.keys(me.picked || {}).forEach(c => {
+      if (!known.has(c) || !/^[1-4]$/.test(String(me.picked[c]))) return;
+      if (guess(c) && state.picked[c] !== undefined) return;
+      state.picked[c] = String(me.picked[c]);
+    });
     Object.keys(me.cs || {}).forEach(c => {
       if (!known.has(c) || state.picked[c] === undefined) return;
+      if (guess(c) && (ownStatus(c) || state.picked[c] !== String(me.picked[c]))) return;
+      if (dropped(c) && me.cs[c].s !== 'bestanden') return;
       const cur = (state.cs && state.cs[c]) || {};
       state.cs[c] = { s: me.cs[c].s, g: me.cs[c].g || '', n: cur.n || '' };
     });

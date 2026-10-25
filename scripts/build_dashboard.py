@@ -69,8 +69,18 @@ def to_minutes(hhmm):
 
 
 def de_date(iso):
+    if not iso:   # exam registration without a date (seminar paper etc.)
+        return ""
     y, m, d = iso.split("-")
     return f"{d}.{m}.{y}"
+
+
+def write_atomic(path, text):
+    """Write via temp file + rename, so the Pi web server / Syncthing never see a half-written file."""
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
+        fh.write(text)
+    os.replace(tmp, path)
 
 
 def short_room(room):
@@ -174,6 +184,7 @@ def load_offer(semester, codes_with_names, max_age_days, refresh):
             log(f"Course offer {semester}: cache from {cached['fetched_at'][:10]} ({len(cached['modules'])} modules)")
             return cached
         log(f"Course offer {semester}: cache is {age} days old, {len(missing)} modules missing -> refreshing")
+        refresh = refresh or age > max_age_days   # too old: every module again, not only the missing ones
     else:
         cached = {"modules": {}}
         log(f"Course offer {semester}: fetching {len(codes_with_names)} modules from TUMonline (takes a few minutes)")
@@ -189,8 +200,7 @@ def load_offer(semester, codes_with_names, max_age_days, refresh):
             log(f"  [{i}/{len(codes_with_names)}] {code:12} SKIPPED: {e}")
     data = {"semester": semester, "fetched_at": datetime.now().isoformat(timespec="seconds"), "modules": result}
     os.makedirs(os.path.dirname(path), exist_ok=True)
-    with open(path, "w", encoding="utf-8") as fh:
-        json.dump(data, fh, indent=1, ensure_ascii=False)
+    write_atomic(path, json.dumps(data, indent=1, ensure_ascii=False))
     return data
 
 
@@ -292,7 +302,8 @@ def main():
         if code in codes and code not in cs:
             picked[code] = str(sem_no(r["semester"]))
             cs[code] = {"s": "in_progress", "g": ""}
-            exam_dates[code] = r["date"]
+            if r["date"]:
+                exam_dates[code] = r["date"]
 
     # calendar: fixed-place courses of the semester with their real dates/rooms
     cal_dates = defaultdict(list)
@@ -311,6 +322,26 @@ def main():
         picked.setdefault(code, str(sem_no(sem)))
         if code not in cs:
             cs[code] = {"s": "fixplatz", "g": ""}
+    # Moodle: courses of this semester you are enrolled in but have no fixed place for -> wait list.
+    # Written by the Moodle sync on the laptop (data/moodle-kurse.json, synced to the Pi; override with MOODLE_KURSE).
+    # A fixed place from TUMonline replaces it automatically; a status you set by hand in the dashboard is kept.
+    moodle_path = os.environ.get("MOODLE_KURSE") or os.path.join(ROOT, "data", "moodle-kurse.json")
+    moodle_wait = []
+    try:
+        with open(moodle_path, encoding="utf-8") as fh:
+            mk = json.load(fh)
+    except (OSError, ValueError):
+        mk = None
+    if mk and mk.get("semester") == semester:
+        for k in mk.get("kurse", []):
+            for code in re.findall(r"\(([A-Z]{2,}[A-Z0-9]*\d{3,})\)", k.get("name", "")):
+                if code in codes and code not in cs:
+                    picked[code] = str(cursem)
+                    cs[code] = {"s": "warteliste", "g": "", "src": "moodle"}
+                    moodle_wait.append(code)
+        log(f"Moodle ({mk.get('stand', '?')[:16]}): {len(mk.get('kurse', []))} courses, wait list: {', '.join(moodle_wait) or '-'}")
+    else:
+        log(f"Moodle course list not found or for another semester: {moodle_path}")
     log(f"Personal: {sum(1 for v in cs.values() if v['s']=='bestanden')} passed, "
         f"{sum(1 for v in cs.values() if v['s']=='in_progress')} exam pending, {len(cal_dates)} fixed-place courses")
 
@@ -381,8 +412,7 @@ def main():
                                 f"<!-- MMDT Study Dashboard · built from TUMonline {stand} by mmdt-dashboard", 1)
     out_path = a.out if os.path.isabs(a.out) else os.path.join(ROOT, a.out)
     os.makedirs(os.path.dirname(out_path), exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as fh:
-        fh.write(out_html)
+    write_atomic(out_path, out_html)
 
     # ---- report
     name_of = {c: t for c, t, _, _ in modules}
@@ -397,6 +427,8 @@ def main():
         extra = f" {s['g']}" if s["g"] else ""
         if code in exam_dates and s["s"] != "bestanden":
             extra += f" (exam {de_date(exam_dates[code])})"
+        if s.get("src") == "moodle":
+            extra += " (Moodle, no fixed place in TUMonline)"
         lines.append(f"- Sem {picked.get(code, '?')} · {code} {name_of.get(code, '')}: {s['s']}{extra}")
     lines += ["", "## Exam format missing (not in template, not in handbook)", ""]
     lines += [f"- {c} {name_of.get(c, '')}" for c in missing_exam] or ["- none"]
@@ -410,5 +442,5 @@ def main():
 if __name__ == "__main__":
     try:
         main()
-    except tum.TumonlineError as e:
-        sys.exit(str(e))
+    except (tum.TumonlineError, OSError) as e:   # OSError = URLError/timeout after api_retry gave up
+        sys.exit(f"{type(e).__name__}: {e}")

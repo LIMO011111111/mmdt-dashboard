@@ -155,7 +155,7 @@ def load(mhb_dir=None, url=HANDBOOK_URL, download=True):
     paths = ensure_pdfs(mhb_dir, url) if download else sorted(
         os.path.join(mhb_dir, f) for f in os.listdir(mhb_dir) if f.lower().endswith(".pdf"))
     cache = os.path.join(mhb_dir, "handbook.json")
-    sig = sorted((os.path.basename(p), os.path.getsize(p)) for p in paths)
+    sig = sorted([os.path.basename(p), os.path.getsize(p)] for p in paths)   # lists, like json.load returns them
     if os.path.exists(cache):
         with open(cache, encoding="utf-8") as fh:
             cached = json.load(fh)
