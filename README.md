@@ -69,6 +69,24 @@ root you already serve) and open `http://<pi>:8080/dashboard.html` on your phone
 If the repo folder is mirrored between PC and Pi (for example with Syncthing), the Pi can build
 in place and the finished dashboard shows up on the PC by itself. Exclude `venv/` from the sync.
 
+## Google Calendar (optional)
+
+With your calendar the Today view shows what is next, the weekly plan shows your real appointments, and a
+bar at the top shows where you are in the semester: light blue at the first day of lectures, dark blue at the
+last deadline, with a red dot for every graded deadline, presentation or exam. Tap a dot to see what it is.
+
+1. Google Calendar (on a computer) -> Settings -> your calendar -> **Integrate calendar** ->
+   **Secret address in iCal format**. Copy it.
+2. Put it into `.env` as `GOOGLE_CAL_ICS_URL=...`. The address is read-only, but whoever knows it can read your
+   calendar: keep it in `.env` and never post it. You can reset it in the same place.
+3. `pip install icalendar recurring-ical-events`, then build as usual.
+
+Red dots come from the **title** of an appointment: `DEADLINE ...`, `Abgabe ...`, or words like presentation, exam,
+assignment, submission. Organisational dates (registration, kick-off, team up) are skipped. Both word lists are at
+the top of `scripts/gcal.py`. Nothing is ever written to your calendar. Without the address the dashboard works
+as before, just without calendar and bar dots. The first day of the semester is `SEM_START` in `template.html`
+(12.10.2026 for the winter semester 2026/27).
+
 ## Options
 
 ```
@@ -88,6 +106,7 @@ py scripts/tumonline.py status                      # token check
 | `scripts/build_dashboard.py` | Fetches TUMonline + handbook, writes `data/dashboard.html` and `data/build-report.md` |
 | `scripts/live_patch.js` | The small script injected into the dashboard that applies the live data |
 | `scripts/tumonline.py` | TUMonline API client (from tum-coursepilot, MIT), extended with grades/calendar fallbacks |
+| `scripts/gcal.py` | Optional: reads your Google Calendar through its secret iCal address (read-only) |
 | `scripts/handbook.py` | Downloads the module handbook PDFs and extracts exam formats |
 | `data/codes.txt` | Module codes and names of the MMDT curriculum (taken from the template) |
 | `data/` (rest) | Your token-fetched data and the generated dashboard; ignored by git |
@@ -103,4 +122,5 @@ the module list in the template.
 
 - The token is a personal credential. It lives in `.env`, which git ignores. Never share or commit it.
 - The generated dashboard contains your grades. It is written to `data/`, which git ignores. Keep it private.
-- Nothing is sent anywhere except to `campus.tum.de`.
+- Nothing is sent anywhere except to `campus.tum.de` (and `calendar.google.com` if you use the calendar option).
+- The secret calendar address is a credential like the token: `.env` only, never in the repo. The generated dashboard contains your appointments as well, so keep `data/` private.

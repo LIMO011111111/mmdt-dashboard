@@ -696,6 +696,25 @@ section { margin-bottom: 32px; }
 .kpi-v { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .kpi-v small { font-size: 13px; color: var(--label-3); font-weight: 500; letter-spacing: 0; }
 .kpi-l { font-size: 10px; color: var(--label-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-top: 2px; }
+/* Semesterleiste: erster Uni-Tag bis letzter wichtiger Termin, rote Punkte = Abgaben/Praesentationen/Pruefungen */
+.semb { max-width: 1080px; margin: 0 auto; padding: 0 24px 10px; display: flex; align-items: center; gap: 14px; position: relative; }
+.semb-l, .semb-r { flex-shrink: 0; line-height: 1.1; }
+.semb-r { text-align: right; }
+.semb-v { font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.semb-s { font-size: 10px; color: var(--label-3); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; margin-top: 2px; }
+.semb-track { position: relative; flex: 1; height: 10px; border-radius: 6px; background: linear-gradient(90deg, #A5CFEE 0%, #0065BD 55%, #0B2745 100%); }
+.semb-now { position: absolute; top: -3px; width: 2px; height: 16px; margin-left: -1px; border-radius: 1px; background: var(--label); pointer-events: none; }
+.semb-dot { position: absolute; top: 50%; width: 14px; height: 14px; padding: 0; border-radius: 50%; background: #E0301E; border: 2px solid var(--bg); transform: translate(-50%, -50%); cursor: pointer; }
+.semb-dot::after { content: ''; position: absolute; inset: -9px; }
+.semb-dot.past { opacity: 0.45; }
+.semb-dot:focus-visible, .semb-dot.open { outline: 2px solid var(--label); outline-offset: 1px; }
+.semb-pop { position: absolute; top: calc(100% - 2px); z-index: 60; width: 260px; max-width: calc(100% - 16px); padding: 10px 12px; border-radius: 12px; background: var(--card, var(--bg)); color: var(--label); border: 1px solid var(--separator); box-shadow: 0 8px 28px rgba(0,0,0,0.18); font-size: 12px; line-height: 1.4; }
+.semb-pop[hidden] { display: none; }
+.semb-pop .sp-d { font-size: 11px; font-weight: 700; color: var(--label-3); text-transform: uppercase; letter-spacing: 0.06em; }
+.semb-pop .sp-e + .sp-e { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--separator); }
+.semb-pop .sp-k { font-weight: 700; }
+.semb-pop .sp-a { display: inline-block; margin-left: 6px; padding: 0 6px; border-radius: 6px; background: rgba(224,48,30,0.12); color: #C4281A; font-size: 10px; font-weight: 700; }
+@media (max-width: 720px) { .semb { padding: 0 16px 8px; gap: 10px; } .semb-v { font-size: 13px; } }
 .gear { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--pill-bg); color: var(--label-2); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
 .gear:hover { color: var(--label); }
 .gear svg { width: 19px; height: 19px; }
@@ -1074,6 +1093,7 @@ footer { margin-top: 48px; }
     </div>
     <button type="button" class="gear" id="open-settings" data-t-aria="settings" aria-label="Einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
+  <div class="semb" id="semb"></div>
 </header>
 
 <main class="container">
@@ -2507,7 +2527,7 @@ Object.assign(I18N.it, I18N_BLANK.it);
 const I18N_V15 = {
   de: {
     v_today: 'Heute', v_progress: 'Fortschritt', v_courses: 'Kurse', v_plan: 'Planen', k_gpa: 'Schnitt', close: 'Schließen',
-    nav_aria: 'Navigation', wp_title: 'Nächste 7 Tage', td_title: 'To-dos', td_meta: 'Pro Kurs · ⏻ schaltet einen Kurs offline', td_ph: 'To-do hinzufügen', td_open: n => n === 1 ? '1 offen' : `${n} offen`, td_off: 'Kurs offline schalten (To-dos bleiben gespeichert)', td_on: 'Wieder einschalten', td_offline: 'Offline:', td_del: 'To-do löschen', td_done_aria: 'Erledigt', td_all_done: 'Alles erledigt', td_more: n => `+${n} weitere`, td_less: 'Weniger zeigen', td_done_n: n => `${n} erledigt`, td_progress: (d, n) => `${d} von ${n} erledigt`, td_soon: 'Demnächst', td_late: 'überfällig', td_in_days: n => `in ${n} Tagen`, td_today: 'heute', td_tomorrow: 'morgen', td_from: 'ab', v_note: 'Notizen', note_title: 'Notizzettel', note_ph: 'Gedanken, Ideen, was dir gerade einfällt …', note_saving: 'Speichert …', note_saved: 'Gespeichert ✓', note_count: n => `${n} Zeichen`, td_drag: 'Ziehen zum Verschieben', td_prio_0: 'Wichtigkeit: keine (antippen zum Ändern)', td_prio_1: 'Wichtigkeit: niedrig', td_prio_2: 'Wichtigkeit: mittel', td_prio_3: 'Wichtigkeit: hoch', td_none: 'Keine Kurse in diesem Semester.', fx_of: 'von 120 ECTS', fx_cats: 'Kategorien',
+    nav_aria: 'Navigation', sem_l: 'im Semester', sem_last: 'letzter Termin', sem_abgabe: 'Abgabe', sem_all_day: 'ganztägig', wp_title: 'Nächste 7 Tage', td_title: 'To-dos', td_meta: 'Pro Kurs · ⏻ schaltet einen Kurs offline', td_ph: 'To-do hinzufügen', td_open: n => n === 1 ? '1 offen' : `${n} offen`, td_off: 'Kurs offline schalten (To-dos bleiben gespeichert)', td_on: 'Wieder einschalten', td_offline: 'Offline:', td_del: 'To-do löschen', td_done_aria: 'Erledigt', td_all_done: 'Alles erledigt', td_more: n => `+${n} weitere`, td_less: 'Weniger zeigen', td_done_n: n => `${n} erledigt`, td_progress: (d, n) => `${d} von ${n} erledigt`, td_soon: 'Demnächst', td_late: 'überfällig', td_in_days: n => `in ${n} Tagen`, td_today: 'heute', td_tomorrow: 'morgen', td_from: 'ab', v_note: 'Notizen', note_title: 'Notizzettel', note_ph: 'Gedanken, Ideen, was dir gerade einfällt …', note_saving: 'Speichert …', note_saved: 'Gespeichert ✓', note_count: n => `${n} Zeichen`, td_drag: 'Ziehen zum Verschieben', td_prio_0: 'Wichtigkeit: keine (antippen zum Ändern)', td_prio_1: 'Wichtigkeit: niedrig', td_prio_2: 'Wichtigkeit: mittel', td_prio_3: 'Wichtigkeit: hoch', td_none: 'Keine Kurse in diesem Semester.', fx_of: 'von 120 ECTS', fx_cats: 'Kategorien',
     leg_done: 'bestanden', leg_sem: 'dieses Semester', leg_later: 'später geplant',
     fx_after_sem: s => `nach dem ${s}. Semester, wenn alles klappt`, fx_planned_all: 'insgesamt eingeplant',
     fx_proj_note: n => `Bestehst du dieses Semester alles, kommen ${n} ECTS dazu.`, fx_proj_none: 'Für dieses Semester ist nichts Offenes eingeplant.',
@@ -2529,7 +2549,7 @@ const I18N_V15 = {
   },
   en: {
     v_today: 'Today', v_progress: 'Progress', v_courses: 'Courses', v_plan: 'Plan', k_gpa: 'GPA', close: 'Close',
-    nav_aria: 'Navigation', wp_title: 'Next 7 days', td_title: 'To-dos', td_meta: 'Per course · ⏻ takes a course offline', td_ph: 'Add to-do', td_open: n => `${n} open`, td_off: 'Take course offline (to-dos are kept)', td_on: 'Turn back on', td_offline: 'Offline:', td_del: 'Delete to-do', td_done_aria: 'Done', td_all_done: 'All done', td_more: n => `+${n} more`, td_less: 'Show less', td_done_n: n => `${n} done`, td_progress: (d, n) => `${d} of ${n} done`, td_soon: 'Coming up', td_late: 'overdue', td_in_days: n => `in ${n} days`, td_today: 'today', td_tomorrow: 'tomorrow', td_from: 'from', v_note: 'Notes', note_title: 'Notes', note_ph: 'Thoughts, ideas, whatever comes to mind …', note_saving: 'Saving …', note_saved: 'Saved ✓', note_count: n => `${n} characters`, td_drag: 'Drag to move', td_prio_0: 'Priority: none (tap to change)', td_prio_1: 'Priority: low', td_prio_2: 'Priority: medium', td_prio_3: 'Priority: high', td_none: 'No courses this semester.', fx_of: 'of 120 ECTS', fx_cats: 'Categories',
+    nav_aria: 'Navigation', sem_l: 'of the semester', sem_last: 'last deadline', sem_abgabe: 'Deadline', sem_all_day: 'all day', wp_title: 'Next 7 days', td_title: 'To-dos', td_meta: 'Per course · ⏻ takes a course offline', td_ph: 'Add to-do', td_open: n => `${n} open`, td_off: 'Take course offline (to-dos are kept)', td_on: 'Turn back on', td_offline: 'Offline:', td_del: 'Delete to-do', td_done_aria: 'Done', td_all_done: 'All done', td_more: n => `+${n} more`, td_less: 'Show less', td_done_n: n => `${n} done`, td_progress: (d, n) => `${d} of ${n} done`, td_soon: 'Coming up', td_late: 'overdue', td_in_days: n => `in ${n} days`, td_today: 'today', td_tomorrow: 'tomorrow', td_from: 'from', v_note: 'Notes', note_title: 'Notes', note_ph: 'Thoughts, ideas, whatever comes to mind …', note_saving: 'Saving …', note_saved: 'Saved ✓', note_count: n => `${n} characters`, td_drag: 'Drag to move', td_prio_0: 'Priority: none (tap to change)', td_prio_1: 'Priority: low', td_prio_2: 'Priority: medium', td_prio_3: 'Priority: high', td_none: 'No courses this semester.', fx_of: 'of 120 ECTS', fx_cats: 'Categories',
     leg_done: 'passed', leg_sem: 'this semester', leg_later: 'planned later',
     fx_after_sem: s => `after semester ${s}, if all goes well`, fx_planned_all: 'planned in total',
     fx_proj_note: n => `Pass everything this semester and you add ${n} ECTS.`, fx_proj_none: 'Nothing open is planned for this semester.',
@@ -3558,7 +3578,7 @@ function renderWochenplan() {
   const overlap = (a, b) => b !== a && (a.gc || b.m.id !== a.m.id) && b.d === a.d && a.s < b.e && b.s < a.e;
   slots.forEach(x => { START = Math.min(START, Math.floor(x.s / 60) * 60); END = Math.max(END, Math.ceil(Math.min(1440, Math.max(x.e, x.s + 30)) / 60) * 60); });
   const bothAS = (a, b) => isASCode(a.m.id) && isASCode(b.m.id);
-  slots.forEach(a => { a.conflict = !a.gc && slots.some(b => overlap(a, b) && !bothAS(a, b)); });   // im Google-Modus keine Konflikt-Markierung (Bela sieht sie selbst)
+  slots.forEach(a => { a.conflict = !a.gc && slots.some(b => overlap(a, b) && !bothAS(a, b)); });   // im Google-Modus keine Konflikt-Markierung (man sieht sie selbst)
   const asOverlap = slots.some(a => slots.some(b => overlap(a, b) && bothAS(a, b)));
   const noTime = mods.filter(m => !SCHEDULE[m.id] && !SCHEDULE_BLOCKS[m.id]);
   const blocks = mods.filter(m => SCHEDULE_BLOCKS[m.id]);
@@ -4925,14 +4945,58 @@ function gcalParse(list) {
   });
 }
 function gcalAllDay(dn) { return GCAL ? GCAL.ev.filter(x => x.allDay && x.dn <= dn && dn < x.dnE) : []; }
+// Semesterleiste: Start = Vorlesungsbeginn WiSe 2026/27 (TUM-Rundschreiben "Termine und Feiertage 2026/27": 12.10.2026),
+// Ende = spaetester wichtiger Termin im Kalender (wandert mit, wenn ein spaeterer dazukommt).
+const SEM_START = D14.dn(2026, 10, 12), SEM_END_FALLBACK = D14.dn(2027, 2, 5);
+let SEM_EV = [];
+function semParse(list) {
+  return list.filter(x => x.wichtig).map(x => {
+    const s = new Date(x.allDay ? x.start + 'T00:00' : x.start);
+    return { dn: D14.dn(s.getFullYear(), s.getMonth() + 1, s.getDate()), min: s.getHours() * 60 + s.getMinutes(), allDay: !!x.allDay,
+      kurs: x.wichtig.kurs, was: x.wichtig.was, abgabe: !!x.wichtig.abgabe };
+  }).filter(x => x.dn >= SEM_START).sort((a, b) => a.dn - b.dn || a.min - b.min);
+}
+function semL(k) { const v = t(k); return v === k ? I18N.de[k] : v; }
+function renderSemBar() {
+  const el = $id('semb'); if (!el) return;
+  const today = D14.today(), end = SEM_EV.length ? SEM_EV[SEM_EV.length - 1].dn : SEM_END_FALLBACK;
+  const span = Math.max(1, end - SEM_START), pos = dn => Math.min(100, Math.max(0, (dn - SEM_START) / span * 100));
+  const pct = Math.round(pos(today));
+  const days = new Map(); SEM_EV.forEach(x => { if (!days.has(x.dn)) days.set(x.dn, []); days.get(x.dn).push(x); });
+  const dots = [...days.keys()].map(dn => `<button type="button" class="semb-dot ${dn < today ? 'past' : ''}" data-dn="${dn}" style="left:${pos(dn).toFixed(2)}%" aria-label="${escH(D14.fmt(dn))}"></button>`).join('');
+  el.innerHTML = `<div class="semb-l"><div class="semb-v">${pct} %</div><div class="semb-s">${escH(semL('sem_l'))}</div></div>
+    <div class="semb-track"><i class="semb-now" style="left:${pos(today).toFixed(2)}%"></i>${dots}</div>
+    <div class="semb-r"><div class="semb-v">${D14.fmtS(end)}${D14.parts(end).y}</div><div class="semb-s">${escH(semL('sem_last'))}</div></div>
+    <div class="semb-pop" hidden></div>`;
+}
+function semPop(btn) {
+  const el = $id('semb'), pop = el.querySelector('.semb-pop'), open = btn && !btn.classList.contains('open');
+  el.querySelectorAll('.semb-dot.open').forEach(b => b.classList.remove('open'));
+  if (!open) { pop.hidden = true; return; }
+  const dn = +btn.dataset.dn;
+  pop.innerHTML = `<div class="sp-d">${escH(t('wd', D14.dow(dn)))} ${D14.fmt(dn)}</div>` + SEM_EV.filter(x => x.dn === dn).map(x =>
+    `<div class="sp-e"><span class="sp-k">${escH(x.kurs)}</span>${x.abgabe ? `<span class="sp-a">${escH(semL('sem_abgabe'))}</span>` : ''}<br>${escH(x.was)}<br><span class="sp-d">${x.allDay ? escH(semL('sem_all_day')) : fmtT(x.min)}</span></div>`).join('');
+  btn.classList.add('open'); pop.hidden = false;
+  const c = btn.parentElement.offsetLeft + btn.offsetLeft + btn.offsetWidth / 2;
+  pop.style.left = Math.max(8, Math.min(el.clientWidth - pop.offsetWidth - 8, c - pop.offsetWidth / 2)) + 'px';
+}
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('.semb-dot');
+  if (b || document.querySelector('.semb-dot.open')) semPop(b || null);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') semPop(null); });
+function gcalApply(d) {
+  if (!d || !Array.isArray(d.events) || !d.events.length) return;
+  GCAL = { stand: d.stand, ev: gcalParse(d.events) };
+  SEM_EV = semParse(d.events); renderSemBar();
+  const st = $id('gc-stand'); if (st) st.textContent = t('gc_src', String(d.stand || '').slice(11, 16));
+  renderNow(); renderWochenplan();
+}
 function gcalLoad() {
+  // build_dashboard.py bakes your calendar in (GCAL_STATIC, works from a file); a server may serve /api/kalender instead
+  if (typeof GCAL_STATIC !== 'undefined' && GCAL_STATIC) return gcalApply(GCAL_STATIC);
   if (!/^https?:$/.test(location.protocol)) return;
-  fetch('/api/kalender', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(d => {
-    if (!d || !Array.isArray(d.events) || !d.events.length) return;
-    GCAL = { stand: d.stand, ev: gcalParse(d.events) };
-    const st = $id('gc-stand'); if (st) st.textContent = t('gc_src', String(d.stand || '').slice(11, 16));
-    renderNow(); renderWochenplan();
-  }).catch(() => {});
+  fetch('/api/kalender', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(gcalApply).catch(() => {});
 }
 function dayEvents(dn) {   // Termine eines Tages: Google-Kalender, sonst die Kurse des aktuellen Semesters aus TUMonline
   if (GCAL) return GCAL.ev.filter(x => !x.allDay && x.dn === dn).sort((a, b) => a.s - b.s || a.e - b.e);
@@ -5023,7 +5087,7 @@ function init() {
   renderAll();
   window.SKAL = createSkal();   // Kalender WS 26/27 (Namespace skal-)
   initViews(); initSettings(); initChips(); initPath();
-  gcalLoad(); setInterval(gcalLoad, 10 * 60 * 1000);   // Google-Kalender alle 10 Min neu
+  renderSemBar(); gcalLoad(); setInterval(gcalLoad, 10 * 60 * 1000);   // Google-Kalender alle 10 Min neu
   initRegistration();
   initV14();   // v14: Thesis, eigene Kurse
 }
