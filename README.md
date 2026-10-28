@@ -112,7 +112,9 @@ time of the last update, open tasks and deadlines, or "Token rejected" in red.
 With a token the To-dos on the Today view come from the Cockpit: one card per course of the current semester,
 plus "Uni general" for tasks without a course. Ticking a task, reopening it or adding one is sent to the Cockpit
 right away; a date at the start of a new to-do (`05.11. Read paper`) becomes its due date. "Coming up" also shows
-Cockpit deadlines, and open submissions, exams and presentations get a red dot in the semester bar. Your local
+Cockpit deadlines, and open submissions, exams and presentations get a red dot in the semester bar. With the switch
+"Send deadlines to the Cockpit" (on by default) your TUMonline exam dates and your own upcoming deadlines are sent to
+the Cockpit once each, so they show up there and as a Google task. Your local
 to-dos stay saved and come back when you remove the token; weekend to-dos stay local. Offline, the last good
 answer is shown with its time. The token is stored only in this browser: it is not part of the JSON export and
 not part of the device sync. Without a token everything works exactly as before.

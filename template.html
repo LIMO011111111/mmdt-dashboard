@@ -1096,6 +1096,8 @@ section { margin-bottom: 32px; }
 .td-soon-tile.frist:not([data-td-jump]) { cursor: default; }
 .td-soon-tile.frist:not([data-td-jump]):hover { transform: none; }
 .st-ico { margin-right: 3px; }
+.ck-switch { display: flex; align-items: center; gap: 10px; font-size: 14px; color: var(--label); cursor: pointer; }
+.ck-switch input { width: 18px; height: 18px; margin: 0; flex-shrink: 0; accent-color: var(--blue); }
 .ck-noadd { font-size: 12px; color: var(--label-3); padding: 7px 0 4px; }
 @media (prefers-reduced-motion: no-preference) { .sheet[open] { animation: v15in .25s ease both; } }
 
@@ -1446,6 +1448,7 @@ footer { margin-top: 48px; }
           <input class="ck-in" type="url" id="ck-url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false"/>
         </div>
       </div>
+      <label class="ck-switch"><input type="checkbox" id="ck-push"/><span data-t="ck_push">Fristen ins Cockpit übertragen (als Google-Aufgabe)</span></label>
       <div class="btn-row"><button type="button" class="btn small" id="ck-test" data-t="ck_test">Verbindung testen</button><span class="msg" id="ck-status" role="status"></span></div>
     </div>
     <div class="actions">
@@ -2644,6 +2647,8 @@ const I18N_V15 = {
     ck_meta: s => `Aus dem Cockpit · Stand ${s}`, ck_meta_off: s => `Offline · Stand ${s}`, ck_save_fail: 'Nicht gespeichert · Verbindung prüfen',
     ck_uni: 'Uni allgemein', ck_no_kurs: 'ohne Kurs', ck_open: 'Öffnen', ck_frist: 'Frist',
     ck_art_abgabe: 'Abgabe', ck_art_pruefung: 'Prüfung', ck_art_praesentation: 'Präsentation', ck_art_anmeldung: 'Anmeldung',
+    ck_push: 'Fristen ins Cockpit übertragen (als Google-Aufgabe)', ck_push_n: n => `${n} ${n === 1 ? 'Frist' : 'Fristen'} übertragen`,
+    ck_push_err: (n, m) => `Fristen-Übertragung: ${n} übertragen, Fehler (${m})`, ck_exam_title: (name, c) => `Prüfung ${name} (${c})`,
     ck_add_uni: 'Kein Modulcode: Aufgaben dafür unter „Uni allgemein“ anlegen', ck_st_host: h => `Server ${h}`, ck_st_host_warn: 'kein Supabase-Server, nur eigenen Adressen trauen',
   },
   en: {
@@ -2679,6 +2684,8 @@ const I18N_V15 = {
     ck_meta: s => `From the Cockpit · as of ${s}`, ck_meta_off: s => `Offline · as of ${s}`, ck_save_fail: 'Not saved · check the connection',
     ck_uni: 'Uni general', ck_no_kurs: 'no course', ck_open: 'Open', ck_frist: 'Deadline',
     ck_art_abgabe: 'Submission', ck_art_pruefung: 'Exam', ck_art_praesentation: 'Presentation', ck_art_anmeldung: 'Registration',
+    ck_push: 'Send deadlines to the Cockpit (as Google task)', ck_push_n: n => `${n} ${n === 1 ? 'deadline' : 'deadlines'} sent`,
+    ck_push_err: (n, m) => `Deadline upload: ${n} sent, error (${m})`, ck_exam_title: (name, c) => `Exam ${name} (${c})`,
     ck_add_uni: 'No module code: add tasks for this under "Uni general"', ck_st_host: h => `server ${h}`, ck_st_host_warn: 'not a Supabase server, only trust your own addresses',
   },
   it: {
@@ -5214,6 +5221,7 @@ function renderNow() {
 // Alle Texte aus dem Cockpit (Aufgabentitel aus Google Tasks/Gemini) gehen nur ueber escH/textContent ins DOM.
 // ============================================================
 const CK_TOKEN_KEY = 'mmdt_cockpit_token', CK_URL_KEY = 'mmdt_cockpit_url', CK_CACHE_KEY = 'mmdt_cockpit_cache';
+const CK_PUSH_KEY = 'mmdt_cockpit_push', CK_PUSHED_KEY = 'mmdt_cockpit_pushed', CK_PUSH_MAX = 20;   // Fristen-Upload: Schalter ('0' = aus), Merkliste Marker -> Zeitstempel
 const CK_URL_DEFAULT = 'https://nybqixajjjhpthpqkztz.supabase.co/functions/v1/mmdt';
 const CK_KURS_RE = /^[A-Z]{2,6}\d{4,6}[A-Z]?$/, CK_UNI = '_uni';   // gleiches Modulcode-Muster wie die Edge Function
 const CK_ART_ICO = { abgabe: '📄', pruefung: '✍️', praesentation: '🎤', anmeldung: '📝', _: '📌' };
@@ -5221,6 +5229,7 @@ const CK_SEM_ART = ['abgabe', 'pruefung', 'praesentation'];   // Fristen, die ro
 window.COCKPIT = null;   // { stand, aufgaben, fristen, kalender, kalender_fehler } der letzten guten Antwort (oder Cache)
 let ckErr = null;        // null | { kind: 'auth' | 'net', msg }
 let ckBusy = null, ckLast = 0, ckPosts = 0, ckSeq = 0, ckStale = false, ckCal = false, ckHint = '', ckHintTimer = null, ckDeferred = false;
+let ckPushBusy = false, ckPushTimer = null, ckPushInfo = null;   // Fristen-Upload: laeuft nie parallel; Ergebnis des letzten Laufs { n, err }
 const ckDraft = {};      // halb getippte neue Aufgaben je Karte (ueberleben Neuzeichnen und fehlgeschlagenes Speichern)
 const CK_BERLIN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' });
 function ckToken() { return String(lsGet(CK_TOKEN_KEY) || '').trim(); }
@@ -5309,12 +5318,13 @@ function semSameKurs(c, f, m) {   // Kalender-Punkt c und Frist f gehoeren zum s
 }
 function ckSemFristen(cal) {   // rote Punkte aus offenen Cockpit-Fristen; gleicher Tag + gleicher Kurs wie ein Kalender-Punkt zaehlt nur einmal
   if (!ckOn()) return [];
-  const out = [];
+  const out = [], seen = new Set();
   COCKPIT.fristen.forEach(f => {
     if (f.status !== 'offen' || CK_SEM_ART.indexOf(f.art) < 0) return;
     const w = ckWhen(f.faellig_am, f.ganztags); if (!w || w.dn < SEM_START) return;
-    const m = f.kurs ? MODULES.find(y => y.id === f.kurs) : null;
-    if (cal.some(c => c.dn === w.dn && semSameKurs(c, f, m))) return;
+    const m = f.kurs ? MODULES.find(y => y.id === f.kurs) : null, key = w.dn + '|' + (f.kurs || f.titel.toLowerCase());
+    if (seen.has(key) || cal.some(c => c.dn === w.dn && semSameKurs(c, f, m))) return;   // z. B. TUM-Pruefung aus ICS und hochgeladen
+    seen.add(key);
     out.push({ dn: w.dn, min: w.min, allDay: w.allDay, kurs: m ? tdShort(m.t) : (f.kurs || ''), was: f.titel, abgabe: f.art === 'abgabe', code: f.kurs || '' });
   });
   return out;
@@ -5343,6 +5353,7 @@ function ckStatus(msg) {   // Statuszeile im Einstellungs-Sheet
     txt = t('ck_st_ok', ckStand(COCKPIT.stand), c.open, c.late, c.fristen)
       + (COCKPIT.kalender_fehler ? ' · ' + t('ck_st_cal', COCKPIT.kalender_fehler) : COCKPIT.kalender ? ' · ' + t('ck_st_cal_ok', COCKPIT.kalender.events.length) : '');
   } else txt = t('ck_st_busy');
+  if (!msg && ckToken() && ckPushInfo && (ckPushInfo.n || ckPushInfo.err)) txt += ' · ' + (ckPushInfo.err ? t('ck_push_err', ckPushInfo.n, ckPushInfo.err) : t('ck_push_n', ckPushInfo.n));
   if (!msg && ckToken()) { const h = ckHost(); txt += ' · ' + t('ck_st_host', h) + (/(^|\.)supabase\.co$/i.test(h) ? '' : ' · ' + t('ck_st_host_warn')); }
   el.className = cls; el.textContent = txt;
 }
@@ -5375,7 +5386,7 @@ function cockpitLoad(force) {   // GET: beim Start, alle 10 Min, bei visibilityc
       if (seq !== ckSeq) { again = true; return; }  // POST waehrend des Abrufs fertig geworden: verwerfen, einmal neu laden
       const d = ckNorm(j); ckErr = null;
       lsSet(CK_CACHE_KEY, JSON.stringify(d));
-      ckApply(d);
+      ckApply(d); ckPushSoon();
     }))
     .catch(e => {
       if (tok !== ckToken() || url !== ckUrl()) return;
@@ -5443,9 +5454,82 @@ function ckAdd(k, txt) {   // neue Uni-Aufgabe mit Kurs der Karte; fuehrendes Da
     .finally(() => { if (ckOn()) renderAufgaben(); });
   return true;
 }
+// Fristen-Upload: TUMonline-Pruefungstermine und eigene Deadlines (state.dl.custom) einmalig als Cockpit-Frist + Google-Aufgabe.
+// Die Edge Function ist ueber `quelle_marker` idempotent; die Merkliste spart nur die Aufrufe (Rate-Limit teilen wir mit Abhaken).
+function ckPushOn() { return lsGet(CK_PUSH_KEY) !== '0'; }
+function ckPushedRead() { try { const o = JSON.parse(lsGet(CK_PUSHED_KEY) || '{}'); return o && typeof o === 'object' && !Array.isArray(o) ? o : {}; } catch (e) { return {}; } }
+function ckBerlinOff(date, time) {   // Offset von Europe/Berlin fuer einen Ortszeitpunkt, z. B. "+01:00"
+  try {
+    const p = new Intl.DateTimeFormat('en-US', { timeZone: 'Europe/Berlin', timeZoneName: 'shortOffset' }).formatToParts(new Date(`${date}T${time}:00Z`)).find(x => x.type === 'timeZoneName');
+    const m = p && /GMT([+-])(\d{1,2})(?::(\d{2}))?/.exec(p.value); if (m) return `${m[1]}${D14.pad(+m[2])}:${m[3] || '00'}`;
+  } catch (e) {}
+  return '+01:00';
+}
+function ckFristKandidaten() {   // was hochgeladen werden soll: nur kuenftige Termine (Berlin), keine abgemeldeten Kurse, keine erledigten Deadlines
+  const today = CK_BERLIN.format(new Date()), out = [], seen = new Set();
+  const name = c => { const m = MODULES.find(y => y.id === c); return m ? tdShort(m.t) : c; };
+  const add = (marker, b) => {
+    marker = String(marker).replace(/[^A-Za-z0-9._:-]/g, '_').slice(0, 80);
+    if (seen.has(marker) || String(b.faellig_am).slice(0, 10) < today) return;
+    if (b.kurs && state.cs[b.kurs] && state.cs[b.kurs].s === 'abgemeldet') return;
+    if (!b.kurs || !CK_KURS_RE.test(b.kurs)) delete b.kurs;
+    seen.add(marker); out.push({ marker, body: Object.assign({ aktion: 'frist' }, b, { titel: String(b.titel).slice(0, 300), aufgabe: true, quelle_marker: marker }) });
+  };
+  // 1) Pruefungstermine aus TUMonline: DEADLINES (falls vorhanden, siehe live_patch.js) bzw. direkt TUM_LIVE.examDates
+  const exams = [];
+  if (typeof DEADLINES !== 'undefined' && Array.isArray(DEADLINES)) DEADLINES.forEach(d => { if (d && /^tum-exam-/.test(String(d.id))) exams.push({ id: d.id, kurs: d.course, date: d.date, titel: d.title && (d.title.de || d.title.en) }); });
+  const live = typeof TUM_LIVE !== 'undefined' ? TUM_LIVE : null;
+  if (live && live.examDates) Object.keys(live.examDates).forEach(c => exams.push({ id: 'tum-exam-' + c, kurs: c, date: live.examDates[c] }));
+  exams.forEach(e => {
+    const dn = D14.fromDe(e.date); if (dn == null) return;
+    add(e.id, { titel: e.titel || t('ck_exam_title', name(e.kurs), e.kurs), kurs: e.kurs, art: 'pruefung', faellig_am: D14.toIso(dn), ganztags: true, link: TUMONLINE_URL });
+  });
+  // 2) eigene Deadlines; Typ -> art, Modulcode aus dem Titel
+  const ART = { pruefung: 'pruefung', anmeldung: 'anmeldung' };
+  ((state.dl && state.dl.custom) || []).forEach(c => {
+    if (state.dl.done[c.id]) return;
+    const art = ART[c.type] || (/abgabe|submission|deadline/i.test(c.title) ? 'abgabe' : /pr[äa]sentation|presentation/i.test(c.title) ? 'praesentation' : 'sonstig');
+    add('dl:' + c.id, { titel: c.title, kurs: (c.title.match(/\b[A-Z]{2,6}\d{4,6}[A-Z]?\b/) || [])[0], art,
+      faellig_am: c.time ? `${c.date}T${c.time}:00${ckBerlinOff(c.date, c.time)}` : c.date, ganztags: !c.time });
+  });
+  return out;
+}
+function ckPushMerge(j) {   // Antwort-Frist/-Aufgabe ins lokale Modell, ohne erneuten GET
+  if (!window.COCKPIT) return;
+  const f = j.frist ? ckNorm({ fristen: [j.frist] }).fristen[0] : null, a = j.aufgabe ? ckNorm({ aufgaben: [j.aufgabe] }).aufgaben[0] : null;
+  [[f, COCKPIT.fristen], [a, COCKPIT.aufgaben]].forEach(([x, l]) => { if (!x) return; const i = x.id ? l.findIndex(y => y.id === x.id) : -1; if (i >= 0) l[i] = x; else l.push(x); });
+}
+function ckPushSoon() { if (!ckPushOn()) return; clearTimeout(ckPushTimer); ckPushTimer = setTimeout(ckPushRun, 2000); }
+function ckPushRun() {   // hoechstens CK_PUSH_MAX POSTs je Lauf, nacheinander; Rest beim naechsten Lauf
+  if (ckPushBusy || !ckOn() || !ckPushOn()) return;
+  const pushed = ckPushedRead(), todo = ckFristKandidaten().filter(x => !pushed[x.marker]).slice(0, CK_PUSH_MAX);
+  if (!todo.length) return;
+  ckPushBusy = true;
+  const tok = ckToken(), url = ckUrl(); let n = 0, err = '';
+  const step = i => {
+    if (i >= todo.length || tok !== ckToken() || url !== ckUrl() || !ckPushOn()) return Promise.resolve();
+    const x = todo[i]; ckPosts++; ckSeq++;
+    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-geraet-token': tok }, body: JSON.stringify(x.body) })
+      .then(r => r.json().catch(() => null).then(j => {
+        if (r.ok && j && j.ok === true) { pushed[x.marker] = Date.now(); n++; ckPushMerge(j); return true; }
+        err = (j && typeof j.fehler === 'string' && j.fehler.slice(0, 80)) || 'HTTP ' + r.status;
+        if (r.status === 400) { pushed[x.marker] = -Date.now(); return true; }   // ungueltig: nicht bei jedem Lauf wiederholen
+        return false;   // 401/429/5xx: abbrechen, naechster Lauf versucht es wieder
+      }), () => { err = t('ck_err_net'); return false; })
+      .then(go => { ckPosts--; ckSeq++; lsSet(CK_PUSHED_KEY, JSON.stringify(pushed)); return go ? step(i + 1) : null; });
+  };
+  step(0).then(() => {
+    ckPushBusy = false; ckPushInfo = { n, err };
+    if (ckOn() && tok === ckToken()) { ckCacheWrite(); semRefresh(); if (ckTyping()) { ckDeferred = true; ckMeta(true); } else renderAufgaben(); }
+    ckStatus();
+    if (!ckPosts && ckStale) { ckStale = false; cockpitLoad(true); }
+  });
+}
 function initCockpit() {
   const tok = $id('ck-token'), url = $id('ck-url'), sec = $id('aufgaben-section');
   tok.value = ckToken(); url.value = ckUrl();
+  const push = $id('ck-push'); push.checked = ckPushOn();
+  push.addEventListener('change', () => { lsSet(CK_PUSH_KEY, push.checked ? null : '0'); ckPushInfo = null; ckStatus(); if (push.checked) ckPushSoon(); else clearTimeout(ckPushTimer); });
   const saveTok = () => {   // neuer Token: alter Cache gehoert nicht dazu, bis zur Antwort lokal
     const v = tok.value.trim(); if (v === ckToken()) return;
     lsSet(CK_TOKEN_KEY, v); lsSet(CK_CACHE_KEY, null); ckErr = null; ckLast = 0;
@@ -5456,7 +5540,7 @@ function initCockpit() {
     if (!ckUrlOk(v)) { ckStatus({ txt: t('ck_url_bad'), err: true }); return false; }
     url.value = v;
     if (v === ckUrl()) return true;
-    lsSet(CK_URL_KEY, v !== CK_URL_DEFAULT ? v : null); lsSet(CK_CACHE_KEY, null); ckErr = null; ckLast = 0;   // anderer Server: alter Cache gehoert nicht dazu
+    lsSet(CK_URL_KEY, v !== CK_URL_DEFAULT ? v : null); lsSet(CK_CACHE_KEY, null); lsSet(CK_PUSHED_KEY, null); ckErr = null; ckLast = 0; ckPushInfo = null;   // anderer Server: Cache und Merkliste gehoeren nicht dazu
     if (window.COCKPIT) ckReset();
     return true;
   };
