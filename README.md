@@ -102,6 +102,21 @@ the top of `scripts/gcal.py`. Nothing is ever written to your calendar. Without 
 as before, just without calendar and bar dots. The first day of the semester is `SEM_START` in `template.html`
 (12.10.2026 for the winter semester 2026/27).
 
+## Cockpit (optional)
+
+If you run a personal task Cockpit with the Supabase Edge Function `mmdt`, the dashboard can read your uni
+tasks, uni deadlines and Google Calendar live from it. Open **Settings** (gear icon) -> **Cockpit**, paste your
+device token and keep (or change) the function address, then tap **Test connection**. The status line shows the
+time of the last update, open tasks and deadlines, or "Token rejected" in red.
+
+With a token the To-dos on the Today view come from the Cockpit: one card per course of the current semester,
+plus "Uni general" for tasks without a course. Ticking a task, reopening it or adding one is sent to the Cockpit
+right away; a date at the start of a new to-do (`05.11. Read paper`) becomes its due date. "Coming up" also shows
+Cockpit deadlines, and open submissions, exams and presentations get a red dot in the semester bar. Your local
+to-dos stay saved and come back when you remove the token; weekend to-dos stay local. Offline, the last good
+answer is shown with its time. The token is stored only in this browser: it is not part of the JSON export and
+not part of the device sync. Without a token everything works exactly as before.
+
 ## Options
 
 ```
