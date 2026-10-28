@@ -238,6 +238,10 @@
   .wp-day-body { position: relative; height: 460px; background: var(--bg); border-radius: 10px; }
   .wp-slot { position: absolute; left: 4px; right: 4px; background: var(--blue-soft, rgba(10,132,255,0.12)); border-left: 3px solid var(--blue); border-radius: 6px; padding: 4px 6px; overflow: hidden; font-size: 10px; line-height: 1.3; }
   .wp-slot.conflict { background: var(--red-soft); border-left-color: var(--red); }
+  .wp-now { position: absolute; left: 0; right: 0; height: 1px; background: color-mix(in srgb, var(--red) 35%, transparent); z-index: 3; pointer-events: none; }
+  .wp-day.today .wp-now { height: 2px; margin-top: -1px; background: var(--red); }   /* wie Apple Kalender: nur heute kraeftig */
+  .wp-day.today .wp-now::before { content: ""; position: absolute; left: -4px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
+  .wp-now-lbl { position: absolute; right: 2px; transform: translateY(-50%); z-index: 3; padding: 2px 5px; border-radius: 999px; background: var(--red); color: #fff; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
   .wp-slot-time { font-weight: 700; color: var(--label-2); font-size: 9px; }
   .wp-slot-name { font-weight: 600; font-size: 10px; }
   .wp-slot-id { color: var(--label-3); font-size: 9px; }
@@ -1113,7 +1117,7 @@ footer { margin-top: 48px; }
     <div class="now-grid" id="now"></div>
   <section id="wochenplan-section">
     <div class="section-head">
-      <div class="section-title" data-t="wp_title">Nächste 7 Tage</div>
+      <div class="section-title" data-t="wp_title">Diese Woche</div>
     </div>
     <div class="wp-card"><div id="wochenplan"></div></div>
   </section>
@@ -2527,7 +2531,7 @@ Object.assign(I18N.it, I18N_BLANK.it);
 const I18N_V15 = {
   de: {
     v_today: 'Heute', v_progress: 'Fortschritt', v_courses: 'Kurse', v_plan: 'Planen', k_gpa: 'Schnitt', close: 'Schließen',
-    nav_aria: 'Navigation', sem_l: 'im Semester', sem_last: 'letzter Termin', sem_abgabe: 'Abgabe', sem_all_day: 'ganztägig', wp_title: 'Nächste 7 Tage', td_title: 'To-dos', td_meta: 'Pro Kurs · ⏻ schaltet einen Kurs offline', td_ph: 'To-do hinzufügen', td_open: n => n === 1 ? '1 offen' : `${n} offen`, td_off: 'Kurs offline schalten (To-dos bleiben gespeichert)', td_on: 'Wieder einschalten', td_offline: 'Offline:', td_del: 'To-do löschen', td_done_aria: 'Erledigt', td_all_done: 'Alles erledigt', td_more: n => `+${n} weitere`, td_less: 'Weniger zeigen', td_done_n: n => `${n} erledigt`, td_progress: (d, n) => `${d} von ${n} erledigt`, td_soon: 'Demnächst', td_late: 'überfällig', td_in_days: n => `in ${n} Tagen`, td_today: 'heute', td_tomorrow: 'morgen', td_from: 'ab', v_note: 'Notizen', note_title: 'Notizzettel', note_ph: 'Gedanken, Ideen, was dir gerade einfällt …', note_saving: 'Speichert …', note_saved: 'Gespeichert ✓', note_count: n => `${n} Zeichen`, td_drag: 'Ziehen zum Verschieben', td_prio_0: 'Wichtigkeit: keine (antippen zum Ändern)', td_prio_1: 'Wichtigkeit: niedrig', td_prio_2: 'Wichtigkeit: mittel', td_prio_3: 'Wichtigkeit: hoch', td_none: 'Keine Kurse in diesem Semester.', fx_of: 'von 120 ECTS', fx_cats: 'Kategorien',
+    nav_aria: 'Navigation', sem_l: 'im Semester', sem_last: 'letzter Termin', sem_abgabe: 'Abgabe', sem_all_day: 'ganztägig', wp_title: 'Diese Woche', td_title: 'To-dos', td_meta: 'Pro Kurs · ⏻ schaltet einen Kurs offline', td_ph: 'To-do hinzufügen', td_open: n => n === 1 ? '1 offen' : `${n} offen`, td_off: 'Kurs offline schalten (To-dos bleiben gespeichert)', td_on: 'Wieder einschalten', td_offline: 'Offline:', td_del: 'To-do löschen', td_done_aria: 'Erledigt', td_all_done: 'Alles erledigt', td_more: n => `+${n} weitere`, td_less: 'Weniger zeigen', td_done_n: n => `${n} erledigt`, td_progress: (d, n) => `${d} von ${n} erledigt`, td_soon: 'Demnächst', td_late: 'überfällig', td_in_days: n => `in ${n} Tagen`, td_today: 'heute', td_tomorrow: 'morgen', td_from: 'ab', v_note: 'Notizen', note_title: 'Notizzettel', note_ph: 'Gedanken, Ideen, was dir gerade einfällt …', note_saving: 'Speichert …', note_saved: 'Gespeichert ✓', note_count: n => `${n} Zeichen`, td_drag: 'Ziehen zum Verschieben', td_prio_0: 'Wichtigkeit: keine (antippen zum Ändern)', td_prio_1: 'Wichtigkeit: niedrig', td_prio_2: 'Wichtigkeit: mittel', td_prio_3: 'Wichtigkeit: hoch', td_none: 'Keine Kurse in diesem Semester.', fx_of: 'von 120 ECTS', fx_cats: 'Kategorien',
     leg_done: 'bestanden', leg_sem: 'dieses Semester', leg_later: 'später geplant',
     fx_after_sem: s => `nach dem ${s}. Semester, wenn alles klappt`, fx_planned_all: 'insgesamt eingeplant',
     fx_proj_note: n => `Bestehst du dieses Semester alles, kommen ${n} ECTS dazu.`, fx_proj_none: 'Für dieses Semester ist nichts Offenes eingeplant.',
@@ -2549,7 +2553,7 @@ const I18N_V15 = {
   },
   en: {
     v_today: 'Today', v_progress: 'Progress', v_courses: 'Courses', v_plan: 'Plan', k_gpa: 'GPA', close: 'Close',
-    nav_aria: 'Navigation', sem_l: 'of the semester', sem_last: 'last deadline', sem_abgabe: 'Deadline', sem_all_day: 'all day', wp_title: 'Next 7 days', td_title: 'To-dos', td_meta: 'Per course · ⏻ takes a course offline', td_ph: 'Add to-do', td_open: n => `${n} open`, td_off: 'Take course offline (to-dos are kept)', td_on: 'Turn back on', td_offline: 'Offline:', td_del: 'Delete to-do', td_done_aria: 'Done', td_all_done: 'All done', td_more: n => `+${n} more`, td_less: 'Show less', td_done_n: n => `${n} done`, td_progress: (d, n) => `${d} of ${n} done`, td_soon: 'Coming up', td_late: 'overdue', td_in_days: n => `in ${n} days`, td_today: 'today', td_tomorrow: 'tomorrow', td_from: 'from', v_note: 'Notes', note_title: 'Notes', note_ph: 'Thoughts, ideas, whatever comes to mind …', note_saving: 'Saving …', note_saved: 'Saved ✓', note_count: n => `${n} characters`, td_drag: 'Drag to move', td_prio_0: 'Priority: none (tap to change)', td_prio_1: 'Priority: low', td_prio_2: 'Priority: medium', td_prio_3: 'Priority: high', td_none: 'No courses this semester.', fx_of: 'of 120 ECTS', fx_cats: 'Categories',
+    nav_aria: 'Navigation', sem_l: 'of the semester', sem_last: 'last deadline', sem_abgabe: 'Deadline', sem_all_day: 'all day', wp_title: 'This week', td_title: 'To-dos', td_meta: 'Per course · ⏻ takes a course offline', td_ph: 'Add to-do', td_open: n => `${n} open`, td_off: 'Take course offline (to-dos are kept)', td_on: 'Turn back on', td_offline: 'Offline:', td_del: 'Delete to-do', td_done_aria: 'Done', td_all_done: 'All done', td_more: n => `+${n} more`, td_less: 'Show less', td_done_n: n => `${n} done`, td_progress: (d, n) => `${d} of ${n} done`, td_soon: 'Coming up', td_late: 'overdue', td_in_days: n => `in ${n} days`, td_today: 'today', td_tomorrow: 'tomorrow', td_from: 'from', v_note: 'Notes', note_title: 'Notes', note_ph: 'Thoughts, ideas, whatever comes to mind …', note_saving: 'Saving …', note_saved: 'Saved ✓', note_count: n => `${n} characters`, td_drag: 'Drag to move', td_prio_0: 'Priority: none (tap to change)', td_prio_1: 'Priority: low', td_prio_2: 'Priority: medium', td_prio_3: 'Priority: high', td_none: 'No courses this semester.', fx_of: 'of 120 ECTS', fx_cats: 'Categories',
     leg_done: 'passed', leg_sem: 'this semester', leg_later: 'planned later',
     fx_after_sem: s => `after semester ${s}, if all goes well`, fx_planned_all: 'planned in total',
     fx_proj_note: n => `Pass everything this semester and you add ${n} ECTS.`, fx_proj_none: 'Nothing open is planned for this semester.',
@@ -2570,7 +2574,7 @@ const I18N_V15 = {
     wp_no_time: l => `Dates still unknown: ${l} — add them from the TUMonline course details.`,
   },
   it: {
-    v_today: 'Oggi', v_progress: 'Progressi', v_courses: 'Corsi', v_plan: 'Piano', k_gpa: 'Media', close: 'Chiudi', wp_title: 'Prossimi 7 giorni',
+    v_today: 'Oggi', v_progress: 'Progressi', v_courses: 'Corsi', v_plan: 'Piano', k_gpa: 'Media', close: 'Chiudi', wp_title: 'Questa settimana',
     wd: i => ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'][i],
   },
 };
@@ -3551,11 +3555,18 @@ const SCHEDULE_BLOCKS = {
 
 function fmtT(min){ const h=Math.floor(min/60), m=min%60; return h+':'+String(m).padStart(2,'0'); }
 
-// Wochenplan: ohne Versatz 7 Tage ab heute (heute ganz links), beim Blaettern normale Wochen Mo–So
+// Wochenplan: immer normale Wochen Mo–So (wie Apple Kalender)
 var wpWeekOffset = 0;
-function wpStart() {   // zurueck: erst die laufende Woche ab Montag (ausser heute ist Montag)
-  const d = D14.today(), k = wpWeekOffset, mon = d - D14.dow(d);
-  return k === 0 ? d : mon + 7 * (k < 0 && D14.dow(d) > 0 ? k + 1 : k);
+function wpNowTick() {   // rote Jetzt-Linie jede Minute nachziehen, ohne den Wochenplan neu zu bauen
+  const g = document.querySelector('#wochenplan .wp-grid'); if (!g) return;
+  const START = +g.dataset.start, END = +g.dataset.end, d = new Date(), mins = d.getHours() * 60 + d.getMinutes();
+  const on = mins >= START && mins < END, top = (mins - START) / (END - START) * 100 + '%';
+  g.querySelectorAll('.wp-now, .wp-now-lbl').forEach(x => { x.style.top = top; x.style.display = on ? '' : 'none'; });
+  const lbl = g.querySelector('.wp-now-lbl'); if (lbl) lbl.textContent = fmtT(mins);
+}
+function wpStart() {   // Montag der angezeigten Woche
+  const d = D14.today();
+  return d - D14.dow(d) + 7 * wpWeekOffset;
 }
 function renderWochenplan() {
   const el = document.getElementById('wochenplan');
@@ -3583,6 +3594,9 @@ function renderWochenplan() {
   const noTime = mods.filter(m => !SCHEDULE[m.id] && !SCHEDULE_BLOCKS[m.id]);
   const blocks = mods.filter(m => SCHEDULE_BLOCKS[m.id]);
 
+  const nowD = new Date(), nowMins = nowD.getHours() * 60 + nowD.getMinutes();
+  const showNow = today >= mon && today <= mon + 6 && nowMins >= START && nowMins < END;   // rote Jetzt-Linie wie in Apple Kalender
+  const nowTop = (nowMins - START) / (END - START) * 100;
   let cols = '';
   for (let d = 0; d < 7; d++) {
     const day = slots.filter(s => s.d === d).sort((a,b) => a.s - b.s || b.e - a.e), wd = D14.dow(mon + d);
@@ -3600,13 +3614,14 @@ function renderWochenplan() {
         <div class="wp-slot-id">${escH(s.m.id)}</div>
       </div>`;
     }).join('');
-    cols += `<div class="wp-day ${mon + d === today ? 'today' : ''} ${wd >= 5 ? 'we' : ''}"><div class="wp-day-head"><span class="wp-d-full">${DAYS[wd]} ${D14.fmtS(mon + d)}</span><span class="wp-d-short">${DAYS_S[wd]} ${D14.parts(mon + d).d}.</span></div><div class="wp-day-body">${inner}</div></div>`;
+    cols += `<div class="wp-day ${mon + d === today ? 'today' : ''} ${wd >= 5 ? 'we' : ''}"><div class="wp-day-head"><span class="wp-d-full">${DAYS[wd]} ${D14.fmtS(mon + d)}</span><span class="wp-d-short">${DAYS_S[wd]} ${D14.parts(mon + d).d}.</span></div><div class="wp-day-body">${inner}${showNow ? `<div class="wp-now" style="top:${nowTop}%"></div>` : ''}</div></div>`;
   }
   // Stundenraster links
   let hours = '';
   for (let h = START / 60; h < END / 60; h += 2) {
     hours += `<div class="wp-hour" style="top:${(h*60-START)/(END-START)*100}%">${h}:00</div>`;
   }
+  if (showNow) hours += `<div class="wp-now-lbl" style="top:${nowTop}%">${fmtT(nowMins)}</div>`;
   const conflictNote = slots.some(s => s.conflict)
     ? `<div class="wp-note conflict">&#9888; ${escH(t('wp_conflict_note'))}</div>` : '';
   const asNote = asOverlap ? `<div class="wp-note">${t('wp_as_note')}</div>` : '';
@@ -3643,11 +3658,11 @@ function renderWochenplan() {
       // alle 7 Tage zeigen (auch das Wochenende), leere Tage als "frei"
       return `<div class="ag-day ${mon + d === today ? 'today' : ''}"><div class="ag-head">${escH(wdOf(mon + d))} ${D14.fmtS(mon + d)}</div>${items.length ? items.join('') : `<div class="ag-free">${escH(t('gc_free'))}</div>`}</div>`;
     }).join('');
-    el.innerHTML = `${nav}<div class="wp-grid"><div class="wp-hours">${hours}</div>${cols}</div><div class="wp-agenda">${agenda}</div>${weTodo}${legend}`
+    el.innerHTML = `${nav}<div class="wp-grid" data-start="${START}" data-end="${END}"><div class="wp-hours">${hours}</div>${cols}</div><div class="wp-agenda">${agenda}</div>${weTodo}${legend}`
       + (ganz.length ? `<div class="wp-note wp-allday">${escH(t('gc_allday'))}: ${ganz.join(' &middot; ')}</div>` : '') + conflictNote;
     return;
   }
-  el.innerHTML = `${nav}<div class="wp-grid"><div class="wp-hours">${hours}</div>${cols}</div>${emptyWeek}${weTodo}${statusLegend}${conflictNote}${asNote}${notesHTML}${unvHTML}${blockHTML}${noTimeHTML}`;
+  el.innerHTML = `${nav}<div class="wp-grid" data-start="${START}" data-end="${END}"><div class="wp-hours">${hours}</div>${cols}</div>${emptyWeek}${weTodo}${statusLegend}${conflictNote}${asNote}${notesHTML}${unvHTML}${blockHTML}${noTimeHTML}`;
 }
 
 // ============================================================
@@ -4708,7 +4723,7 @@ function initV14() {
     save(); renderThesis();
   });
   syncV14Forms(); v14Ready = true; renderV14();
-  setInterval(() => { renderThesis(); renderNow(); }, 60 * 1000);   // Jetzt-Karte und Thesis-Countdown aktuell halten
+  setInterval(() => { renderThesis(); renderNow(); wpNowTick(); }, 60 * 1000);   // Jetzt-Karte und Thesis-Countdown aktuell halten
 }
 
 // To-dos je Kurs (Heute, unter dem Wochenplan): Kurse des aktuellen Semesters plus alle Kurse, die noch To-dos haben.
