@@ -14,7 +14,8 @@ with Claude; both use the same token.
 
 ## What you get
 
-`data/dashboard.html`, one file, open it in any browser (phone too). It shows:
+`data/dashboard.html`, one file, open it in any browser. On the phone it is a compact app with a bottom bar
+(add it to the home screen). It shows:
 
 | In the dashboard | Comes from |
 |---|---|
@@ -26,6 +27,7 @@ with Claude; both use the same token.
 
 Everything you still set by hand in the dashboard (wait-list status, notes, planned modules for
 later semesters, deadlines you add) stays; TUMonline facts only overwrite what they know better.
+The thesis is planned for semester 4 of your program until you pick another semester or date yourself.
 
 ## Setup (10 minutes)
 
@@ -61,10 +63,23 @@ The build only needs the token, no login, so it can run on a schedule:
   ```
   `flock` makes sure two builds never run at the same time.
 
-Serve `data/` with any static web server inside your home network (for example
-`python3 -m http.server 8080 --directory data` on the Pi, or a symlink to `data/` inside a web
-root you already serve) and open `http://<pi>:8080/dashboard.html` on your phone.
-**Do not publish the generated file**: it contains your grades.
+To open the dashboard on your phone, serve `data/` inside your home network:
+
+```bash
+python3 scripts/serve.py            # http://<pi>:8080/dashboard.html
+```
+
+`serve.py` is a plain static server plus the two small endpoints the page uses when it is opened over
+http instead of as a file: `/api/mmdt-state` keeps everything you set by hand (status, notes, to-dos,
+plans) in `data/mmdt-state.json`, so phone and laptop show the same thing (newest change wins), and
+`/api/kalender` serves your Google Calendar fresh (every 10 minutes, see below) instead of the copy baked
+in at build time. Opened as a file, or through a server without these endpoints (`python3 -m http.server`,
+nginx, ...), the dashboard still works, but your entries stay in that one browser and the page says so at
+the top. Any other server works too as long as it answers `GET`/`PUT /api/mmdt-state` with
+`{"ts": <ms>, "state": {...}}`.
+
+**Do not publish the generated file**: it contains your grades. Keep the server in your home network
+(or put authentication in front of it).
 
 If the repo folder is mirrored between PC and Pi (for example with Syncthing), the Pi can build
 in place and the finished dashboard shows up on the PC by itself. Exclude `venv/` from the sync.
@@ -107,6 +122,7 @@ py scripts/tumonline.py status                      # token check
 | `scripts/live_patch.js` | The small script injected into the dashboard that applies the live data |
 | `scripts/tumonline.py` | TUMonline API client (from tum-coursepilot, MIT), extended with grades/calendar fallbacks |
 | `scripts/gcal.py` | Optional: reads your Google Calendar through its secret iCal address (read-only) |
+| `scripts/serve.py` | Optional: home-network server for `data/` with device sync (`/api/mmdt-state`) and live calendar (`/api/kalender`) |
 | `scripts/handbook.py` | Downloads the module handbook PDFs and extracts exam formats |
 | `data/codes.txt` | Module codes and names of the MMDT curriculum (taken from the template) |
 | `data/` (rest) | Your token-fetched data and the generated dashboard; ignored by git |

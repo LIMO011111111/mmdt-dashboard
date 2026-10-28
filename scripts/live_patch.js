@@ -61,6 +61,13 @@
       state.cs[c] = { s: me.cs[c].s, g: me.cs[c].g || '', n: cur.n || '' };
     });
     state.cs = sanitizeCs(state.cs, state.picked);
+    // thesis: the template defaults to a fixed date; as long as you have not set a thesis semester or date yourself,
+    // plan it for semester 4 of your actual program (counted from your first semester, e.g. 26S -> 27W -> 01.10.2027)
+    if (state.picked.THESIS === undefined && typeof semesterStartIso === 'function' && typeof THESIS_DEFAULT_START !== 'undefined'
+        && (!state.thesis || !state.thesis.start || state.thesis.start === THESIS_DEFAULT_START)) {
+      state.picked.THESIS = '4';
+      state.thesis = Object.assign({ done: {}, ics: false }, state.thesis || {}, { start: semesterStartIso(4) });
+    }
     save();
     syncCourseStatus();
   }

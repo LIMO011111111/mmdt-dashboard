@@ -190,6 +190,21 @@
   .tab.active { background: var(--bg-elevated); color: var(--label); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
   .tab-count { color: var(--label-3); margin-left: 6px; font-size: 11px; }
   .tab.active .tab-count { color: var(--label-2); }
+  /* Handy: Suche + Bereichs-Tabs haften unter der Kopfzeile (--top-h setzt init()), Studienbereiche als zuklappbare Gruppen */
+  .mod-group { border-bottom: 1px solid var(--separator); }
+  .mod-group:last-child { border-bottom: none; }
+  .mod-group > summary { list-style: none; display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 13px 16px; font-size: 14px; font-weight: 600; cursor: pointer; background: var(--bg-tinted); -webkit-tap-highlight-color: transparent; }
+  .mod-group > summary::-webkit-details-marker { display: none; }
+  .mod-group > summary::after { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--label-3); border-bottom: 2px solid var(--label-3); transform: rotate(45deg); margin: 0 4px 4px 10px; transition: transform 0.15s; flex-shrink: 0; }
+  .mod-group[open] > summary::after { transform: rotate(-135deg); margin-bottom: -4px; }
+  .mod-group-n { margin-left: auto; font-size: 12px; font-weight: 400; color: var(--label-3); white-space: nowrap; }
+  .mod-group-n b { color: var(--blue-ink); font-weight: 700; }
+  .mod-group .mod:last-child { border-bottom: none; }
+  @media (max-width: 767px) {
+    .mod-filter { position: sticky; top: var(--top-h, 0px); z-index: 30; margin: 0 -16px; padding: 8px 16px 2px; background: var(--bg); }
+    .mod-tools { margin-bottom: 8px; }
+    .tabs { margin-bottom: 8px; }
+  }
 
   .switch { position: relative; display: inline-block; width: 44px; height: 26px; flex-shrink: 0; }
   .switch input { opacity: 0; width: 0; height: 0; }
@@ -354,18 +369,34 @@
   .reg-todo.done .reg-todo-text { color: var(--label-3); text-decoration: line-through; }
   .reg-todo-text { min-width: 0; }
   @media (max-width: 860px) {
+    /* Handy: jede Zeile wird eine kompakte Karte (Name / Code · Bereich · ECTS / Status + Note / Notiz) statt einer
+       gestapelten Tabelle mit sechs Labels. Reihenfolge der Zellen: code, name, area, status, grade, note. */
     .reg-table thead { display: none; }
-    .reg-table, .reg-table tbody, .reg-table tr, .reg-table td { display: block; width: 100%; }
-    .reg-table tbody tr:not(.reg-group) { padding: 10px 14px; border-bottom: 1px solid var(--separator); }
-    .reg-table td { border: none; padding: 3px 0 !important; display: flex; gap: 10px; }
-    .reg-table td::before { content: attr(data-label); flex: 0 0 96px; font-size: 10.5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--label-3); padding-top: 2px; }
-    .reg-table td > div:not(.reg-note):not(.reg-due) { flex: 1; }
-    .reg-table .reg-group td { display: block; padding: 8px 14px !important; }
-    .reg-table .reg-group td::before { display: none; }
-    .reg-table td:first-child { padding-left: 0 !important; }
-    .reg-table td > select, .reg-table td > input { flex: 1; min-width: 0; width: auto; }
-    .reg-table td.reg-empty { display: block; padding: 24px 14px !important; }
-    .reg-table td.reg-empty::before { display: none; }
+    .reg-table, .reg-table tbody { display: block; width: 100%; }
+    .reg-table tbody tr:not(.reg-group) { display: grid; grid-template-columns: auto minmax(0, 1fr) 72px; grid-template-areas: "name name name" "code area area" "status status grade" "note note note"; column-gap: 8px; row-gap: 4px; align-items: center; padding: 10px 14px 12px; border-bottom: 1px solid var(--separator); }
+    .reg-table tbody tr:not(.reg-group):has(.grade:disabled) { grid-template-areas: "name name name" "code area area" "status status status" "note note note"; }
+    .reg-table tbody tr:not(.reg-group):has(.grade:disabled) td:nth-child(5) { display: none; }
+    .reg-table tbody:last-child tr:last-child { border-bottom: none; }
+    .reg-table td { display: block; border: none; padding: 0 !important; min-width: 0; }
+    .reg-table td:nth-child(1) { grid-area: code; }
+    .reg-table td:nth-child(2) { grid-area: name; font-size: 14px; }
+    .reg-table td:nth-child(2) > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
+    .reg-table td:nth-child(2) .reg-note { margin-top: 0; }
+    .reg-table td:nth-child(3) { grid-area: area; font-size: 11px; color: var(--label-3); }
+    .reg-table td:nth-child(3) > div { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reg-table td:nth-child(3) .reg-note { margin-top: 0; }
+    .reg-table td:nth-child(3) .reg-note::before { content: '·'; margin-right: 6px; }
+    .reg-table td:nth-child(4) { grid-area: status; margin-top: 4px; }
+    .reg-table td:nth-child(5) { grid-area: grade; margin-top: 4px; }
+    .reg-table td:nth-child(6) { grid-area: note; }
+    .reg-table td > select, .reg-table td > input { width: 100%; min-width: 0; }
+    .reg-table .reg-inp.grade { width: 100%; text-align: center; }
+    .reg-table td:nth-child(6) .reg-inp { font-size: 12px; padding: 5px 8px; background: transparent; border-style: dashed; }
+    .reg-table td:nth-child(6) .reg-inp:not(:placeholder-shown), .reg-table td:nth-child(6) .reg-inp:focus { background: var(--bg-elevated); border-style: solid; }
+    .reg-table tr.reg-group, .reg-table .reg-group td { display: block; }
+    .reg-table .reg-group td { padding: 8px 14px !important; }
+    .reg-table tr:has(> .reg-empty), .reg-table td.reg-empty { display: block; }
+    .reg-table td.reg-empty { padding: 24px 14px !important; }
   }
 
   .wp-slot.st-warteliste:not(.conflict) { background: var(--orange-soft); border-left-color: var(--orange); }
@@ -753,6 +784,11 @@ section { margin-bottom: 32px; }
 .td-soon-tile.soon .st-rel { color: var(--td-orange); }
 .td-soon-tile.late .st-rel { color: var(--td-red); }
 .td-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; }
+.td-fold { grid-column: 1 / -1; display: grid; gap: 14px; }
+.td-fold > summary { list-style: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--label-3); padding: 6px 4px; display: flex; align-items: center; gap: 8px; -webkit-tap-highlight-color: transparent; }
+.td-fold > summary::-webkit-details-marker { display: none; }
+.td-fold > summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); margin-left: 4px; transition: transform 0.15s; }
+.td-fold[open] > summary::before { transform: rotate(45deg); }
 .td-card { background: var(--bg-elevated); border-radius: var(--r-card); padding: 14px 16px 10px; box-shadow: var(--sh-card); min-width: 0;
   transform-origin: 50% 100%; transition: transform .38s cubic-bezier(.5,0,.75,0), opacity .38s ease, filter .38s ease, box-shadow .3s; }
 .td-card.empty { padding-bottom: 8px; }
@@ -901,6 +937,14 @@ section { margin-bottom: 32px; }
 .ag-item { display: grid; grid-template-columns: 50px 1fr; gap: 10px; padding: 7px 0 7px 10px; border-left: 3px solid var(--tum-blau); margin: 4px 0; border-radius: 2px; }
 .ag-item.priv { border-left-color: var(--label-4); }
 .ag-free { font-size: 13px; color: var(--label-3); padding: 2px 0 2px 13px; }
+.ag-past { border-bottom: 1px solid var(--separator); margin-bottom: 8px; }
+.ag-past > summary { list-style: none; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--label-3); padding: 6px 0 10px; display: flex; align-items: center; gap: 8px; -webkit-tap-highlight-color: transparent; }
+.ag-past > summary::-webkit-details-marker { display: none; }
+.ag-past > summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); margin-left: 2px; transition: transform 0.15s; }
+.ag-past[open] > summary::before { transform: rotate(45deg); }
+.ag-past[open] > summary { border-bottom: 1px solid var(--separator); margin-bottom: 6px; }
+.ag-past .ag-day { opacity: 0.75; }
+.ag-past + .ag-day { padding-top: 4px; }
 .ag-item.gcol { border-left-color: var(--gc); }
 .wp-slot.gcol:not(.conflict) { background: color-mix(in srgb, var(--gc) 18%, transparent); border-left-color: var(--gc); }
 .nl-item.gcol .nl-name::before { background: var(--gc); }
@@ -1238,11 +1282,13 @@ footer { margin-top: 48px; }
       <strong>Hinweis:</strong> Klicke auf einen Modulnamen für Details. Prüfungsleistungen sind mit ✓ (aus Modulhandbuch verifiziert) oder ⚠ (nicht verifiziert — selbst im Modulhandbuch nachschlagen) markiert. Rote <em>Adv. Seminar</em>-Tags kennzeichnen Pflicht-Seminare der Specialization.
     </div>
 
+    <div class="mod-filter">
     <div class="mod-tools">
       <input type="search" id="mod-search" class="mod-search" autocomplete="off" data-t-ph="mod_search_ph" placeholder="Kurs suchen (Name oder Code)">
       <label class="mod-wsonly"><input type="checkbox" id="mod-wsonly"> <span data-t="mod_ws_only">Nur im WS 26/27 angeboten</span></label>
     </div>
     <div class="tabs" id="tabs"></div>
+    </div>
     <div class="mod-list" id="mod-list"></div>
     <details class="dl-add" id="cu-add">
       <summary data-t="cu_sum">+ Eigenen Kurs hinzufügen</summary>
@@ -2546,6 +2592,7 @@ const I18N_V15 = {
     now_none: 'Keine Termine in Sicht', now_none_sub: 'Für die nächsten Wochen sind keine Kurstermine bekannt.',
     wd: i => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][i],
     gc_online: 'Online', gc_allday: 'Ganztägig', gc_free: 'frei', gc_weekend: 'Wochenende', leg_uni: 'Uni', leg_priv: 'Privat',
+    ag_past: (a, b, n) => `${a}–${b} vergangen` + (n ? ` · ${n} ${n === 1 ? 'Termin' : 'Termine'}` : ''), td_empty_n: n => `${n} Kurse ohne To-dos`,
     we_todo: 'To-dos fürs Wochenende', we_todo_ph: 'WE-To-do hinzufügen',
     gc_src: h => `Google Kalender · Stand ${h}`,
     wp_conflict_note: 'Rot markierte Termine überschneiden sich.', wp_blocks: 'Blockkurse',
@@ -2568,6 +2615,7 @@ const I18N_V15 = {
     now_none: 'Nothing coming up', now_none_sub: 'No course dates are known for the next weeks.',
     wd: i => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
     gc_online: 'Online', gc_allday: 'All day', gc_free: 'free', gc_weekend: 'Weekend', leg_uni: 'Uni', leg_priv: 'Private',
+    ag_past: (a, b, n) => `${a}–${b} past` + (n ? ` · ${n} ${n === 1 ? 'event' : 'events'}` : ''), td_empty_n: n => `${n} courses without to-dos`,
     we_todo: 'Weekend to-dos', we_todo_ph: 'Add weekend to-do',
     gc_src: h => `Google Calendar · as of ${h}`,
     wp_conflict_note: 'Sessions marked red overlap.', wp_blocks: 'Block courses',
@@ -3372,6 +3420,9 @@ function renderTabs() {
 }
 
 var modQuery = '';   // Suchtext der Modulwahl (nicht gespeichert)
+const PHONE_MQ = matchMedia('(max-width: 767px)');
+function isPhone() { return PHONE_MQ.matches; }
+const modGroupsOpen = new Set();   // auf dem Handy aufgeklappte Studienbereiche der Modulwahl (nur fuer diese Sitzung)
 function renderModList() {
   let mods = MODULES.slice();
   if (state.activeCat !== 'all') mods = mods.filter(m => m.cat === state.activeCat);
@@ -3389,7 +3440,7 @@ function renderModList() {
   });
 
   const el = document.getElementById('mod-list');
-  el.innerHTML = mods.map(m => {
+  const rowOf = m => {
     const picked = state.picked[m.id] !== undefined && !isDropped(m.id);
     const sem = state.picked[m.id] || '';
     const isAdv = m.sub === 'advseminar';
@@ -3441,7 +3492,23 @@ function renderModList() {
         <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5 3l4 4-4 4V3z"/></svg>
       </div>
     </div>${detailHTML}`;
-  }).join('') || `<div class="mod-empty">${escH(t('mod_none_found'))}</div>`;
+  };
+  // Handy, Tab "Alle" ohne Suchtext: 89 Module waeren ~11.000 px lang. Darum je Studienbereich eine zuklappbare Gruppe;
+  // offen bleibt, was man selbst aufgeklappt hat, und der Bereich des gerade geoeffneten Moduls.
+  const grouped = isPhone() && state.activeCat === 'all' && !q && mods.length > 12;
+  if (grouped) {
+    const labels = getCatLabels(), order = ['auflage', 'methods', 'digital_tech', 'mgmt_family', 'mgmt_digital', 'mgmt_other', 'project', 'thesis'];
+    const cats = order.filter(c => mods.some(m => m.cat === c)).concat([...new Set(mods.map(m => m.cat))].filter(c => order.indexOf(c) < 0));
+    const expCat = state.expandedMod && (mods.find(m => m.id === state.expandedMod) || {}).cat;
+    el.innerHTML = cats.map(c => {
+      const list = mods.filter(m => m.cat === c), n = list.filter(m => state.picked[m.id] !== undefined && !isDropped(m.id)).length;
+      const open = modGroupsOpen.has(c) || c === expCat;
+      return `<details class="mod-group" data-cat="${escH(c)}" ${open ? 'open' : ''}><summary><span class="mod-group-name">${escH(labels[c] || c)}</span><span class="mod-group-n">${n ? `<b>${n}</b> / ` : ''}${list.length}</span></summary>${list.map(rowOf).join('')}</details>`;
+    }).join('');
+    el.querySelectorAll('details.mod-group').forEach(d => d.addEventListener('toggle', () => { if (d.open) modGroupsOpen.add(d.dataset.cat); else modGroupsOpen.delete(d.dataset.cat); }));
+  } else {
+    el.innerHTML = mods.map(rowOf).join('') || `<div class="mod-empty">${escH(t('mod_none_found'))}</div>`;
+  }
 
   el.querySelectorAll('[data-cu-del]').forEach(b => b.addEventListener('click', e => {
     e.stopPropagation();
@@ -3651,13 +3718,18 @@ function renderWochenplan() {
     const ganz = [];
     for (let d = 0; d < 7; d++) gcalAllDay(mon + d).filter(x => x.dn === mon + d || d === 0).forEach(x => ganz.push(`<strong>${escH(wdOf(x.dn))} ${D14.fmtS(x.dn)}${x.dnE - x.dn > 1 ? '–' + D14.fmtS(x.dnE - 1) : ''}</strong> ${escH(x.t)}`));
     const legend = `<div class="wp-legend"><span class="wp-leg"></span>${escH(t('leg_uni'))} <span class="wp-leg priv"></span>${escH(t('leg_priv'))} <span class="wp-src">${escH(t('gc_src', String(GCAL.stand || '').slice(11, 16)))}</span></div>`;
-    const agenda = [0, 1, 2, 3, 4, 5, 6].map(d => {   // Handy: Woche als Liste statt Raster
+    const dayHtml = [0, 1, 2, 3, 4, 5, 6].map(d => {   // Handy: Woche als Liste statt Raster
       const cls = x => `ag-item ${x.uni ? 'uni' : 'priv'} ${x.col ? 'gcol' : ''}" style="${x.col ? '--gc:' + x.col : ''}`;
       const items = gcalAllDay(mon + d).map(x => `<div class="${cls(x)}"><div class="ag-time ag-ad">${escH(t('gc_allday'))}</div><div class="ag-name">${escH(x.t)}</div></div>`)
         .concat(GCAL.ev.filter(x => !x.allDay && x.dn === mon + d).sort((a, b) => a.s - b.s).map(x => `<div class="${cls(x)}"><div class="ag-time">${fmtT(x.s)}<small>${fmtT(x.e)}</small></div><div><div class="ag-name">${escH(x.t)}</div>${x.sub ? `<div class="ag-sub">${escH(x.sub)}</div>` : ''}</div></div>`));
       // alle 7 Tage zeigen (auch das Wochenende), leere Tage als "frei"
-      return `<div class="ag-day ${mon + d === today ? 'today' : ''}"><div class="ag-head">${escH(wdOf(mon + d))} ${D14.fmtS(mon + d)}</div>${items.length ? items.join('') : `<div class="ag-free">${escH(t('gc_free'))}</div>`}</div>`;
-    }).join('');
+      return { n: items.length, html: `<div class="ag-day ${mon + d === today ? 'today' : ''}"><div class="ag-head">${escH(wdOf(mon + d))} ${D14.fmtS(mon + d)}</div>${items.length ? items.join('') : `<div class="ag-free">${escH(t('gc_free'))}</div>`}</div>` };
+    });
+    // in der laufenden Woche: vergangene Tage zu einer zuklappbaren Zeile falten, damit "heute" oben steht
+    const past = Math.max(0, Math.min(7, today - mon));
+    const agenda = (past > 0 && past < 7
+      ? `<details class="ag-past"><summary>${escH(t('ag_past', wdOf(mon), wdOf(mon + past - 1), dayHtml.slice(0, past).reduce((a, x) => a + x.n, 0)))}</summary>${dayHtml.slice(0, past).map(x => x.html).join('')}</details>`
+      : dayHtml.slice(0, past).map(x => x.html).join('')) + dayHtml.slice(past).map(x => x.html).join('');
     el.innerHTML = `${nav}<div class="wp-grid" data-start="${START}" data-end="${END}"><div class="wp-hours">${hours}</div>${cols}</div><div class="wp-agenda">${agenda}</div>${weTodo}${legend}`
       + (ganz.length ? `<div class="wp-note wp-allday">${escH(t('gc_allday'))}: ${ganz.join(' &middot; ')}</div>` : '') + conflictNote;
     return;
@@ -4739,6 +4811,7 @@ const TD_GRIP = '<svg viewBox="0 0 10 16" aria-hidden="true"><circle cx="3" cy="
 const TD_SHOW = 4;          // so viele offene Punkte zeigt eine zugeklappte Karte
 let tdFresh = null;         // gerade (wieder) eingeschalteter oder offline geschalteter Kurs: bekommt die Einblend-Animation
 const tdOpen = new Set();   // aufgeklappte Karten (nur in dieser Sitzung)
+let tdFoldOpen = false;     // Handy: Kurse ohne To-dos aufgeklappt (nur in dieser Sitzung)
 function tdDate(txt) {   // fuehrendes Datum ("28.10. 15:00–17:30: …", "Ab 16.11.: …") wird zum Chip, der Rest bleibt Text
   const m = /^(ab\s+)?(\d{1,2})\.(\d{1,2})\.(\d{2,4})?(?:\s+(\d{1,2}:\d{2})(?:\s*[–-]\s*\d{1,2}:\d{2})?)?\s*:?\s*/i.exec(txt);
   if (!m) return null;
@@ -4780,7 +4853,7 @@ function renderAufgaben() {
       <div class="st-body"><div class="st-t">${escH(o.dt.rest)}</div><div class="st-m"><span class="st-rel">${escH(rel)}</span>${o.dt.time ? ' · ' + escH(o.dt.time) : ''} · ${escH(tdShort(o.k.t))}</div></div></button>`;
   }).join('') + '</div>' : '';
   on.sort((a, b) => !(state.aufg[a.id] || []).length - !(state.aufg[b.id] || []).length);   // leere Kurse ans Ende
-  el.innerHTML = on.length ? on.map(k => {
+  const cardOf = k => {
     const l = state.aufg[k.id] || [], openL = l.filter(x => !x.d), doneL = l.filter(x => x.d), exp = tdOpen.has(k.id);
     const shown = exp ? openL.concat(doneL) : openL.slice(0, TD_SHOW);
     const hiddenOpen = openL.length - (exp ? openL.length : shown.length);
@@ -4792,7 +4865,15 @@ function renderAufgaben() {
       ${shown.length ? `<ul class="td-list" data-td-list="${escH(k.id)}">${shown.map(x => tdItem(k.id, x)).join('')}</ul>` : ''}
       ${moreTxt ? `<button type="button" class="td-more" data-td-more="${escH(k.id)}">${escH(moreTxt)} <span aria-hidden="true">${exp ? '▴' : '▾'}</span></button>` : ''}
       <form class="td-add" data-td-add="${escH(k.id)}"><span aria-hidden="true">+</span><input type="text" maxlength="300" placeholder="${escH(t('td_ph'))}" aria-label="${escH(t('td_ph'))}"/></form></div>`;
-  }).join('') : `<div class="td-empty">${escH(t('td_none'))}</div>`;
+  };
+  // Handy: Kurse ohne To-dos hinter einer Zeile zusammenfalten (jede leere Karte kostet sonst ~100 px)
+  let empties = isPhone() ? on.filter(k => !(state.aufg[k.id] || []).length) : [];
+  if (empties.length === on.length) empties = empties.slice(1);   // noch gar keine To-dos: eine Karte bleibt als Einstieg offen
+  const fold = empties.length >= 2;
+  el.innerHTML = on.length ? (fold ? on.filter(k => empties.indexOf(k) < 0).map(cardOf).join('')
+      + `<details class="td-fold" ${tdFoldOpen ? 'open' : ''}><summary>${escH(t('td_empty_n', empties.length))}</summary>${empties.map(cardOf).join('')}</details>`
+    : on.map(cardOf).join('')) : `<div class="td-empty">${escH(t('td_none'))}</div>`;
+  const foldEl = el.querySelector('details.td-fold'); if (foldEl) foldEl.addEventListener('toggle', () => { tdFoldOpen = foldEl.open; });
   offEl.innerHTML = off.length ? `<span class="td-off-lab">${escH(t('td_offline'))}</span>` + off.map(k => {
     const n = (state.aufg[k.id] || []).filter(x => !x.d).length;
     return `<button type="button" class="td-chip ${tdFresh === k.id ? 'entering' : ''}" data-td-on="${escH(k.id)}" title="${escH(t('td_on'))}">${TD_POW}${escH(tdShort(k.t))}${n ? ` <b>${n}</b>` : ''}</button>`;
@@ -5052,6 +5133,10 @@ function renderNow() {
 
 function init() {
   aufgabenEvents(); aufgabenDrag(); initNote();
+  // Hoehe der Kopfzeile als CSS-Variable, damit die Filterleiste der Modulwahl auf dem Handy direkt darunter haften kann
+  const top = document.querySelector('.top');
+  if (top && 'ResizeObserver' in window) new ResizeObserver(() => document.documentElement.style.setProperty('--top-h', top.offsetHeight + 'px')).observe(top);
+  PHONE_MQ.addEventListener('change', () => { renderModList(); renderWochenplan(); renderAufgaben(); });   // Handy-/Desktop-Layout wechselt
   const specSel = document.getElementById('spec');
   const progSel = document.getElementById('prog');
   const curSel = document.getElementById('cursem');
