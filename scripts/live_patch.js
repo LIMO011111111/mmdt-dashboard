@@ -63,7 +63,9 @@
     state.cs = sanitizeCs(state.cs, state.picked);
     // thesis: the template defaults to a fixed date; as long as you have not set a thesis semester or date yourself,
     // plan it for semester 4 of your actual program (counted from your first semester, e.g. 26S -> 27W -> 01.10.2027)
+    // (state.thesis.manual is set by the dashboard as soon as you touch the thesis semester or date, also when you reset it to "-")
     if (state.picked.THESIS === undefined && typeof semesterStartIso === 'function' && typeof THESIS_DEFAULT_START !== 'undefined'
+        && !(state.thesis && state.thesis.manual)
         && (!state.thesis || !state.thesis.start || state.thesis.start === THESIS_DEFAULT_START)) {
       state.picked.THESIS = '4';
       state.thesis = Object.assign({ done: {}, ics: false }, state.thesis || {}, { start: semesterStartIso(4) });

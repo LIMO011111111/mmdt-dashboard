@@ -73,10 +73,10 @@ python3 scripts/serve.py            # http://<pi>:8080/dashboard.html
 http instead of as a file: `/api/mmdt-state` keeps everything you set by hand (status, notes, to-dos,
 plans) in `data/mmdt-state.json`, so phone and laptop show the same thing (newest change wins), and
 `/api/kalender` serves your Google Calendar fresh (every 10 minutes, see below) instead of the copy baked
-in at build time. Opened as a file, or through a server without these endpoints (`python3 -m http.server`,
-nginx, ...), the dashboard still works, but your entries stay in that one browser and the page says so at
-the top. Any other server works too as long as it answers `GET`/`PUT /api/mmdt-state` with
-`{"ts": <ms>, "state": {...}}`.
+in at build time (`/api/kalender` needs the same two packages as the calendar option below). Opened as a
+file, the dashboard still works and says so at the top, but your entries stay in that one browser. The same
+is true, silently, for a server without these endpoints (`python3 -m http.server`, nginx, ...). Any other
+server works as long as it answers `GET`/`PUT /api/mmdt-state` with `{"ts": <ms>, "state": {...}}`.
 
 **Do not publish the generated file**: it contains your grades. Keep the server in your home network
 (or put authentication in front of it).

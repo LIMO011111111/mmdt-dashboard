@@ -24,13 +24,16 @@ import sys
 import threading
 import time
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlsplit
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import gcal  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MAX_STATE_BYTES = 2 * 1024 * 1024
-CAL_MAX_AGE = 10 * 60
+CAL_MAX_AGE = 10 * 60          # seconds between two calendar fetches
+CAL_RETRY = 60                 # seconds before retrying after a failed fetch
+TS_SLACK_MS = 5 * 60 * 1000    # a device clock may be this far ahead; anything beyond is clamped
 
 
 def write_atomic(path, text):
@@ -50,13 +53,12 @@ class Calendar:
         if not gcal.configured():
             return None
         with self.lock:
-            if self.data is None or time.time() - self.at > CAL_MAX_AGE:
+            if time.time() - self.at > CAL_MAX_AGE:   # self.at starts at 0, so the first request fetches
                 try:
                     self.data, self.at = gcal.fetch(), time.time()
                 except Exception as ex:   # offline, package missing: keep the last good copy if there is one
                     print(f"calendar: {ex}", file=sys.stderr)
-                    if self.data is None:
-                        return None
+                    self.at = time.time() - CAL_MAX_AGE + CAL_RETRY   # do not hammer the network on every request
             return self.data
 
 
@@ -92,15 +94,18 @@ class Handler(SimpleHTTPRequestHandler):
     def do_PUT(self):
         if self.path.split("?", 1)[0] != "/api/mmdt-state":
             return self._json(404, {"error": "not found"})
+        if "Content-Length" not in self.headers:
+            return self._json(411, {"error": "Content-Length required"})
         try:
             n = int(self.headers.get("Content-Length", "0"))
             if n <= 0 or n > MAX_STATE_BYTES:
                 return self._json(413, {"error": "state too large"})
             data = json.loads(self.rfile.read(n).decode("utf-8"))
+            if not isinstance(data, dict) or not isinstance(data.get("state"), dict):
+                raise ValueError("expected {\"ts\": <ms>, \"state\": {...}}")
             ts = int(data.get("ts") or 0)
-            if not isinstance(data.get("state"), dict):
-                raise ValueError("state missing")
-        except (ValueError, TypeError) as ex:
+            ts = max(0, min(ts, int(time.time() * 1000) + TS_SLACK_MS))   # a wrong clock must not lock out every other device
+        except (ValueError, TypeError, OverflowError, UnicodeDecodeError) as ex:
             return self._json(400, {"error": str(ex)})
         with self.state_lock:
             try:
@@ -113,12 +118,12 @@ class Handler(SimpleHTTPRequestHandler):
         return self._json(200, {"ok": True, "ts": max(ts, cur)})
 
     def end_headers(self):
-        if self.path.endswith(".html"):
+        if urlsplit(getattr(self, "path", "")).path.endswith(".html"):
             self.send_header("Cache-Control", "no-cache")   # always the freshly built dashboard
         super().end_headers()
 
-    def log_message(self, fmt, *args):
-        if "/api/" not in (args[0] if args else ""):
+    def log_message(self, fmt, *args):   # the page polls /api/ often: keep the log readable
+        if not getattr(self, "path", "").startswith("/api/"):
             super().log_message(fmt, *args)
 
 

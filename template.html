@@ -383,7 +383,8 @@
     .reg-table td:nth-child(2) > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; }
     .reg-table td:nth-child(2) .reg-note { margin-top: 0; }
     .reg-table td:nth-child(3) { grid-area: area; font-size: 11px; color: var(--label-3); }
-    .reg-table td:nth-child(3) > div { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .reg-table td:nth-child(3) > div { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; min-width: 0; }
+    .reg-table td:nth-child(3) > div > * { overflow: hidden; text-overflow: ellipsis; }
     .reg-table td:nth-child(3) .reg-note { margin-top: 0; }
     .reg-table td:nth-child(3) .reg-note::before { content: '·'; margin-right: 6px; }
     .reg-table td:nth-child(4) { grid-area: status; margin-top: 4px; }
@@ -395,8 +396,8 @@
     .reg-table td:nth-child(6) .reg-inp:not(:placeholder-shown), .reg-table td:nth-child(6) .reg-inp:focus { background: var(--bg-elevated); border-style: solid; }
     .reg-table tr.reg-group, .reg-table .reg-group td { display: block; }
     .reg-table .reg-group td { padding: 8px 14px !important; }
-    .reg-table tr:has(> .reg-empty), .reg-table td.reg-empty { display: block; }
-    .reg-table td.reg-empty { padding: 24px 14px !important; }
+    .reg-table tr:has(> .reg-empty) { display: block; }
+    .reg-table td.reg-empty { display: block; grid-column: 1 / -1; padding: 24px 14px !important; hyphens: none; }
   }
 
   .wp-slot.st-warteliste:not(.conflict) { background: var(--orange-soft); border-left-color: var(--orange); }
@@ -784,7 +785,8 @@ section { margin-bottom: 32px; }
 .td-soon-tile.soon .st-rel { color: var(--td-orange); }
 .td-soon-tile.late .st-rel { color: var(--td-red); }
 .td-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; align-items: start; }
-.td-fold { grid-column: 1 / -1; display: grid; gap: 14px; }
+.td-fold { grid-column: 1 / -1; }
+.td-fold-in { display: grid; gap: 14px; margin-top: 8px; }
 .td-fold > summary { list-style: none; cursor: pointer; font-size: 13px; font-weight: 600; color: var(--label-3); padding: 6px 4px; display: flex; align-items: center; gap: 8px; -webkit-tap-highlight-color: transparent; }
 .td-fold > summary::-webkit-details-marker { display: none; }
 .td-fold > summary::before { content: ''; width: 6px; height: 6px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: rotate(-45deg); margin-left: 4px; transition: transform 0.15s; }
@@ -2592,7 +2594,7 @@ const I18N_V15 = {
     now_none: 'Keine Termine in Sicht', now_none_sub: 'Für die nächsten Wochen sind keine Kurstermine bekannt.',
     wd: i => ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'][i],
     gc_online: 'Online', gc_allday: 'Ganztägig', gc_free: 'frei', gc_weekend: 'Wochenende', leg_uni: 'Uni', leg_priv: 'Privat',
-    ag_past: (a, b, n) => `${a}–${b} vergangen` + (n ? ` · ${n} ${n === 1 ? 'Termin' : 'Termine'}` : ''), td_empty_n: n => `${n} Kurse ohne To-dos`,
+    ag_past: (a, b, n) => `${a === b ? a : a + '–' + b} vergangen` + (n ? ` · ${n} ${n === 1 ? 'Termin' : 'Termine'}` : ''), td_empty_n: n => `${n} Kurse ohne To-dos`, cat_auflage: 'Auflage',
     we_todo: 'To-dos fürs Wochenende', we_todo_ph: 'WE-To-do hinzufügen',
     gc_src: h => `Google Kalender · Stand ${h}`,
     wp_conflict_note: 'Rot markierte Termine überschneiden sich.', wp_blocks: 'Blockkurse',
@@ -2615,7 +2617,7 @@ const I18N_V15 = {
     now_none: 'Nothing coming up', now_none_sub: 'No course dates are known for the next weeks.',
     wd: i => ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
     gc_online: 'Online', gc_allday: 'All day', gc_free: 'free', gc_weekend: 'Weekend', leg_uni: 'Uni', leg_priv: 'Private',
-    ag_past: (a, b, n) => `${a}–${b} past` + (n ? ` · ${n} ${n === 1 ? 'event' : 'events'}` : ''), td_empty_n: n => `${n} courses without to-dos`,
+    ag_past: (a, b, n) => `${a === b ? a : a + '–' + b} past` + (n ? ` · ${n} ${n === 1 ? 'event' : 'events'}` : ''), td_empty_n: n => `${n} courses without to-dos`, cat_auflage: 'Prerequisite',
     we_todo: 'Weekend to-dos', we_todo_ph: 'Add weekend to-do',
     gc_src: h => `Google Calendar · as of ${h}`,
     wp_conflict_note: 'Sessions marked red overlap.', wp_blocks: 'Block courses',
@@ -2648,6 +2650,7 @@ function getCatLabels() {
     mgmt_other: t('tab_other'),
     project: t('tab_project'),
     thesis: t('tab_thesis'),
+    auflage: t('cat_auflage'),
   };
 }
 
@@ -3420,6 +3423,7 @@ function renderTabs() {
 }
 
 var modQuery = '';   // Suchtext der Modulwahl (nicht gespeichert)
+let agPastOpen = false;   // Handy: vergangene Tage der Woche aufgeklappt (nur fuer diese Sitzung)
 const PHONE_MQ = matchMedia('(max-width: 767px)');
 function isPhone() { return PHONE_MQ.matches; }
 const modGroupsOpen = new Set();   // auf dem Handy aufgeklappte Studienbereiche der Modulwahl (nur fuer diese Sitzung)
@@ -3505,7 +3509,10 @@ function renderModList() {
       const open = modGroupsOpen.has(c) || c === expCat;
       return `<details class="mod-group" data-cat="${escH(c)}" ${open ? 'open' : ''}><summary><span class="mod-group-name">${escH(labels[c] || c)}</span><span class="mod-group-n">${n ? `<b>${n}</b> / ` : ''}${list.length}</span></summary>${list.map(rowOf).join('')}</details>`;
     }).join('');
-    el.querySelectorAll('details.mod-group').forEach(d => d.addEventListener('toggle', () => { if (d.open) modGroupsOpen.add(d.dataset.cat); else modGroupsOpen.delete(d.dataset.cat); }));
+    el.querySelectorAll('details.mod-group').forEach(d => d.addEventListener('toggle', () => {
+      if (d.open) modGroupsOpen.add(d.dataset.cat);
+      else { modGroupsOpen.delete(d.dataset.cat); if (d.dataset.cat === expCat) { state.expandedMod = null; save(); } }   // zu = auch das offene Modul zu
+    }));
   } else {
     el.innerHTML = mods.map(rowOf).join('') || `<div class="mod-empty">${escH(t('mod_none_found'))}</div>`;
   }
@@ -3726,12 +3733,13 @@ function renderWochenplan() {
       return { n: items.length, html: `<div class="ag-day ${mon + d === today ? 'today' : ''}"><div class="ag-head">${escH(wdOf(mon + d))} ${D14.fmtS(mon + d)}</div>${items.length ? items.join('') : `<div class="ag-free">${escH(t('gc_free'))}</div>`}</div>` };
     });
     // in der laufenden Woche: vergangene Tage zu einer zuklappbaren Zeile falten, damit "heute" oben steht
-    const past = Math.max(0, Math.min(7, today - mon));
+    const past = Math.max(0, Math.min(7, today - mon));   // 0 = kuenftige Woche, 7 = vergangene Woche: nichts falten
     const agenda = (past > 0 && past < 7
-      ? `<details class="ag-past"><summary>${escH(t('ag_past', wdOf(mon), wdOf(mon + past - 1), dayHtml.slice(0, past).reduce((a, x) => a + x.n, 0)))}</summary>${dayHtml.slice(0, past).map(x => x.html).join('')}</details>`
+      ? `<details class="ag-past" ${agPastOpen ? 'open' : ''}><summary>${escH(t('ag_past', wdOf(mon), wdOf(mon + past - 1), dayHtml.slice(0, past).reduce((a, x) => a + x.n, 0)))}</summary>${dayHtml.slice(0, past).map(x => x.html).join('')}</details>`
       : dayHtml.slice(0, past).map(x => x.html).join('')) + dayHtml.slice(past).map(x => x.html).join('');
     el.innerHTML = `${nav}<div class="wp-grid" data-start="${START}" data-end="${END}"><div class="wp-hours">${hours}</div>${cols}</div><div class="wp-agenda">${agenda}</div>${weTodo}${legend}`
       + (ganz.length ? `<div class="wp-note wp-allday">${escH(t('gc_allday'))}: ${ganz.join(' &middot; ')}</div>` : '') + conflictNote;
+    const pastEl = el.querySelector('details.ag-past'); if (pastEl) pastEl.addEventListener('toggle', () => { agPastOpen = pastEl.open; });
     return;
   }
   el.innerHTML = `${nav}<div class="wp-grid" data-start="${START}" data-end="${END}"><div class="wp-hours">${hours}</div>${cols}</div>${emptyWeek}${weTodo}${statusLegend}${conflictNote}${asNote}${notesHTML}${unvHTML}${blockHTML}${noTimeHTML}`;
@@ -4707,6 +4715,7 @@ function semesterStartIso(n) {   // Kalenderstart von Studiensemester n, abgelei
 function setThesisSem(n) {
   if (!/^[1-4]$/.test(String(n))) { delete state.picked['THESIS']; }
   else { state.picked['THESIS'] = String(n); state.thesis.start = semesterStartIso(n); }
+  state.thesis.manual = true;   // eigene Wahl: der Build setzt keinen Vorschlag mehr (live_patch.js)
   save(); renderAll();
 }
 function thesisMilestones() {
@@ -4787,7 +4796,7 @@ function initV14() {
   $id('th-sem').addEventListener('change', e => setThesisSem(e.target.value));
   $id('th-start').addEventListener('change', e => {
     if (D14.fromIso(e.target.value) == null) { e.target.value = D14.toIso(thesisStartDn()); return; }
-    state.thesis.start = e.target.value; save(); renderThesis(); renderSemesters();
+    state.thesis.start = e.target.value; state.thesis.manual = true; save(); renderThesis(); renderSemesters();
   });
   $id('th-line').addEventListener('change', e => {
     const id = e.target.dataset && e.target.dataset.thDone; if (!id) return;
@@ -4869,9 +4878,10 @@ function renderAufgaben() {
   // Handy: Kurse ohne To-dos hinter einer Zeile zusammenfalten (jede leere Karte kostet sonst ~100 px)
   let empties = isPhone() ? on.filter(k => !(state.aufg[k.id] || []).length) : [];
   if (empties.length === on.length) empties = empties.slice(1);   // noch gar keine To-dos: eine Karte bleibt als Einstieg offen
+  empties = empties.filter(k => k.id !== tdFresh);                 // gerade wieder eingeschalteter Kurs bleibt sichtbar
   const fold = empties.length >= 2;
   el.innerHTML = on.length ? (fold ? on.filter(k => empties.indexOf(k) < 0).map(cardOf).join('')
-      + `<details class="td-fold" ${tdFoldOpen ? 'open' : ''}><summary>${escH(t('td_empty_n', empties.length))}</summary>${empties.map(cardOf).join('')}</details>`
+      + `<details class="td-fold" ${tdFoldOpen ? 'open' : ''}><summary>${escH(t('td_empty_n', empties.length))}</summary><div class="td-fold-in">${empties.map(cardOf).join('')}</div></details>`
     : on.map(cardOf).join('')) : `<div class="td-empty">${escH(t('td_none'))}</div>`;
   const foldEl = el.querySelector('details.td-fold'); if (foldEl) foldEl.addEventListener('toggle', () => { tdFoldOpen = foldEl.open; });
   offEl.innerHTML = off.length ? `<span class="td-off-lab">${escH(t('td_offline'))}</span>` + off.map(k => {
@@ -5090,9 +5100,12 @@ function gcalApply(d) {
 }
 function gcalLoad() {
   // build_dashboard.py bakes your calendar in (GCAL_STATIC, works from a file); a server may serve /api/kalender instead
-  if (typeof GCAL_STATIC !== 'undefined' && GCAL_STATIC) return gcalApply(GCAL_STATIC);
-  if (!/^https?:$/.test(location.protocol)) return;
-  fetch('/api/kalender', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(gcalApply).catch(() => {});
+  const baked = (typeof GCAL_STATIC !== 'undefined' && GCAL_STATIC) ? GCAL_STATIC : null;
+  if (!/^https?:$/.test(location.protocol)) { if (baked) gcalApply(baked); return; }
+  // over http: ask the server first (fresh, every 10 minutes); without /api/kalender (404) or offline, use the baked copy
+  fetch('/api/kalender', { cache: 'no-store' }).then(r => r.ok ? r.json() : null)
+    .then(d => { if (d && d.events) gcalApply(d); else if (baked && !GCAL) gcalApply(baked); })
+    .catch(() => { if (baked && !GCAL) gcalApply(baked); });
 }
 function dayEvents(dn) {   // Termine eines Tages: Google-Kalender, sonst die Kurse des aktuellen Semesters aus TUMonline
   if (GCAL) return GCAL.ev.filter(x => !x.allDay && x.dn === dn).sort((a, b) => a.s - b.s || a.e - b.e);
@@ -5136,7 +5149,8 @@ function init() {
   // Hoehe der Kopfzeile als CSS-Variable, damit die Filterleiste der Modulwahl auf dem Handy direkt darunter haften kann
   const top = document.querySelector('.top');
   if (top && 'ResizeObserver' in window) new ResizeObserver(() => document.documentElement.style.setProperty('--top-h', top.offsetHeight + 'px')).observe(top);
-  PHONE_MQ.addEventListener('change', () => { renderModList(); renderWochenplan(); renderAufgaben(); });   // Handy-/Desktop-Layout wechselt
+  const onBreak = () => { renderModList(); renderAufgaben(); };   // Handy-/Desktop-Layout wechselt
+  if (PHONE_MQ.addEventListener) PHONE_MQ.addEventListener('change', onBreak); else if (PHONE_MQ.addListener) PHONE_MQ.addListener(onBreak);
   const specSel = document.getElementById('spec');
   const progSel = document.getElementById('prog');
   const curSel = document.getElementById('cursem');
