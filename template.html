@@ -754,6 +754,11 @@ section { margin-bottom: 32px; }
 .gear { width: 38px; height: 38px; border-radius: 50%; border: 0; background: var(--pill-bg); color: var(--label-2); display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
 .gear:hover { color: var(--label); }
 .gear svg { width: 19px; height: 19px; }
+/* v18: Darstellungs-Knopf neben dem Zahnrad; das passende Symbol steht schon vor dem ersten Rendern fest (html[data-theme]) */
+.theme-btn svg { display: none; }
+html[data-theme="auto"] .theme-btn .tb-auto, html[data-theme="light"] .theme-btn .tb-light, html[data-theme="dark"] .theme-btn .tb-dark { display: block; }
+.theme-btn .tb-auto path { fill: currentColor; stroke: none; }
+.sheet .settings-grid > .setting-cell:last-child:nth-child(odd) { grid-column: 1 / -1; }   /* ungerade Zahl Felder: letztes ueber die volle Breite */
 
 /* Ansichten */
 .view, .sub { display: none; }
@@ -1144,6 +1149,49 @@ footer { margin-top: 48px; }
 }
 @media (max-width: 400px) { .kpi-l { font-size: 9px; } .top .tum-logo { height: 17px; } .fx-ects { flex-direction: column; align-items: stretch; } .fx-ring { align-self: center; } }
 </style>
+<script>
+// v18: Darstellung Automatisch / Hell / Dunkel, je Geraet (localStorage mmdt_theme; nicht in state, Export oder Sync).
+// Statt die ~10 Dark-Bloecke doppelt zu pflegen, werden die vorhandenen @media (prefers-color-scheme: …)-Regeln umgeschaltet:
+// passende Bedingung faellt weg (Regel gilt immer), unpassende Abfrage wird "not all"; Automatisch stellt den Originaltext wieder her.
+// Laeuft hier im <head> direkt nach den Styles, also vor dem ersten Rendern (kein Aufblitzen).
+var THEME_KEY = 'mmdt_theme', THEME_ORIG = new WeakMap();
+function themeGet() { try { var v = localStorage.getItem(THEME_KEY); return v === 'light' || v === 'dark' ? v : 'auto'; } catch (e) { return 'auto'; } }
+function themeMedia(text, mode) {   // eine Media-Query-Liste fuer erzwungenes Schema umschreiben, andere Bedingungen bleiben
+  return String(text).split(',').map(function (q) {
+    q = q.trim();
+    var m = /\(\s*prefers-color-scheme\s*:\s*(dark|light)\s*\)/i.exec(q);
+    if (!m || /^not\b/i.test(q)) return q;
+    if (m[1].toLowerCase() !== mode) return 'not all';
+    var rest = q.replace(m[0], '').replace(/\s+and\s+and\s+/i, ' and ').replace(/^\s*and\s+/i, '').replace(/\s+and\s*$/i, '').trim();
+    return rest || 'all';
+  }).join(', ');
+}
+function themeApply(mode) {
+  if (mode !== 'light' && mode !== 'dark') mode = 'auto';
+  var walk = function (rules) {
+    for (var i = 0; i < rules.length; i++) {
+      var r = rules[i];
+      if (typeof CSSMediaRule !== 'undefined' && r instanceof CSSMediaRule) {
+        if (!THEME_ORIG.has(r)) THEME_ORIG.set(r, r.media.mediaText);
+        var o = THEME_ORIG.get(r);
+        if (/prefers-color-scheme/i.test(o)) { var n = mode === 'auto' ? o : themeMedia(o, mode); if (r.media.mediaText !== n) r.media.mediaText = n; }
+      }
+      if (r.cssRules) walk(r.cssRules);
+    }
+  };
+  for (var i = 0; i < document.styleSheets.length; i++) { try { walk(document.styleSheets[i].cssRules); } catch (e) { /* fremde Stylesheets sind nicht lesbar */ } }
+  var metas = document.querySelectorAll('meta[name="theme-color"]');   // Statusleisten-Farbe: die erste passende meta gewinnt
+  for (var j = 0; j < metas.length; j++) {
+    var el = metas[j];
+    if (!el.hasAttribute('data-media')) el.setAttribute('data-media', el.getAttribute('media') || '');
+    var om = el.getAttribute('data-media');
+    if (om) el.setAttribute('media', mode === 'auto' ? om : themeMedia(om, mode));
+  }
+  document.documentElement.style.colorScheme = mode === 'auto' ? '' : mode;   // Formularelemente, Scrollbalken
+  document.documentElement.setAttribute('data-theme', mode);
+}
+themeApply(themeGet());
+</script>
 </head>
 <body>
 <header class="top">
@@ -1160,6 +1208,7 @@ footer { margin-top: 48px; }
       <div class="kpi"><div class="kpi-v" id="kpi-gpa">–</div><div class="kpi-l" data-t="k_gpa">Schnitt</div></div>
       <div class="kpi"><div class="kpi-v"><span id="kpi-ects">0</span><small>/120</small></div><div class="kpi-l">ECTS</div></div>
     </div>
+    <button type="button" class="gear theme-btn" id="theme-btn" aria-label="Darstellung"><svg class="tb-auto" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5a7.5 7.5 0 0 1 0 15z"/></svg><svg class="tb-light" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.55 1.55M17.15 17.15l1.55 1.55M5.3 18.7l1.55-1.55M17.15 6.85l1.55-1.55"/></svg><svg class="tb-dark" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg></button>
     <button type="button" class="gear" id="open-settings" data-t-aria="settings" aria-label="Einstellungen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
   </div>
   <div class="semb" id="semb"></div>
@@ -1431,6 +1480,14 @@ footer { margin-top: 48px; }
           <option value="de">🇩🇪 Deutsch</option>
           <option value="en">🇬🇧 English</option>
           <option value="it">🇮🇹 Italiano</option>
+        </select>
+      </div>
+      <div class="setting-cell">
+        <label for="theme" data-t="theme_label">Darstellung</label>
+        <select id="theme">
+          <option value="auto" data-t="theme_auto">Automatisch (System)</option>
+          <option value="light" data-t="theme_light">Hell</option>
+          <option value="dark" data-t="theme_dark">Dunkel</option>
         </select>
       </div>
     </div>
@@ -2636,6 +2693,8 @@ const I18N_V15 = {
     gc_src: h => `Google Kalender · Stand ${h}`,
     wp_conflict_note: 'Rot markierte Termine überschneiden sich.', wp_blocks: 'Blockkurse',
     wp_no_time: l => `Termine noch unbekannt: ${l} — aus den TUMonline-Kursdetails nachtragen.`,
+    // v18: Darstellung
+    theme_label: 'Darstellung', theme_auto: 'Automatisch (System)', theme_light: 'Hell', theme_dark: 'Dunkel', theme_btn: m => `Darstellung: ${m} (antippen zum Wechseln)`,
     // v17: Cockpit
     ck_title: 'Cockpit', ck_optional: 'optional', ck_token: 'Geräte-Token', ck_url: 'Adresse der Funktion', ck_test: 'Verbindung testen',
     ck_hint: 'Mit Geräte-Token kommen Uni-Aufgaben, Fristen und dein Google-Kalender live aus dem Cockpit. Deine lokalen To-dos bleiben gespeichert. Token und Adresse bleiben nur in diesem Browser (nicht im Export, nicht im Sync).',
@@ -2673,6 +2732,8 @@ const I18N_V15 = {
     gc_src: h => `Google Calendar · as of ${h}`,
     wp_conflict_note: 'Sessions marked red overlap.', wp_blocks: 'Block courses',
     wp_no_time: l => `Dates still unknown: ${l} — add them from the TUMonline course details.`,
+    // v18: Darstellung
+    theme_label: 'Appearance', theme_auto: 'Automatic (system)', theme_light: 'Light', theme_dark: 'Dark', theme_btn: m => `Appearance: ${m} (tap to switch)`,
     // v17: Cockpit
     ck_title: 'Cockpit', ck_optional: 'optional', ck_token: 'Device token', ck_url: 'Function address', ck_test: 'Test connection',
     ck_hint: 'With a device token, uni tasks, deadlines and your Google Calendar come live from the Cockpit. Your local to-dos stay saved. Token and address stay in this browser only (not in the export, not in sync).',
@@ -5525,6 +5586,17 @@ function ckPushRun() {   // hoechstens CK_PUSH_MAX POSTs je Lauf, nacheinander; 
     if (!ckPosts && ckStale) { ckStale = false; cockpitLoad(true); }
   });
 }
+// v18: Darstellung (themeApply/themeGet im <head>): Auswahl im Sheet + Knopf in der Kopfzeile (auto -> hell -> dunkel)
+let themeUi = () => {};
+function initTheme() {
+  const sel = $id('theme'), btn = $id('theme-btn');
+  themeUi = () => { const m = themeGet(), l = t('theme_' + m); sel.value = m; btn.title = t('theme_btn', l); btn.setAttribute('aria-label', btn.title); };
+  const set = m => { try { localStorage.setItem(THEME_KEY, m); } catch (e) {} themeApply(m); themeUi(); };
+  sel.addEventListener('change', () => set(sel.value));
+  btn.addEventListener('click', () => set({ auto: 'light', light: 'dark', dark: 'auto' }[themeGet()]));
+  window.addEventListener('storage', e => { if (e.key === THEME_KEY) { themeApply(themeGet()); themeUi(); } });   // anderer Tab
+  themeUi();
+}
 function initCockpit() {
   const tok = $id('ck-token'), url = $id('ck-url'), sec = $id('aufgaben-section');
   tok.value = ckToken(); url.value = ckUrl();
@@ -5579,7 +5651,7 @@ function init() {
   specSel.addEventListener('change', e => { state.spec = e.target.value; save(); renderAll(); });
   progSel.addEventListener('change', e => { state.prog = e.target.value; save(); renderAll(); });
   curSel.addEventListener('change', e => { state.cursem = e.target.value; save(); renderAll(); });
-  langSel.addEventListener('change', e => { state.lang = e.target.value; save(); applyTranslations(); renderTabs(); renderAll(); if (window.SKAL) window.SKAL.rebuild(); });
+  langSel.addEventListener('change', e => { state.lang = e.target.value; save(); applyTranslations(); renderTabs(); renderAll(); if (window.SKAL) window.SKAL.rebuild(); themeUi(); });
 
   document.getElementById('reset').addEventListener('click', () => {
     if (confirm(t('confirm_reset'))) { state.picked = {}; state.cs = {}; save(); renderAll(); }
@@ -5618,7 +5690,7 @@ function init() {
   renderTabs();
   renderAll();
   window.SKAL = createSkal();   // Kalender WS 26/27 (Namespace skal-)
-  initViews(); initSettings(); initChips(); initPath();
+  initViews(); initSettings(); initChips(); initPath(); initTheme();
   renderSemBar(); initCockpit(); gcalLoad(); setInterval(gcalLoad, 10 * 60 * 1000);   // Google-Kalender alle 10 Min neu (v17: Cockpit zuerst, sonst Server/eingebacken)
   initRegistration();
   initV14();   // v14: Thesis, eigene Kurse
