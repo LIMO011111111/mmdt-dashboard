@@ -119,7 +119,12 @@ plus "Uni general" for tasks without a course. Ticking a task, reopening it or a
 right away; a date at the start of a new to-do (`05.11. Read paper`) becomes its due date. "Coming up" also shows
 Cockpit deadlines, and open submissions, exams and presentations get a red dot in the semester bar. With the switch
 "Send deadlines to the Cockpit" (on by default) your TUMonline exam dates and your own upcoming deadlines are sent to
-the Cockpit once each, so they show up there and as a Google task. Your local
+the Cockpit once each, so they show up there and as a Google task. Courses where every session is graded (the CEO
+Strategy Series, MGTHN0130: a quiz after each CEO visit; list `EXAM_EVERY_SESSION` in `template.html`) get a small red
+dot per session in the semester bar and appear under "Coming up" as an exam while the course is selected for the
+current semester (session dates from TUMonline, all days in Berlin time). With the switch on, each upcoming session of
+this semester is sent once as an exam deadline, but only once you have a fixed place; sessions that are cancelled
+later are not removed from the Cockpit. Your local
 to-dos stay saved and come back when you remove the token; weekend to-dos stay local. Offline, the last good
 answer is shown with its time. The token is stored only in this browser: it is not part of the JSON export and
 not part of the device sync. Without a token everything works exactly as before.

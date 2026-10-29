@@ -743,6 +743,12 @@ section { margin-bottom: 32px; }
 .semb-dot { position: absolute; top: 50%; width: 14px; height: 14px; padding: 0; border-radius: 50%; background: #E0301E; border: 2px solid var(--bg); transform: translate(-50%, -50%); cursor: pointer; }
 .semb-dot::after { content: ''; position: absolute; inset: -9px; }
 .semb-dot.past { opacity: 0.45; }
+.semb-dot.ex { width: 10px; height: 10px; }   /* v20: nur Sessions mit Pruefung: kleinerer Punkt, gleiche Farbe (dichte Termine) */
+.semb-dot.ex::after { inset: -7px; }   /* v20: Tipp-Flaeche mind. 24 px */
+.semb-pop.multi { max-height: min(60vh, 420px); overflow-y: auto; overscroll-behavior: contain; }   /* v20: mehrere Tage im Popover */
+.semb-pop .sp-e + .sp-d, .semb-pop .sp-e + .sp-more { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--separator); }
+.semb-pop .sp-d.cur { color: var(--label); }
+.semb-pop .sp-more { font-size: 11px; font-weight: 700; color: var(--label-3); }
 .semb-dot:focus-visible, .semb-dot.open { outline: 2px solid var(--label); outline-offset: 1px; }
 .semb-pop { position: absolute; top: calc(100% - 2px); z-index: 60; width: 260px; max-width: calc(100% - 16px); padding: 10px 12px; border-radius: 12px; background: var(--card, var(--bg)); color: var(--label); border: 1px solid var(--separator); box-shadow: 0 8px 28px rgba(0,0,0,0.18); font-size: 12px; line-height: 1.4; }
 .semb-pop[hidden] { display: none; }
@@ -1294,7 +1300,7 @@ html[data-style="glass"] :is(.vnav button.active, .subnav button[aria-pressed="t
 html[data-style="glass"] .gear { box-shadow: var(--g-rim-in); }
 html[data-style="glass"] :is(.kpi-l, .semb-s) { color: var(--label-2); }
 html[data-style="glass"] .semb-dot { border-color: var(--g-solid); }
-html[data-style="glass"] .semb-pop { background-color: rgba(var(--g-rgb3), max(var(--g-a3), 0.9));   /* deckender: Chrome blurt unter dem Sticky-Header nur bis zu dessen Kante */
+html[data-style="glass"] .semb-pop { background-color: rgba(var(--g-rgb3), 1);   /* deckend: Chrome blurt unter dem Sticky-Header nur bis zu dessen Kante, Text darunter bliebe scharf lesbar (v20: vorher 0.9, auch 0.96/0.99 noch lesbar) */
   background-image: var(--g-lum); border: 0; border-radius: 18px;
   -webkit-backdrop-filter: var(--g-bf3); backdrop-filter: var(--g-bf3); box-shadow: var(--g-sh3); }
 html[data-style="glass"] .semb-pop[hidden] { display: none; }
@@ -2924,6 +2930,7 @@ const I18N_V15 = {
     ck_art_abgabe: 'Abgabe', ck_art_pruefung: 'Prüfung', ck_art_praesentation: 'Präsentation', ck_art_anmeldung: 'Anmeldung',
     ck_push: 'Fristen ins Cockpit übertragen (als Google-Aufgabe)', ck_push_n: n => `${n} ${n === 1 ? 'Frist' : 'Fristen'} übertragen`,
     ck_push_err: (n, m) => `Fristen-Übertragung: ${n} übertragen, Fehler (${m})`, ck_exam_title: (name, c) => `Prüfung ${name} (${c})`,
+    sem_pruef: 'Prüfung', ex_title: (n, l) => `${n} – ${l}`, sem_more: n => `+${n} weitere`,   // v20: Session mit Prüfung (Semesterleiste, Cockpit-Titel)
     ck_add_uni: 'Kein Modulcode: Aufgaben dafür unter „Uni allgemein“ anlegen', ck_st_host: h => `Server ${h}`, ck_st_host_warn: 'kein Supabase-Server, nur eigenen Adressen trauen',
   },
   en: {
@@ -2965,12 +2972,14 @@ const I18N_V15 = {
     ck_art_abgabe: 'Submission', ck_art_pruefung: 'Exam', ck_art_praesentation: 'Presentation', ck_art_anmeldung: 'Registration',
     ck_push: 'Send deadlines to the Cockpit (as Google task)', ck_push_n: n => `${n} ${n === 1 ? 'deadline' : 'deadlines'} sent`,
     ck_push_err: (n, m) => `Deadline upload: ${n} sent, error (${m})`, ck_exam_title: (name, c) => `Exam ${name} (${c})`,
+    sem_pruef: 'Exam', ex_title: (n, l) => `${n} – ${l}`, sem_more: n => `+${n} more`,   // v20
     ck_add_uni: 'No module code: add tasks for this under "Uni general"', ck_st_host: h => `server ${h}`, ck_st_host_warn: 'not a Supabase server, only trust your own addresses',
   },
   it: {
     v_today: 'Oggi', v_progress: 'Progressi', v_courses: 'Corsi', v_plan: 'Piano', k_gpa: 'Media', close: 'Chiudi', wp_title: 'Questa settimana',
     wd: i => ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'][i],
     style_label: 'Stile', style_classic: 'Classico', style_glass: 'Vetro',   // v19
+    sem_pruef: 'Esame', sem_more: n => `+${n} altri`,   // v20
   },
 };
 Object.assign(I18N.de, I18N_V15.de);
@@ -5128,6 +5137,63 @@ function stratTerminText(id) {
   if (SCHEDULE_BLOCKS[id]) return SCHEDULE_BLOCKS[id];
   return t('st_dates_unknown');
 }
+// v20: Kurse, in denen jede Session eine Pruefungsleistung enthaelt (Quiz/Abgabe je Termin). Weitere Kurse hier ergaenzen.
+// marker = Praefix fuer den Cockpit-Marker (<marker>:<JJJJ-MM-TT>), label = Text je Session. Alle Tage = Berliner Kalendertage.
+const EXAM_EVERY_SESSION = {
+  MGTHN0130: { marker: 'ceo', label: { de: 'Session + Quiz', en: 'Session + quiz', it: 'Sessione + quiz' } },   // CEO Strategy Series: Quiz nach jeder CEO-Visite
+};
+const EX_BERLIN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
+function exBerlin(d) {   // v20: Zeitpunkt -> Berliner Tag (dn) + Minute, unabhaengig von der Zeitzone des Geraets
+  const p = {}; EX_BERLIN.formatToParts(d).forEach(x => { p[x.type] = x.value; });
+  return { dn: D14.dn(+p.year, +p.month, +p.day), min: (+p.hour % 24) * 60 + +p.minute };
+}
+function exToday() { return exBerlin(new Date()).dn; }   // v20: "heute" in Berlin
+function exActive(code) {   // v20: Anzeige (Punkte, Demnaechst): aktuelles Semester, nicht abgemeldet, ohne unsichere Warteliste
+  const cs = COURSE_STATUS[code] || { status: 'geplant' };
+  return state.picked[code] === String(state.cursem) && !isDropped(code) && (cs.status !== 'warteliste' || !!cs.likely);
+}
+function exSure(code) { const cs = COURSE_STATUS[code]; return exActive(code) && !!cs && (cs.status === 'fixplatz' || cs.status === 'in_progress'); }   // v20: Push nur mit sicherem Platz
+function exSessions() {   // v20: Sessions aktiver Kurse; Quelle SKAL_DATA (TUMonline, src 'tum'). Kalender (Google/Cockpit, src 'kal') ergaenzt nur
+  const out = [];          //      Termine, die zu einem TUMonline-Slot passen (Startzeit +-30 Min: gleicher Wochentag oder verschobene Session mit Kursnamen im Titel)
+  Object.keys(EXAM_EVERY_SESSION).forEach(code => {
+    const m = MODULES.find(y => y.id === code); if (!m || !exActive(code)) return;
+    const cfg = EXAM_EVERY_SESSION[code], days = new Map(), name = tdShort(m.t);
+    ((SKAL_DATA[code] || {}).dates || []).forEach(s => {
+      const r = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(s), dn = r && D14.dn(+r[3], +r[2], +r[1]);
+      if (r && !days.has(dn)) days.set(dn, { s: +r[4] * 60 + +r[5], e: +r[6] * 60 + +r[7], src: 'tum' });
+    });
+    const tum = [...days.entries()], nm = s => String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, ''), key = nm(name.split(/\s+/).slice(0, 2).join(''));
+    if (GCAL && tum.length) GCAL.ev.forEach(x => {
+      if (x.code !== code || x.allDay || x.wichtig || x.bdn == null || days.has(x.bdn)) return;
+      const fits = tum.some(([dn, v]) => Math.abs(v.s - x.bs) <= 30 && (D14.dow(dn) === D14.dow(x.bdn) || (Math.abs(dn - x.bdn) <= 7 && !!key && nm(x.t).includes(key))));
+      if (fits) days.set(x.bdn, { s: x.bs, e: x.be, src: 'kal' });
+    });
+    days.forEach((v, dn) => out.push({ code, name, label: L(cfg.label), titles: Object.keys(cfg.label).map(k => name + ' – ' + cfg.label[k]),
+      marker: cfg.marker || code.toLowerCase(), dn, s: v.s, e: v.e, src: v.src }));
+  });
+  return out.sort((a, b) => a.dn - b.dn || a.s - b.s);
+}
+function exSame(code, f) {   // v20: gehoert Cockpit-Frist f zu Kurs code? Modulcode; ohne Kurs ueber den Namen im Titel (z. B. ICS "CEO Strategy")
+  if (f.kurs) return f.kurs === code;
+  const m = MODULES.find(y => y.id === code), n = s => String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, '');
+  const w = m ? tdShort(m.t).split(/\s+/).slice(0, 2).map(n).join('') : '';
+  return !!w && n(f.titel).includes(w);
+}
+function exFristen(x) {   // v20: Pruefungs-Fristen (art pruefung) im Cockpit am Tag der Session x fuer denselben Kurs
+  if (!ckOn()) return { all: [], own: [], other: [] };   // own = von uns uebertragen (gleicher Titel), other = andere Pruefung (z. B. Klausur)
+  const all = COCKPIT.fristen.filter(f => f.art === 'pruefung' && exSame(x.code, f) && exFristDn(f) === x.dn);
+  const own = all.filter(f => x.titles.indexOf(String(f.titel).trim()) >= 0);
+  return { all, own, other: all.filter(f => own.indexOf(f) < 0) };
+}
+function exFristDn(f) {   // v20: Berliner Tag einer Frist (ckWhen nimmt bei Uhrzeit den Geraete-Tag, ck-test B7)
+  if (f.ganztags || /^\d{4}-\d{2}-\d{2}$/.test(f.faellig_am)) { const w = ckWhen(f.faellig_am, true); return w ? w.dn : null; }
+  const d = new Date(f.faellig_am); return isNaN(d) ? null : exBerlin(d).dn;
+}
+function exDone(x, fr) {   // v20: im Cockpit erledigt (Frist nicht mehr offen oder verknuepfte Aufgabe erledigt/verworfen)
+  const aids = fr.own.map(f => f.aufgabe_id).filter(Boolean);
+  return fr.own.some(f => f.status !== 'offen') || (ckOn() && COCKPIT.aufgaben.some(a => aids.indexOf(a.id) >= 0 && !ckOpen(a)));
+}
+function exHidden(f) { return !!(f.kurs && EXAM_EVERY_SESSION[f.kurs] && !exActive(f.kurs)); }   // v20: Kurs abgewaehlt -> seine Fristen nicht markieren
 // ============================================================
 // v14 Verdrahtung: Thesis, eigene Kurse
 // ============================================================
@@ -5201,6 +5267,7 @@ function renderAufgaben() {
   // Demnaechst: die naechsten datierten offenen Punkte ueber alle eingeschalteten Kurse (Cockpit: plus Fristen)
   const soon = ck ? ckSoon(on) : [];
   if (!ck) on.forEach(k => (state.aufg[k.id] || []).forEach(x => { if (x.d) return; const dt = tdDate(x.t); if (dt && !dt.from && dt.days >= -7 && dt.days <= 21) soon.push({ k, x, dt }); }));
+  exSoon(on, soon);   // v20: kommende Sessions mit Pruefung
   soon.sort((a, b) => a.dt.days - b.dt.days);
   const loc = state.lang === 'en' ? 'en-GB' : 'de-DE';
   soonEl.innerHTML = soon.length ? `<div class="td-soon-lab">${escH(t('td_soon'))}</div><div class="td-soon-row">` + soon.slice(0, ck && !isPhone() ? 6 : 4).map(o => {
@@ -5322,6 +5389,7 @@ function aufgabenDrag() {
 function renderAll() {
   syncCourseStatus();
   renderStart(); renderHero(); renderProgress(); renderBoard(); renderAlerts(); renderSemesters(); renderRegistration(); renderPruefungen(); renderModList(); renderWochenplan(); renderNow(); renderAufgaben();
+  semRefresh();   // v20: Session-Punkte folgen der Kursauswahl
   if (v14Ready) renderV14();
   if (window.SKAL) window.SKAL.reload();
 }
@@ -5393,16 +5461,18 @@ function gcalParse(list) {
   const dnOf = d => D14.dn(d.getFullYear(), d.getMonth() + 1, d.getDate());
   return list.map(x => {
     const s = new Date(x.allDay ? x.start + 'T00:00' : x.start), e = new Date(x.allDay ? x.end + 'T00:00' : x.end);
-    const dn = dnOf(s), dnE = dnOf(e);
+    const dn = dnOf(s), dnE = dnOf(e), bs = isNaN(s) ? { dn: null, min: 0 } : exBerlin(s), be = isNaN(e) ? bs : exBerlin(e);
     return { t: x.title, sub: x.online ? t('gc_online') : String(x.location || '').replace(/^TUM Campus Heilbronn,\s*/, ''),
       dn, dnE, s: s.getHours() * 60 + s.getMinutes(), e: dnE > dn ? 24 * 60 : e.getHours() * 60 + e.getMinutes(),
-      allDay: !!x.allDay, uni: !!x.uni, free: !!x.free, col: x.uni ? '' : GC_COLORS[x.colorId] || '' };
+      allDay: !!x.allDay, uni: !!x.uni, free: !!x.free, col: x.uni ? '' : GC_COLORS[x.colorId] || '',
+      code: typeof x.code === 'string' ? x.code : '', wichtig: !!x.wichtig, bdn: x.allDay ? D14.fromIso(String(x.start).slice(0, 10)) : bs.dn, bs: bs.min, be: be.dn > bs.dn ? 1440 : be.min };   // v20: Modulcode + Berliner Tag/Zeit (exSessions)
   });
 }
 function gcalAllDay(dn) { return GCAL ? GCAL.ev.filter(x => x.allDay && x.dn <= dn && dn < x.dnE) : []; }
 // Semesterleiste: Start = Vorlesungsbeginn WiSe 2026/27 (TUM-Rundschreiben "Termine und Feiertage 2026/27": 12.10.2026),
 // Ende = spaetester wichtiger Termin im Kalender (wandert mit, wenn ein spaeterer dazukommt).
 const SEM_START = D14.dn(2026, 10, 12), SEM_END_FALLBACK = D14.dn(2027, 2, 5);
+const SEM_TERM_END = D14.dn(2027, 3, 31);   // v20: Ende Wintersemester 2026/27 (Push von Session-Pruefungen nur bis hier)
 let SEM_EV = [], SEM_CAL = [];   // v17: SEM_CAL = wichtige Kalendertermine, SEM_EV = SEM_CAL + offene Cockpit-Fristen
 function semParse(list) {
   return list.filter(x => x.wichtig).map(x => {
@@ -5414,30 +5484,38 @@ function semParse(list) {
 function semL(k) { const v = t(k); return v === k ? I18N.de[k] : v; }
 function renderSemBar() {
   const el = $id('semb'); if (!el) return;
-  const today = D14.today(), end = SEM_EV.length ? SEM_EV[SEM_EV.length - 1].dn : SEM_END_FALLBACK;
+  const main = SEM_EV.filter(x => !x.ex);   // v20: Session-Punkte verschieben weder "letzter Termin" noch "% im Semester"
+  const today = D14.today(), end = main.length ? main[main.length - 1].dn : SEM_END_FALLBACK;
   const span = Math.max(1, end - SEM_START), pos = dn => Math.min(100, Math.max(0, (dn - SEM_START) / span * 100));
   const pct = Math.round(pos(today));
   const days = new Map(); SEM_EV.forEach(x => { if (!days.has(x.dn)) days.set(x.dn, []); days.get(x.dn).push(x); });
-  const dots = [...days.keys()].map(dn => `<button type="button" class="semb-dot ${dn < today ? 'past' : ''}" data-dn="${dn}" style="left:${pos(dn).toFixed(2)}%" aria-label="${escH(D14.fmt(dn))}"></button>`).join('');
+  const exOnly = dn => days.get(dn).every(x => x.ex), past = dn => exOnly(dn) ? days.get(dn).every(x => x.past) : dn < today;   // v20: Session-Tage nach Berliner Datum
+  const dots = [...days.keys()].map(dn => `<button type="button" class="semb-dot ${past(dn) ? 'past' : ''}${exOnly(dn) ? ' ex' : ''}" data-dn="${dn}" style="left:${pos(dn).toFixed(2)}%" aria-label="${escH(D14.fmt(dn))}"></button>`).join('');
   el.innerHTML = `<div class="semb-l"><div class="semb-v">${pct} %</div><div class="semb-s">${escH(semL('sem_l'))}</div></div>
     <div class="semb-track"><i class="semb-now" style="left:${pos(today).toFixed(2)}%"></i>${dots}</div>
     <div class="semb-r"><div class="semb-v">${D14.fmtS(end)}${D14.parts(end).y}</div><div class="semb-s">${escH(semL('sem_last'))}</div></div>
     <div class="semb-pop" hidden></div>`;
 }
-function semPop(btn) {
+function semPop(btn, tapX) {   // v20: tapX = Tipp-Position (clientX), sonst nur dieser Punkt
   const el = $id('semb'), pop = el.querySelector('.semb-pop'), open = btn && !btn.classList.contains('open');
   el.querySelectorAll('.semb-dot.open').forEach(b => b.classList.remove('open'));
   if (!open) { pop.hidden = true; return; }
-  const dn = +btn.dataset.dn;
-  pop.innerHTML = `<div class="sp-d">${escH(t('wd', D14.dow(dn)))} ${D14.fmt(dn)}</div>` + SEM_EV.filter(x => x.dn === dn).map(x =>
-    `<div class="sp-e"><span class="sp-k">${escH(x.kurs)}</span>${x.abgabe ? `<span class="sp-a">${escH(semL('sem_abgabe'))}</span>` : ''}<br>${escH(x.was)}<br><span class="sp-d">${x.allDay ? escH(semL('sem_all_day')) : fmtT(x.min)}</span></div>`).join('');
+  // v20: Punkte unter dem Finger (ueberlappen bei dichten Sessions): angetippter Tag zuerst und hervorgehoben, dann die naechsten, hoechstens 3 + "+N weitere"
+  const dn0 = +btn.dataset.dn, cx = b => { const r = b.getBoundingClientRect(); return r.left + r.width / 2; };
+  const near = tapX == null ? [] : [...el.querySelectorAll('.semb-dot')].filter(b => b !== btn && Math.abs(cx(b) - tapX) <= b.getBoundingClientRect().width / 2 + 4)
+    .sort((a, b) => Math.abs(cx(a) - tapX) - Math.abs(cx(b) - tapX)).map(b => +b.dataset.dn);
+  const list = [dn0].concat(near.slice(0, 2)), more = near.length - 2, multi = near.length > 0;
+  pop.classList.toggle('multi', multi);
+  pop.innerHTML = list.map((dn, i) => `<div class="sp-d${multi && !i ? ' cur' : ''}">${escH(t('wd', D14.dow(dn)))} ${D14.fmt(dn)}</div>` + SEM_EV.filter(x => x.dn === dn).map(x =>
+    `<div class="sp-e"><span class="sp-k">${escH(x.kurs)}</span>${x.abgabe ? `<span class="sp-a">${escH(semL('sem_abgabe'))}</span>` : ''}${x.pruef ? `<span class="sp-a">${escH(semL('sem_pruef'))}</span>` : ''}<br>${escH(x.was)}<br><span class="sp-d">${x.allDay ? escH(semL('sem_all_day')) : fmtT(x.min)}</span></div>`).join('')).join('')
+    + (more > 0 ? `<div class="sp-more">${escH(t('sem_more', more))}</div>` : '');
   btn.classList.add('open'); pop.hidden = false;
   const c = btn.parentElement.offsetLeft + btn.offsetLeft + btn.offsetWidth / 2;
   pop.style.left = Math.max(8, Math.min(el.clientWidth - pop.offsetWidth - 8, c - pop.offsetWidth / 2)) + 'px';
 }
 document.addEventListener('click', e => {
   const b = e.target.closest && e.target.closest('.semb-dot');
-  if (b || document.querySelector('.semb-dot.open')) semPop(b || null);
+  if (b || document.querySelector('.semb-dot.open')) semPop(b || null, e.detail ? e.clientX : null);
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') semPop(null); });
 function gcalApply(d) {
@@ -5510,6 +5588,8 @@ window.COCKPIT = null;   // { stand, aufgaben, fristen, kalender, kalender_fehle
 let ckErr = null;        // null | { kind: 'auth' | 'net', msg }
 let ckBusy = null, ckLast = 0, ckPosts = 0, ckSeq = 0, ckStale = false, ckCal = false, ckHint = '', ckHintTimer = null, ckDeferred = false;
 let ckPushBusy = false, ckPushTimer = null, ckPushInfo = null;   // Fristen-Upload: laeuft nie parallel; Ergebnis des letzten Laufs { n, err }
+const CK_PUSH_WIN = 30, CK_PUSH_TIMES_KEY = 'mmdt_cockpit_push_times';   // v20: hoechstens 30 Upload-POSTs je 10 Min ueber alle Tabs (Haelfte des Server-Limits bleibt fuers Abhaken)
+const CK_LEASE_KEY = 'mmdt_cockpit_push_lease', CK_LEASE_MS = 60 * 1000;   // v20: Upload-Sperre ohne Web Locks
 const ckDraft = {};      // halb getippte neue Aufgaben je Karte (ueberleben Neuzeichnen und fehlgeschlagenes Speichern)
 const CK_BERLIN = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Berlin', year: 'numeric', month: '2-digit', day: '2-digit' });
 function ckToken() { return String(lsGet(CK_TOKEN_KEY) || '').trim(); }
@@ -5573,20 +5653,34 @@ function ckItem(x) {   // Cockpit-Aufgabe: Abhaken per POST, Datum aus `faellig`
 }
 function ckSoon(on) {   // Demnaechst: offene Aufgaben mit Datum (bis 7 Tage ueberfaellig) + offene Fristen der naechsten 21 Tage (nur lesend)
   const out = [], card = id => on.find(k => k.id === id);
+  const hid = new Set(COCKPIT.fristen.filter(exHidden).map(f => f.aufgabe_id).filter(Boolean));   // v20: Aufgaben zu Fristen abgewaehlter Session-Kurse
   COCKPIT.aufgaben.forEach(x => {
-    if (!ckOpen(x) || !x.faellig) return;
+    if (!ckOpen(x) || !x.faellig || hid.has(x.id)) return;
     const k = card(x.kurs || CK_UNI), dt = ckDue(x.faellig); if (!k || !dt || dt.days < -7 || dt.days > 21) return;   // offline geschaltete Kurse wie bisher ausgenommen
-    dt.rest = x.titel; out.push({ k, x: { t: x.titel }, dt });
+    dt.rest = x.titel; out.push({ k, x: { t: x.titel }, dt, aid: x.id });
   });
   COCKPIT.fristen.forEach(f => {
-    if (f.status !== 'offen' || (f.kurs && state.aufgOff[f.kurs])) return;
+    if (f.status !== 'offen' || (f.kurs && state.aufgOff[f.kurs]) || exHidden(f)) return;
     if (f.aufgabe_id && COCKPIT.aufgaben.some(x => x.id === f.aufgabe_id)) return;   // Frist hat eine eigene Aufgabe: nicht doppelt zeigen
     const w = ckWhen(f.faellig_am, f.ganztags), dt = w && ckDue(D14.toIso(w.dn)); if (!dt || dt.days < 0 || dt.days > 21) return;
     const m = f.kurs ? MODULES.find(y => y.id === f.kurs) : null;
     dt.rest = f.titel; dt.time = w.allDay ? '' : fmtT(w.min);
-    out.push({ k: card(f.kurs) || { id: null, t: m ? m.t : (f.kurs || '') }, x: { t: f.titel }, dt, ico: Object.prototype.hasOwnProperty.call(CK_ART_ICO, f.art) ? CK_ART_ICO[f.art] : CK_ART_ICO._, art: f.art });
+    out.push({ k: card(f.kurs) || { id: null, t: m ? m.t : (f.kurs || '') }, x: { t: f.titel }, dt, ico: Object.prototype.hasOwnProperty.call(CK_ART_ICO, f.art) ? CK_ART_ICO[f.art] : CK_ART_ICO._, art: f.art, fid: f.id });
   });
   return out;
+}
+function exSoon(on, soon) {   // v20: Sessions der naechsten 21 Berliner Tage als Pruefung; ersetzt die uebertragene Cockpit-Frist/-Aufgabe derselben Session.
+  const today = exToday(), loc = state.lang === 'en' ? 'en-GB' : 'de-DE';   //      Im Cockpit erledigt -> weg; andere Pruefung desselben Kurses am Tag (z. B. Klausur) -> deren Kachel statt Session
+  exSessions().forEach(x => {
+    const days = x.dn - today; if (days < 0 || days > 21 || state.aufgOff[x.code]) return;
+    const fr = exFristen(x); if (fr.other.length || exDone(x, fr)) return;
+    const aids = fr.own.map(f => f.aufgabe_id).filter(Boolean);
+    for (let i = soon.length - 1; i >= 0; i--) if (fr.own.some(f => f.id === soon[i].fid) || aids.indexOf(soon[i].aid) >= 0) soon.splice(i, 1);
+    const p = D14.parts(x.dn), d = new Date(p.y, p.m - 1, p.d);
+    const chip = days === 0 ? t('td_today') : days === 1 ? t('td_tomorrow') : d.toLocaleDateString(loc, { weekday: 'short', day: '2-digit', month: '2-digit' });
+    const dt = { d, days, from: false, cls: days <= 2 ? 'soon' : '', time: fmtT(x.s), chip, rest: x.label };
+    soon.push({ k: on.find(k => k.id === x.code) || { id: null, t: x.name }, x: { t: x.name + ' · ' + x.label }, dt, ico: CK_ART_ICO.pruefung, art: 'pruefung', ex: true });
+  });
 }
 function semSameKurs(c, f, m) {   // Kalender-Punkt c und Frist f gehoeren zum selben Kurs? (Code, Kurzname oder Abkuerzung wie "CRM")
   const n = s => String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, '');
@@ -5600,16 +5694,28 @@ function ckSemFristen(cal) {   // rote Punkte aus offenen Cockpit-Fristen; gleic
   if (!ckOn()) return [];
   const out = [], seen = new Set();
   COCKPIT.fristen.forEach(f => {
-    if (f.status !== 'offen' || CK_SEM_ART.indexOf(f.art) < 0) return;
+    if (f.status !== 'offen' || CK_SEM_ART.indexOf(f.art) < 0 || exHidden(f)) return;
     const w = ckWhen(f.faellig_am, f.ganztags); if (!w || w.dn < SEM_START) return;
-    const m = f.kurs ? MODULES.find(y => y.id === f.kurs) : null, key = w.dn + '|' + (f.kurs || f.titel.toLowerCase());
-    if (seen.has(key) || cal.some(c => c.dn === w.dn && semSameKurs(c, f, m))) return;   // z. B. TUM-Pruefung aus ICS und hochgeladen
+    const m = f.kurs ? MODULES.find(y => y.id === f.kurs) : null, key = w.dn + '|' + (f.kurs || f.titel.toLowerCase()) + '|' + f.art;   // v20: + art (Abgabe und Klausur am selben Tag beide zeigen)
+    // z. B. TUM-Pruefung aus ICS und hochgeladen; v20: Session-Punkt verschluckt nur die eigene Pruefungs-Frist (art pruefung), Abgaben bleiben sichtbar
+    if (seen.has(key) || cal.some(c => c.ex ? f.art === 'pruefung' && c.dn === exFristDn(f) && exSame(c.code, f) : c.dn === w.dn && semSameKurs(c, f, m))) return;
     seen.add(key);
     out.push({ dn: w.dn, min: w.min, allDay: w.allDay, kurs: m ? tdShort(m.t) : (f.kurs || ''), was: f.titel, abgabe: f.art === 'abgabe', code: f.kurs || '' });
   });
   return out;
 }
-function semRefresh() { SEM_EV = SEM_CAL.concat(ckSemFristen(SEM_CAL)).sort((a, b) => a.dn - b.dn || a.min - b.min); renderSemBar(); }
+function exSemEv(cal) {   // v20: Punkt je Session; Kalender-Punkt desselben Kurses (keine Abgabe) oder andere Cockpit-Pruefung am Tag hat Vorrang.
+  const today = exToday();   //      past = vergangen (Berlin) oder im Cockpit erledigt -> blass
+  return exSessions().filter(x => x.dn >= SEM_START).map(x => {
+    const m = MODULES.find(y => y.id === x.code), fr = exFristen(x);
+    if (fr.other.some(f => f.status === 'offen') || cal.some(c => c.dn === x.dn && !c.abgabe && semSameKurs(c, { kurs: x.code, titel: x.name }, m))) return null;
+    return { dn: x.dn, min: x.s, allDay: false, kurs: x.name, was: x.label, abgabe: false, pruef: true, code: x.code, ex: true, past: x.dn < today || exDone(x, fr) };
+  }).filter(Boolean);
+}
+function semRefresh() {   // v20: Reihenfolge Kalender > Sessions > Cockpit-Fristen (gleicher Tag + Kurs zaehlt nur einmal)
+  const cal = SEM_CAL.concat(exSemEv(SEM_CAL));
+  SEM_EV = cal.concat(ckSemFristen(cal)).sort((a, b) => a.dn - b.dn || a.min - b.min); renderSemBar();
+}
 function ckMeta(ck) {   // Kopfzeile der To-dos: lokal = bisheriger Hinweis, Cockpit = Stand bzw. Offline/Fehler
   const base = $id('td-meta'), m = $id('ck-meta'); if (!base || !m) return;
   base.hidden = ck; m.hidden = !ck;
@@ -5772,6 +5878,14 @@ function ckFristKandidaten() {   // was hochgeladen werden soll: nur kuenftige T
     add('dl:' + c.id, { titel: c.title, kurs: (c.title.match(/\b[A-Z]{2,6}\d{4,6}[A-Z]?\b/) || [])[0], art,
       faellig_am: c.time ? `${c.date}T${c.time}:00${ckBerlinOff(c.date, c.time)}` : c.date, ganztags: !c.time });
   });
+  // 3) v20: Kurse mit Pruefung in jeder Session (EXAM_EVERY_SESSION): jede kuenftige Session als Pruefungs-Frist, Aufgabe am Session-Tag.
+  //    Nur TUMonline-Termine (nie aus dem Kalender), nur mit sicherem Platz, nur im aktuellen Semester. Schon vorhandene Pruefungs-Frist
+  //    desselben Kurses am Tag (z. B. aus ICS, die der Server nicht dedupliziert) -> nicht senden; Abgaben am selben Tag stoeren nicht.
+  exSessions().forEach(x => {
+    if (x.src !== 'tum' || !exSure(x.code) || x.dn < SEM_START || x.dn > SEM_TERM_END || exFristen(x).all.length) return;
+    const iso = D14.toIso(x.dn);
+    add(x.marker + ':' + iso, { titel: t('ex_title', x.name, x.label), kurs: x.code, art: 'pruefung', faellig_am: iso, ganztags: true, vorlauf_tage: 0 });
+  });
   return out;
 }
 function ckPushMerge(j) {   // Antwort-Frist/-Aufgabe ins lokale Modell, ohne erneuten GET
@@ -5780,26 +5894,50 @@ function ckPushMerge(j) {   // Antwort-Frist/-Aufgabe ins lokale Modell, ohne er
   [[f, COCKPIT.fristen], [a, COCKPIT.aufgaben]].forEach(([x, l]) => { if (!x) return; const i = x.id ? l.findIndex(y => y.id === x.id) : -1; if (i >= 0) l[i] = x; else l.push(x); });
 }
 function ckPushSoon() { if (!ckPushOn()) return; clearTimeout(ckPushTimer); ckPushTimer = setTimeout(ckPushRun, 2000); }
+function ckPushMark(marker, v) { const o = ckPushedRead(); o[marker] = v; lsSet(CK_PUSHED_KEY, JSON.stringify(o)); }   // v20: frisch lesen und mergen (andere Tabs)
+function ckPushTimesRead() {   // v20: Upload-Zeitpunkte der letzten 10 Min, geteilt ueber alle Tabs
+  try { const l = JSON.parse(lsGet(CK_PUSH_TIMES_KEY) || '[]'), now = Date.now(); return Array.isArray(l) ? l.filter(x => typeof x === 'number' && now - x < 10 * 60 * 1000) : []; } catch (e) { return []; }
+}
+function ckPushExclusive(fn) {   // v20: Upload laeuft nur in einem Tab: Web Locks, sonst localStorage-Lease (60 s, nach 80 ms gegengelesen)
+  if (navigator.locks && typeof navigator.locks.request === 'function')
+    return navigator.locks.request('mmdt-ck-push', { ifAvailable: true }, lock => lock ? fn(() => {}) : null).catch(() => null);
+  const id = Math.random().toString(36).slice(2), read = () => { try { return JSON.parse(lsGet(CK_LEASE_KEY) || 'null'); } catch (e) { return null; } };
+  const l = read(); if (l && l.id && Date.now() - l.t < CK_LEASE_MS) return Promise.resolve(null);
+  const renew = () => lsSet(CK_LEASE_KEY, JSON.stringify({ id, t: Date.now() }));
+  renew();
+  return new Promise(res => setTimeout(res, 80)).then(() => {
+    const c = read(); if (!c || c.id !== id) return null;
+    return Promise.resolve(fn(renew)).finally(() => { const c2 = read(); if (c2 && c2.id === id) lsSet(CK_LEASE_KEY, null); });
+  });
+}
 function ckPushRun() {   // hoechstens CK_PUSH_MAX POSTs je Lauf, nacheinander; Rest beim naechsten Lauf
   if (ckPushBusy || !ckOn() || !ckPushOn()) return;
-  const pushed = ckPushedRead(), todo = ckFristKandidaten().filter(x => !pushed[x.marker]).slice(0, CK_PUSH_MAX);
-  if (!todo.length) return;
   ckPushBusy = true;
-  const tok = ckToken(), url = ckUrl(); let n = 0, err = '';
-  const step = i => {
-    if (i >= todo.length || tok !== ckToken() || url !== ckUrl() || !ckPushOn()) return Promise.resolve();
-    const x = todo[i]; ckPosts++; ckSeq++;
-    return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-geraet-token': tok }, body: JSON.stringify(x.body) })
-      .then(r => r.json().catch(() => null).then(j => {
-        if (r.ok && j && j.ok === true) { pushed[x.marker] = Date.now(); n++; ckPushMerge(j); return true; }
-        err = (j && typeof j.fehler === 'string' && j.fehler.slice(0, 80)) || 'HTTP ' + r.status;
-        if (r.status === 400) { pushed[x.marker] = -Date.now(); return true; }   // ungueltig: nicht bei jedem Lauf wiederholen
-        return false;   // 401/429/5xx: abbrechen, naechster Lauf versucht es wieder
-      }), () => { err = t('ck_err_net'); return false; })
-      .then(go => { ckPosts--; ckSeq++; lsSet(CK_PUSHED_KEY, JSON.stringify(pushed)); return go ? step(i + 1) : null; });
-  };
-  step(0).then(() => {
-    ckPushBusy = false; ckPushInfo = { n, err };
+  const tok = ckToken(), url = ckUrl(); let n = 0, err = '', ran = false;
+  ckPushExclusive(renew => {   // v20: Kandidaten erst im exklusiven Abschnitt bestimmen (Merkliste anderer Tabs ist dann aktuell)
+    const times = ckPushTimesRead();   // v20: Upload-Budget je 10 Min ueber alle Tabs (Server: 60 POST)
+    const todo = ckFristKandidaten().filter(x => !ckPushedRead()[x.marker]).slice(0, Math.max(0, Math.min(CK_PUSH_MAX, CK_PUSH_WIN - times.length)));
+    if (!todo.length) return null;
+    ran = true;
+    const step = i => {
+      if (i >= todo.length || tok !== ckToken() || url !== ckUrl() || !ckPushOn()) return Promise.resolve();
+      const x = todo[i];
+      if (ckPushedRead()[x.marker]) return step(i + 1);   // v20: inzwischen anderswo uebertragen
+      renew(); ckPosts++; ckSeq++; lsSet(CK_PUSH_TIMES_KEY, JSON.stringify(ckPushTimesRead().concat(Date.now())));
+      return fetch(url, { method: 'POST', headers: { 'content-type': 'application/json', 'x-geraet-token': tok }, body: JSON.stringify(x.body) })
+        .then(r => r.json().catch(() => null).then(j => {
+          if (r.ok && j && j.ok === true) { ckPushMark(x.marker, Date.now()); n++; ckPushMerge(j); return true; }
+          err = (j && typeof j.fehler === 'string' && j.fehler.slice(0, 80)) || 'HTTP ' + r.status;
+          if (r.status === 400) { ckPushMark(x.marker, -Date.now()); return true; }   // ungueltig: nicht bei jedem Lauf wiederholen
+          return false;   // 401/429/5xx: abbrechen, naechster Lauf versucht es wieder
+        }), () => { err = t('ck_err_net'); return false; })
+        .then(go => { ckPosts--; ckSeq++; return go ? step(i + 1) : null; });
+    };
+    return step(0);
+  }).then(() => {
+    ckPushBusy = false;
+    if (!ran) return;
+    ckPushInfo = { n, err };
     if (ckOn() && tok === ckToken()) { ckCacheWrite(); semRefresh(); if (ckTyping()) { ckDeferred = true; ckMeta(true); } else renderAufgaben(); }
     ckStatus();
     if (!ckPosts && ckStale) { ckStale = false; cockpitLoad(true); }
