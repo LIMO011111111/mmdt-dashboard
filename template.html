@@ -1148,6 +1148,197 @@ footer { margin-top: 48px; }
   .sheet .settings-grid { grid-template-columns: 1fr; }
 }
 @media (max-width: 400px) { .kpi-l { font-size: 9px; } .top .tum-logo { height: 17px; } .fx-ects { flex-direction: column; align-items: stretch; } .fx-ring { align-self: center; } }
+
+/* ===== v19: Stil "Glas" (Apple Liquid Glass), umschaltbar je Geraet (localStorage mmdt_style, html[data-style]).
+   Alles ist unter html[data-style="glass"] gescopt, Klassisch bleibt unveraendert. Nacht-Werte stehen in
+   @media (prefers-color-scheme: dark), damit der v18-Umschalter (Hell/Dunkel/Automatisch) sie mitsteuert.
+   Drei Ebenen: (1) Karten = wenig Blur (Scroll-Leistung Handy), (2) Kopfzeile/Bottom-Bar = mehr Blur,
+   (3) Einstellungen/Popover = staerkster Blur, hellste Kante. Kante: Verlauf oben links hell -> unten rechts
+   auslaufend (::before mit Maske, bei <details>/Scroll-Containern/Dialog als inset box-shadow). Notizzettel bleibt Papier. */
+html[data-style="glass"] {
+  --ff: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --g-base: #F1EEE6;                                  /* warmes Off-White unter den Farbfeldern */
+  --g-rgb: 255, 255, 255; --g-rgb3: 251, 251, 253;    /* Glasfarbe Karten / Dialoge */
+  --g-a1: 0.6; --g-a2: 0.82; --g-a3: 0.8;             /* Deckkraft je Ebene: Karten / Leisten (Labels AA ueber jedem Inhalt) / Dialoge */
+  --g-bf1: blur(14px) saturate(180%); --g-bf2: blur(28px) saturate(180%); --g-bf3: blur(40px) saturate(200%);
+  --g-lum: linear-gradient(135deg, rgba(255,255,255,0.38) 0%, rgba(255,255,255,0) 55%);
+  --g-rim: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0.6) 16%, rgba(255,255,255,0.14) 42%, rgba(255,255,255,0.06) 68%, rgba(255,255,255,0.5) 100%);
+  --g-rim3: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.85) 24%, rgba(255,255,255,0.3) 55%, rgba(255,255,255,0.7) 100%);
+  --g-rim-in: inset 1px 1px 0 rgba(255,255,255,0.95), inset -1px -1px 0 rgba(255,255,255,0.35), inset 0 0 0 1px rgba(255,255,255,0.22);
+  --g-rim-in3: inset 1px 1.5px 0 #fff, inset -1px -1px 0 rgba(255,255,255,0.5), inset 0 0 0 1px rgba(255,255,255,0.4);
+  --g-ctl: inset 1px 1px 0 rgba(255,255,255,0.9), inset -1px -1px 0 rgba(255,255,255,0.25), 0 0 0 0.5px rgba(0,0,0,0.1), 0 1px 3px rgba(0,0,0,0.06);
+  --g-solid: #FFFFFF;
+  --sh-card: 0 0 0 0.5px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.04), 0 10px 30px rgba(32,44,80,0.09);
+  --g-sh3: 0 0 0 0.5px rgba(0,0,0,0.08), 0 24px 70px rgba(20,30,60,0.28);
+  --r-card: 24px;
+  --bg: rgba(118,118,128,0.12); --bg-elevated: rgba(var(--g-rgb), var(--g-a1)); --bg-tinted: rgba(118,118,128,0.1);
+  --separator: rgba(0,0,0,0.1); --separator-strong: rgba(0,0,0,0.16); --pill-bg: rgba(118,118,128,0.14);
+  --label-2: #444448; --label-3: #505055; --label-4: #5E5E63;   /* etwas dunkler: AA auch ueber hellen Farbfeldern */
+  --g-card-solid: #F9F8F5;                            /* deckende Kartenfarbe (Glas a1 ueber --g-base), z. B. fuer Termine */
+  --g-nav-on: var(--tum-blau-dunkel);                 /* aktiver Eintrag Bottom-Bar */
+  --blue-ink: #004A91; --green-ink: #1A6B43; --orange-ink: #8F5000; --red-ink: #A0261F; --g-green-tag: #5B6200; --g-orange-tag: #A14B0C;
+}
+@media (prefers-color-scheme: dark) {
+  html[data-style="glass"] {
+    --g-base: #060913;                                /* tiefes Navy/Schwarz */
+    --g-rgb: 34, 37, 48; --g-rgb3: 38, 40, 52;
+    --g-a1: 0.52; --g-a2: 0.8; --g-a3: 0.78;
+    --g-lum: linear-gradient(135deg, rgba(255,255,255,0.075) 0%, rgba(255,255,255,0) 55%);
+    --g-rim: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.18) 18%, rgba(255,255,255,0.04) 46%, rgba(255,255,255,0.03) 70%, rgba(255,255,255,0.2) 100%);
+    --g-rim3: linear-gradient(135deg, rgba(255,255,255,0.62) 0%, rgba(255,255,255,0.26) 24%, rgba(255,255,255,0.07) 55%, rgba(255,255,255,0.24) 100%);
+    --g-rim-in: inset 1px 1px 0 rgba(255,255,255,0.24), inset -1px -1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(255,255,255,0.06);
+    --g-rim-in3: inset 1px 1.5px 0 rgba(255,255,255,0.4), inset -1px -1px 0 rgba(255,255,255,0.12), inset 0 0 0 1px rgba(255,255,255,0.1);
+    --g-ctl: inset 1px 1px 0 rgba(255,255,255,0.2), inset -1px -1px 0 rgba(255,255,255,0.05), 0 0 0 0.5px rgba(255,255,255,0.1), 0 1px 3px rgba(0,0,0,0.3);
+    --g-solid: #111318;
+    --sh-card: 0 0 0 0.5px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3), 0 12px 32px rgba(0,0,0,0.35);
+    --g-sh3: 0 0 0 0.5px rgba(0,0,0,0.5), 0 24px 70px rgba(0,0,0,0.6);
+    --bg: rgba(0,0,0,0.24); --bg-tinted: rgba(255,255,255,0.08);
+    --separator: rgba(255,255,255,0.1); --separator-strong: rgba(255,255,255,0.18); --pill-bg: rgba(255,255,255,0.1);
+    --label-2: #DAD7CB; --label-3: #A8A8AE; --label-4: #9C9CA2;
+    --g-card-solid: #151923; --g-nav-on: var(--tum-blau-hell);
+    --blue-ink: #8CC4FF; --red-ink: #FF7A70; --green-ink: #5BDD8A; --orange-ink: #FFB547; --g-green-tag: #C3CF2E; --g-orange-tag: #FF9E5A;
+  }
+}
+/* Ohne backdrop-filter oder bei "Transparenz reduzieren": deckende Flaechen, kein Blur */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html[data-style="glass"] { --g-a1: 1; --g-a2: 1; --g-a3: 1; --g-bf1: none; --g-bf2: none; --g-bf3: none; }
+}
+@media (prefers-reduced-transparency: reduce) {
+  html[data-style="glass"] { --g-a1: 1; --g-a2: 1; --g-a3: 1; --g-bf1: none; --g-bf2: none; --g-bf3: none; }
+}
+
+/* Hintergrund zum Brechen: ruhige Farbfelder in TUM-Farben auf eigener, fixierter Ebene */
+html[data-style="glass"] body { background: var(--g-base); }
+html[data-style="glass"] body::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(60% 50% at 8% 4%, rgba(100,160,200,0.42), transparent 70%),
+    radial-gradient(50% 45% at 96% 18%, rgba(227,114,34,0.22), transparent 70%),
+    radial-gradient(55% 50% at 14% 92%, rgba(162,173,0,0.18), transparent 70%),
+    radial-gradient(60% 55% at 82% 88%, rgba(0,101,189,0.2), transparent 72%),
+    var(--g-base); }
+@media (prefers-color-scheme: dark) {
+  html[data-style="glass"] body::before { background:
+    radial-gradient(60% 50% at 8% 4%, rgba(0,101,189,0.4), transparent 70%),
+    radial-gradient(50% 45% at 96% 18%, rgba(227,114,34,0.16), transparent 70%),
+    radial-gradient(55% 50% at 14% 92%, rgba(162,173,0,0.13), transparent 70%),
+    radial-gradient(60% 55% at 82% 88%, rgba(100,160,200,0.2), transparent 72%),
+    var(--g-base); }
+}
+/* Einblenden nur per Verschiebung: Deckkraft < 1 am Vorfahren wuerde den Blur der Karten kurz abschneiden */
+@media (prefers-reduced-motion: no-preference) { html[data-style="glass"] .view.on, html[data-style="glass"] .sub.on { animation-name: v19in; } }
+@keyframes v19in { from { transform: translateY(6px); } to { transform: none; } }
+
+/* Ebene 1: Karten und Inhaltsflaechen */
+html[data-style="glass"] :is(.card, .now-list, .wp-card, .fx-tile, .td-card, .td-soon-tile, .mod-list, .reg-wrap, .pruef-card, .pruef-summary, .pruef-empty,
+  .path-detail, .fold-card, .alert, .dl-add, .progress-card, .sem, .skal-card, .skal-mgrid, .skal-weekscroll, .skal-ocard) {
+  background-color: rgba(var(--g-rgb), var(--g-a1)); background-image: var(--g-lum);
+  -webkit-backdrop-filter: var(--g-bf1); backdrop-filter: var(--g-bf1); box-shadow: var(--sh-card); }
+html[data-style="glass"] :is(.card, .now-list, .wp-card, .fx-tile, .td-card, .td-soon-tile, .mod-list, .reg-wrap, .pruef-card, .pruef-summary, .pruef-empty,
+  .path-detail, .alert, .progress-card, .sem, .skal-card:not(details), .skal-mgrid, .skal-ocard, .now-main) { position: relative; }   /* .semb-pop ist schon absolut */
+/* Specular Rim: 1px-Ring als Verlauf (Maske schneidet die Innenflaeche aus). :where() haelt die Spezifitaet klein,
+   damit die Kanten-Overrides (.semb-pop Ebene 3, .now-main) greifen */
+html[data-style="glass"] :where(.card, .now-list, .wp-card, .fx-tile, .td-card, .td-soon-tile, .mod-list, .reg-wrap, .pruef-card, .pruef-summary, .pruef-empty,
+  .path-detail, .alert, .progress-card, .sem, .skal-card:not(details), .skal-mgrid, .skal-ocard, .now-main, .semb-pop)::before {
+  content: ""; position: absolute; inset: 0; z-index: 2; border-radius: inherit; padding: 1px; pointer-events: none; background: var(--g-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); }
+html[data-style="glass"] .semb-pop::before { background: var(--g-rim3); }
+html[data-style="glass"] .pruef-summary { background: linear-gradient(var(--separator), var(--separator)), rgba(var(--g-rgb), var(--g-a1)); }   /* Trennlinien = Luecken, darunter deckt die Glasflaeche */
+html[data-style="glass"] .td-card.flash { box-shadow: 0 0 0 2px var(--blue), var(--sh-card); }
+/* <details> und Scroll-Container: Kante als inset-Schatten (::before wuerde mitscrollen) */
+html[data-style="glass"] :is(.fold-card, .dl-add, details.skal-card, .skal-weekscroll) { box-shadow: var(--g-rim-in), var(--sh-card); }
+/* Radien: aussen 20-24px, innen konzentrisch kleiner */
+html[data-style="glass"] :is(.mod-list, .reg-wrap) { border-radius: var(--r-card); }
+html[data-style="glass"] :is(.pruef-card, .pruef-summary, .pruef-empty, .alert, .progress-card, .sem, .dl-add, .wp-card, .td-soon-tile) { border-radius: var(--r-card); }
+html[data-style="glass"] .td-soon-tile .st-when { border-radius: 14px; }   /* 24 - 10 Innenabstand */
+html[data-style="glass"] .td-item { border-radius: 8px; }
+html[data-style="glass"] .wp-day-body { border-radius: 12px; }
+html[data-style="glass"] .disclaimer { border-radius: var(--r-card); background: color-mix(in srgb, var(--orange) 16%, rgba(var(--g-rgb), var(--g-a1)));
+  -webkit-backdrop-filter: var(--g-bf1); backdrop-filter: var(--g-bf1); box-shadow: var(--g-rim-in), var(--sh-card); }
+
+/* Jetzt-Karte: getoentes Glas, Farbe bleibt TUM-Blau (bzw. Grau) */
+html[data-style="glass"] .now-main { background: linear-gradient(135deg, rgba(0,101,189,0.95) 0%, rgba(0,82,147,0.97) 100%);
+  -webkit-backdrop-filter: var(--g-bf1); backdrop-filter: var(--g-bf1); box-shadow: 0 12px 34px rgba(0,101,189,0.3); }
+html[data-style="glass"] .now-main.idle { background: linear-gradient(135deg, rgba(64,64,70,0.94), rgba(28,28,32,0.96)); box-shadow: var(--sh-card); }
+html[data-style="glass"] .now-main.priv { background: linear-gradient(135deg, rgba(90,90,96,0.94), rgba(44,44,48,0.96)); box-shadow: var(--sh-card); }
+html[data-style="glass"] .now-k { opacity: 1; }
+html[data-style="glass"] .now-main::before { background: linear-gradient(135deg, rgba(255,255,255,0.75) 0%, rgba(255,255,255,0.22) 20%, rgba(255,255,255,0.04) 50%, rgba(255,255,255,0.18) 100%); }
+
+/* Kalender (skal-): eigene Tokens auf Glas umstellen, Rahmen weg (Rim uebernimmt) */
+html[data-style="glass"] .skal-root { --skal-card: rgba(var(--g-rgb), var(--g-a1)); --skal-card2: var(--bg-tinted); --skal-line: rgba(0,0,0,0.08); --skal-line2: rgba(0,0,0,0.16);
+  --skal-shadow: var(--sh-card); --skal-radius: 24px; --skal-muted: #47474C; --skal-ok: #5B6200; --skal-amber: #A14B0C; --skal-danger: #B8231A; }
+@media (prefers-color-scheme: dark) { html[data-style="glass"] .skal-root { --skal-line: rgba(255,255,255,0.08); --skal-line2: rgba(255,255,255,0.18); --skal-muted: #B4B4BA; --skal-ok: #4CD964; --skal-amber: #FFB547; --skal-danger: #ff6961; } }
+/* Termine/Chips deckend (sonst laufen die Stundenlinien durch): Farbmischung mit deckender Kartenfarbe statt mit Glas */
+html[data-style="glass"] .skal-ev { background: color-mix(in srgb, var(--skal-cc) 22%, var(--g-card-solid)); }
+html[data-style="glass"] .skal-chip { background: color-mix(in srgb, var(--skal-cc) 18%, var(--g-card-solid)); }
+@media (max-width: 640px) { html[data-style="glass"] .skal-chip { background: var(--skal-cc); } }
+html[data-style="glass"] .skal-tile > * { overflow-wrap: anywhere; hyphens: auto; }   /* breitere Systemschrift: 320px ohne Ueberlauf */
+html[data-style="glass"] :is(.skal-card, .skal-mgrid, .skal-weekscroll) { border: 0; }
+html[data-style="glass"] .skal-ocard { border: 0; box-shadow: inset 5px 0 0 var(--skal-cc), var(--sh-card); }
+html[data-style="glass"] .skal-mgrid { background: linear-gradient(var(--skal-line), var(--skal-line)), rgba(var(--g-rgb), var(--g-a1)); }
+html[data-style="glass"] .skal-cell:not(.out):not(.we) { background-color: transparent; }   /* Wochentage = Glasflaeche, WE/fremde Tage leicht getoent */
+html[data-style="glass"] :is(.skal-pill:not(.primary):not(.sel), .skal-course, .skal-switch) { border-color: transparent; box-shadow: var(--g-ctl); }
+html[data-style="glass"] .skal-seg { border-color: transparent; background: var(--pill-bg); }
+html[data-style="glass"] .skal-seg button[aria-pressed="true"] { box-shadow: var(--g-ctl); }
+html[data-style="glass"] .skal-tag:not(.fix):not(.los):not(.bad):not(.open) { border-color: transparent; }
+
+/* Ebene 2: Kopfzeile und Bottom-Bar (Glas als ::before, damit .top kein Bezugsrahmen fuer die fixierte Leiste wird) */
+html[data-style="glass"] .top { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0; }
+html[data-style="glass"] .top::before { content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background-color: rgba(var(--g-rgb), var(--g-a2)); background-image: var(--g-lum);
+  -webkit-backdrop-filter: var(--g-bf2); backdrop-filter: var(--g-bf2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(255,255,255,0.4), 0 0.5px 0 rgba(0,0,0,0.08), 0 8px 24px rgba(20,30,60,0.06); }
+@media (prefers-color-scheme: dark) { html[data-style="glass"] .top::before { box-shadow: inset 0 -1px 0 rgba(255,255,255,0.08), 0 0.5px 0 rgba(0,0,0,0.6), 0 8px 24px rgba(0,0,0,0.3); } }
+html[data-style="glass"] :is(.vnav, .subnav) { box-shadow: inset 0 0 0 0.5px rgba(0,0,0,0.04); }
+html[data-style="glass"] :is(.vnav button.active, .subnav button[aria-pressed="true"], .tab.active) { box-shadow: var(--g-ctl); }
+html[data-style="glass"] .gear { box-shadow: var(--g-rim-in); }
+html[data-style="glass"] :is(.kpi-l, .semb-s) { color: var(--label-2); }
+html[data-style="glass"] .semb-dot { border-color: var(--g-solid); }
+html[data-style="glass"] .semb-pop { background-color: rgba(var(--g-rgb3), max(var(--g-a3), 0.9));   /* deckender: Chrome blurt unter dem Sticky-Header nur bis zu dessen Kante */
+  background-image: var(--g-lum); border: 0; border-radius: 18px;
+  -webkit-backdrop-filter: var(--g-bf3); backdrop-filter: var(--g-bf3); box-shadow: var(--g-sh3); }
+html[data-style="glass"] .semb-pop[hidden] { display: none; }
+
+/* Ebene 3: Einstellungs-Sheet (Dialog scrollt -> Kante als inset-Schatten) */
+html[data-style="glass"] .sheet { background-color: rgba(var(--g-rgb3), var(--g-a3)); background-image: var(--g-lum); border-radius: 30px;
+  -webkit-backdrop-filter: var(--g-bf3); backdrop-filter: var(--g-bf3); box-shadow: var(--g-rim-in3), var(--g-sh3); }
+html[data-style="glass"] .sheet-in { padding: 20px 20px 24px; }
+html[data-style="glass"] .sheet .settings-grid { border-radius: 10px; background: var(--separator); box-shadow: var(--g-rim-in); }   /* 30 - 20 */
+html[data-style="glass"] .sheet .setting-cell { background: rgba(var(--g-rgb), 0.55); }
+html[data-style="glass"] .sheet-x { box-shadow: var(--g-rim-in); }
+
+/* Bedienelemente auf Glas: keine harten Rahmen, Kante als Lichtkante */
+html[data-style="glass"] :is(.btn:not(.primary):not(.danger-ghost), .wp-nav-btn, .wp-nav-today, .td-chip, .bd-toggle, .chip:not(.chip-warn):not(.chip-danger)) { border-color: transparent; box-shadow: var(--g-ctl); }
+html[data-style="glass"] .chip { background-color: rgba(var(--g-rgb), var(--g-a1)); -webkit-backdrop-filter: var(--g-bf1); backdrop-filter: var(--g-bf1); }
+html[data-style="glass"] :is(.chip-warn, .chip-danger) { box-shadow: var(--sh-card); }
+html[data-style="glass"] .btn.primary { box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35), 0 4px 14px rgba(0,101,189,0.28); }
+html[data-style="glass"] .ps.thesis .ps-dot { color: var(--g-solid); }
+html[data-style="glass"] .fx-scale i { background: var(--g-solid); }
+
+@media (max-width: 767px) {
+  /* Bottom-Bar als schwebende Glas-Kapsel */
+  html[data-style="glass"] .vnav { left: 10px; right: 10px; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); padding: 6px; border-radius: 30px; border-top: 0;
+    background-color: rgba(var(--g-rgb), var(--g-a2)); background-image: var(--g-lum);
+    -webkit-backdrop-filter: var(--g-bf2); backdrop-filter: var(--g-bf2); box-shadow: var(--g-rim-in3), 0 10px 30px rgba(20,30,60,0.18); }
+  html[data-style="glass"] .vnav button { border-radius: 24px; }   /* 30 - 6 */
+  html[data-style="glass"] .vnav button { color: var(--label-2); }
+  html[data-style="glass"] .vnav button.active { background: var(--pill-bg); box-shadow: none; color: var(--g-nav-on); }
+  html[data-style="glass"] .mod-filter { background: rgba(var(--g-rgb), var(--g-a2));   /* Leiste der Stufe 2 */ -webkit-backdrop-filter: var(--g-bf2); backdrop-filter: var(--g-bf2);
+    box-shadow: 0 0.5px 0 var(--separator); }
+  html[data-style="glass"] .sheet { border-radius: 30px 30px 0 0; }
+}
+@media (max-width: 767px) and (prefers-color-scheme: dark) {
+  html[data-style="glass"] .vnav { box-shadow: var(--g-rim-in3), 0 10px 30px rgba(0,0,0,0.5); }
+}
+/* Flaechen, die deckend sein muessen (Ziehen, Zeitstrahl-Punkte) */
+html[data-style="glass"] :is(.td-item.dragging, .th-dot) { background: var(--g-card-solid); }
+/* Hinweis-Tags in Gruen/Orange: gleicher Farbton, dunklere (Nacht: hellere) Schrift fuer AA; Kategorie-Farben bleiben */
+html[data-style="glass"] :is(.mod-tag.ws, .pruef-t-project, .progress-status.ok, .td-date.now) { color: var(--g-green-tag); }
+html[data-style="glass"] :is(.mod-tag.bachelor, .pruef-t-part, .progress-status.warn, .td-date.soon, .td-soon-tile.soon .st-when, .td-soon-tile.soon .st-rel, .pruef-card-flag.warn) { color: var(--g-orange-tag); }
+html[data-style="glass"] :is(.pruef-t-pres, .ps.sel .ps-name, .ps-tag) { color: var(--blue-ink); }
+html[data-style="glass"] .pruef-t-paper { color: var(--purple-ink); }   /* Nacht: #005293 auf Dunkel war unlesbar */
+/* Notizzettel bleibt Papier: alte Schrift */
+html[data-style="glass"] .note-dlg { --ff: Arial, Helvetica, sans-serif; font-family: var(--ff); }
 </style>
 <script>
 // v18: Darstellung Automatisch / Hell / Dunkel, je Geraet (localStorage mmdt_theme; nicht in state, Export oder Sync).
@@ -1191,6 +1382,22 @@ function themeApply(mode) {
   document.documentElement.setAttribute('data-theme', mode);
 }
 themeApply(themeGet());
+// v19: Stil Klassisch / Glas, je Geraet (localStorage mmdt_style; nicht in state, Export oder Sync). Setzt html[data-style]
+// ebenfalls vor dem ersten Rendern; alle Glas-Regeln haengen an html[data-style="glass"]. Statusleiste im Glas-Stil = Hintergrundfarbe.
+var STYLE_KEY = 'mmdt_style';
+function styleGet() { try { return localStorage.getItem(STYLE_KEY) === 'glass' ? 'glass' : 'classic'; } catch (e) { return 'classic'; } }
+function styleApply(s) {
+  if (s !== 'glass') s = 'classic';
+  document.documentElement.setAttribute('data-style', s);
+  var metas = document.querySelectorAll('meta[name="theme-color"]');
+  for (var j = 0; j < metas.length; j++) {
+    var el = metas[j];
+    if (!el.hasAttribute('data-content')) el.setAttribute('data-content', el.getAttribute('content') || '');
+    var dark = /dark/i.test(el.getAttribute('data-media') || el.getAttribute('media') || '');
+    el.setAttribute('content', s === 'glass' ? (dark ? '#060913' : '#F1EEE6') : el.getAttribute('data-content'));
+  }
+}
+styleApply(styleGet());
 </script>
 </head>
 <body>
@@ -1488,6 +1695,13 @@ themeApply(themeGet());
           <option value="auto" data-t="theme_auto">Automatisch (System)</option>
           <option value="light" data-t="theme_light">Hell</option>
           <option value="dark" data-t="theme_dark">Dunkel</option>
+        </select>
+      </div>
+      <div class="setting-cell">
+        <label for="style" data-t="style_label">Stil</label>
+        <select id="style">
+          <option value="classic" data-t="style_classic">Klassisch</option>
+          <option value="glass" data-t="style_glass">Glas</option>
         </select>
       </div>
     </div>
@@ -2695,6 +2909,8 @@ const I18N_V15 = {
     wp_no_time: l => `Termine noch unbekannt: ${l} — aus den TUMonline-Kursdetails nachtragen.`,
     // v18: Darstellung
     theme_label: 'Darstellung', theme_auto: 'Automatisch (System)', theme_light: 'Hell', theme_dark: 'Dunkel', theme_btn: m => `Darstellung: ${m} (antippen zum Wechseln)`,
+    // v19: Stil
+    style_label: 'Stil', style_classic: 'Klassisch', style_glass: 'Glas',
     // v17: Cockpit
     ck_title: 'Cockpit', ck_optional: 'optional', ck_token: 'Geräte-Token', ck_url: 'Adresse der Funktion', ck_test: 'Verbindung testen',
     ck_hint: 'Mit Geräte-Token kommen Uni-Aufgaben, Fristen und dein Google-Kalender live aus dem Cockpit. Deine lokalen To-dos bleiben gespeichert. Token und Adresse bleiben nur in diesem Browser (nicht im Export, nicht im Sync).',
@@ -2734,6 +2950,8 @@ const I18N_V15 = {
     wp_no_time: l => `Dates still unknown: ${l} — add them from the TUMonline course details.`,
     // v18: Darstellung
     theme_label: 'Appearance', theme_auto: 'Automatic (system)', theme_light: 'Light', theme_dark: 'Dark', theme_btn: m => `Appearance: ${m} (tap to switch)`,
+    // v19: Stil
+    style_label: 'Style', style_classic: 'Classic', style_glass: 'Glass',
     // v17: Cockpit
     ck_title: 'Cockpit', ck_optional: 'optional', ck_token: 'Device token', ck_url: 'Function address', ck_test: 'Test connection',
     ck_hint: 'With a device token, uni tasks, deadlines and your Google Calendar come live from the Cockpit. Your local to-dos stay saved. Token and address stay in this browser only (not in the export, not in sync).',
@@ -2752,6 +2970,7 @@ const I18N_V15 = {
   it: {
     v_today: 'Oggi', v_progress: 'Progressi', v_courses: 'Corsi', v_plan: 'Piano', k_gpa: 'Media', close: 'Chiudi', wp_title: 'Questa settimana',
     wd: i => ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'][i],
+    style_label: 'Stile', style_classic: 'Classico', style_glass: 'Vetro',   // v19
   },
 };
 Object.assign(I18N.de, I18N_V15.de);
@@ -5597,6 +5816,13 @@ function initTheme() {
   window.addEventListener('storage', e => { if (e.key === THEME_KEY) { themeApply(themeGet()); themeUi(); } });   // anderer Tab
   themeUi();
 }
+// v19: Stil (styleApply/styleGet im <head>): Auswahl im Sheet, kein eigener Kopfzeilen-Knopf (Platz auf dem Handy)
+function initStyle() {
+  const sel = $id('style');
+  sel.value = styleGet();
+  sel.addEventListener('change', () => { try { localStorage.setItem(STYLE_KEY, sel.value); } catch (e) {} styleApply(sel.value); });
+  window.addEventListener('storage', e => { if (e.key === STYLE_KEY) { styleApply(styleGet()); sel.value = styleGet(); } });   // anderer Tab
+}
 function initCockpit() {
   const tok = $id('ck-token'), url = $id('ck-url'), sec = $id('aufgaben-section');
   tok.value = ckToken(); url.value = ckUrl();
@@ -5690,7 +5916,7 @@ function init() {
   renderTabs();
   renderAll();
   window.SKAL = createSkal();   // Kalender WS 26/27 (Namespace skal-)
-  initViews(); initSettings(); initChips(); initPath(); initTheme();
+  initViews(); initSettings(); initChips(); initPath(); initTheme(); initStyle();
   renderSemBar(); initCockpit(); gcalLoad(); setInterval(gcalLoad, 10 * 60 * 1000);   // Google-Kalender alle 10 Min neu (v17: Cockpit zuerst, sonst Server/eingebacken)
   initRegistration();
   initV14();   // v14: Thesis, eigene Kurse

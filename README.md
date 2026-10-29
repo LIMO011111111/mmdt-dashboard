@@ -29,6 +29,11 @@ Everything you still set by hand in the dashboard (wait-list status, notes, plan
 later semesters, deadlines you add) stays; TUMonline facts only overwrite what they know better.
 The thesis is planned for semester 4 of your program until you pick another semester or date yourself.
 
+**Look.** In **Settings** (gear icon), **Appearance** switches between light, dark and automatic, and **Style** switches
+between **Classic** and **Glass**: translucent, Apple-style "Liquid Glass" cards, bars and sheets over a calm background
+in TUM colours, by day and by night. Both are stored per device only (not in the JSON export, not in the sync); with
+"Reduce transparency" turned on in the system settings, Glass shows solid surfaces.
+
 ## Setup (10 minutes)
 
 You need Python 3.9+ (`py --version` on Windows, `python3 --version` elsewhere).
