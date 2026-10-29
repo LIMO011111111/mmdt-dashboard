@@ -1343,6 +1343,10 @@ html[data-style="glass"] :is(.mod-tag.ws, .pruef-t-project, .progress-status.ok,
 html[data-style="glass"] :is(.mod-tag.bachelor, .pruef-t-part, .progress-status.warn, .td-date.soon, .td-soon-tile.soon .st-when, .td-soon-tile.soon .st-rel, .pruef-card-flag.warn) { color: var(--g-orange-tag); }
 html[data-style="glass"] :is(.pruef-t-pres, .ps.sel .ps-name, .ps-tag) { color: var(--blue-ink); }
 html[data-style="glass"] .pruef-t-paper { color: var(--purple-ink); }   /* Nacht: #005293 auf Dunkel war unlesbar */
+/* v21: Fixplatz-Plakette deckend getoent statt 10/20 % Blau ueber Glas: die Farbfelder des Hintergrunds schlagen nicht mehr durch,
+   Kontrast (Pixel, 5. Perzentil) im Pfad hell >= 6,7 / dunkel 7,3 statt 5,7 / 4,6. Klassisch unveraendert. */
+html[data-style="glass"] .cs-fixplatz { background: color-mix(in srgb, var(--tum-blau) 12%, var(--g-card-solid)); }
+@media (prefers-color-scheme: dark) { html[data-style="glass"] .cs-fixplatz { background: color-mix(in srgb, var(--tum-blau) 30%, var(--g-card-solid)); } }
 /* Notizzettel bleibt Papier: alte Schrift */
 html[data-style="glass"] .note-dlg { --ff: Arial, Helvetica, sans-serif; font-family: var(--ff); }
 </style>
