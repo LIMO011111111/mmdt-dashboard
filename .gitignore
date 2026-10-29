@@ -14,3 +14,7 @@ __pycache__/
 
 # local virtualenv (e.g. on the Raspberry Pi)
 venv/
+
+# Test output (tests/run.sh) and local Node dependencies for the tests
+tests/out/
+node_modules/

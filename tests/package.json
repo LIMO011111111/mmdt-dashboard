@@ -1,0 +1,7 @@
+{
+  "name": "mmdt-dashboard-tests",
+  "private": true,
+  "description": "Playwright-Tests fuer das MMDT-Dashboard (nur erfundene Daten)",
+  "scripts": { "test": "./run.sh" },
+  "devDependencies": { "playwright": "1.63.0" }
+}

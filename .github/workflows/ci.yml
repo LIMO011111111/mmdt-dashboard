@@ -1,0 +1,52 @@
+# Browser-Tests (Playwright/Chromium) fuer das Dashboard. Laeuft bei jedem Push und jedem Pull Request, auf allen Branches.
+# Kein Secret, keine echten Daten: die Tests bauen ihre Vorschau aus template.html + erfundenen Fake-Daten (tests/make_preview.py).
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: tests/package-lock.json
+
+      - name: Install Playwright
+        working-directory: tests
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run tests
+        run: tests/run.sh
+
+      # Nur bei Fehlschlag: Logs + Test-Screenshots (enthalten ausschliesslich erfundene Daten). Keine Builds, kein data/.
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-output
+          path: |
+            tests/out/logs
+            tests/out/shots
+          retention-days: 3
+          if-no-files-found: ignore
