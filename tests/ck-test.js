@@ -27,7 +27,9 @@ async function open(ctx, file, ls) {
   await page.reload(); await page.waitForTimeout(900);
   return { page, errs };
 }
-const snap = page => page.evaluate(() => ['aufgaben', 'aufgaben-soon', 'aufgaben-off', 'semb', 'wochenplan'].map(id => document.getElementById(id).innerHTML.replace(/\s+/g, ' ')));
+// v22: rote Jetzt-Linie (Position/Uhrzeit je Minute) nicht vergleichen: beide Seiten laden nacheinander, ein Minutenwechsel dazwischen machte den Test zufaellig rot
+const snap = page => page.evaluate(() => ['aufgaben', 'aufgaben-soon', 'aufgaben-off', 'semb', 'wochenplan'].map(id => { const el = document.getElementById(id).cloneNode(true);
+  el.querySelectorAll('.wp-now, .wp-now-lbl').forEach(x => x.remove()); return el.innerHTML.replace(/\s+/g, ' '); }));
 const overflow = page => page.evaluate(() => { const w = document.documentElement.clientWidth; return document.documentElement.scrollWidth > w ? document.documentElement.scrollWidth : 0; });
 const mockLog = () => fetch(MOCK + '/__log').then(r => r.json());
 

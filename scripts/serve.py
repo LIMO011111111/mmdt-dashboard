@@ -8,7 +8,10 @@ uses when it is opened over http instead of as a file. Python standard library o
 What it adds on top of a plain static server:
   GET/PUT /api/mmdt-state   device sync: the dashboard keeps its own entries (status, notes, to-dos, plans)
                             here as data/mmdt-state.json, so phone and laptop show the same thing.
-                            Newer timestamp wins; the page does the merging, the server only stores.
+                            The page does the merging, the server only stores. v22: a PUT with "base" (the ts
+                            the page last saw) is only stored if the server still has that ts; otherwise 409
+                            with the current {ts, state}, so a stale tab never overwrites newer data.
+                            A PUT without "base" (older pages) works as before: newer timestamp wins.
   GET      /api/kalender    your Google Calendar (read-only), refreshed at most every 10 minutes through
                             scripts/gcal.py. Needs GOOGLE_CAL_ICS_URL in .env; otherwise 404 and the
                             page falls back to the calendar baked in at build time.
@@ -72,6 +75,7 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")   # v22: JSON nie als HTML deuten
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -81,9 +85,15 @@ class Handler(SimpleHTTPRequestHandler):
         if path == "/api/mmdt-state":
             try:
                 with open(self.state_path, encoding="utf-8") as fh:
-                    return self._json(200, json.load(fh))
-            except (OSError, ValueError):
+                    doc = json.load(fh)
+                if not isinstance(doc, dict):
+                    raise ValueError("not an object")
+                return self._json(200, doc)
+            except FileNotFoundError:   # noch nie gespeichert = leer
                 return self._json(200, {"ts": 0, "state": None})
+            except (OSError, ValueError) as ex:   # v22: Lesefehler nie als "leer" melden (die Seite wuerde sonst neu befuellen)
+                print(f"state unreadable: {ex}", file=sys.stderr)
+                return self._json(500, {"error": "state unreadable"})
         if path == "/api/kalender":
             cal = self.calendar.get()
             return self._json(200, cal) if cal else self._json(404, {"error": "no calendar configured"})
@@ -103,19 +113,38 @@ class Handler(SimpleHTTPRequestHandler):
             data = json.loads(self.rfile.read(n).decode("utf-8"))
             if not isinstance(data, dict) or not isinstance(data.get("state"), dict):
                 raise ValueError("expected {\"ts\": <ms>, \"state\": {...}}")
+            if isinstance(data.get("ts"), (bool, list, dict)):   # v22: wie die Pages-Function: nur Zahl oder Ziffern-Text
+                raise ValueError("invalid ts")
             ts = int(data.get("ts") or 0)
             ts = max(0, min(ts, int(time.time() * 1000) + TS_SLACK_MS))   # a wrong clock must not lock out every other device
+            base = data.get("base")   # v22: None = altes Protokoll
+            if base is not None:
+                if isinstance(base, bool) or not isinstance(base, (int, float)):
+                    raise ValueError("base must be a number")
+                base = int(base)
         except (ValueError, TypeError, OverflowError, UnicodeDecodeError) as ex:
             return self._json(400, {"error": str(ex)})
         with self.state_lock:
             try:
                 with open(self.state_path, encoding="utf-8") as fh:
-                    cur = int(json.load(fh).get("ts") or 0)
-            except (OSError, ValueError):
-                cur = 0
-            if ts >= cur:   # the page only pushes what is newer than what it pulled; an older device never wins
+                    cur_doc = json.load(fh)
+                cur = int(cur_doc.get("ts") or 0)
+            except FileNotFoundError:
+                cur_doc, cur = None, 0
+            except (OSError, ValueError, AttributeError, TypeError) as ex:   # v22: unlesbar -> nicht ueberschreiben
+                print(f"state unreadable: {ex}", file=sys.stderr)
+                return self._json(500, {"error": "state unreadable"})
+            if base is not None:   # v22: nur speichern, wenn die Seite den aktuellen Stand kennt
+                if base != cur:
+                    return self._json(409, {"error": "conflict", "ts": cur,
+                                            "state": cur_doc.get("state") if isinstance(cur_doc, dict) else None})
+                ts = max(ts, cur + 1)   # jeder gespeicherte Stand bekommt einen neuen ts
                 write_atomic(self.state_path, json.dumps({"ts": ts, "state": data["state"]}, ensure_ascii=False))
-        return self._json(200, {"ok": True, "ts": max(ts, cur)})
+                return self._json(200, {"ok": True, "ts": ts, "stored": True})
+            stored = ts >= cur   # altes Protokoll: the page only pushes what is newer than what it pulled
+            if stored:
+                write_atomic(self.state_path, json.dumps({"ts": ts, "state": data["state"]}, ensure_ascii=False))
+        return self._json(200, {"ok": True, "ts": max(ts, cur), "stored": stored})
 
     def end_headers(self):
         if urlsplit(getattr(self, "path", "")).path.endswith(".html"):

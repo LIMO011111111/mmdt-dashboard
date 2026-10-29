@@ -27,6 +27,22 @@ async function open(browser, file, { scheme = 'light', theme = null, style = nul
   await p.reload(); await p.waitForTimeout(700);
   return { ctx, p, errs };
 }
+// v22: bewusste Aenderungen fuer den Vergleich "Klassisch unveraendert" gezielt herausnehmen (in beiden Seiten, falls vorhanden):
+// (a) Handy-Regel "Eingabefelder >= 16px" gegen iOS-Zoom (@media max-width 767px, font-size 16px fuer input/select/textarea),
+// (b) neuer deutscher/italienischer Text fuer "ohne Specialization" (vorher englisch). Alles andere muss weiter gleich sein.
+// (c) v22: Animationen aus (SPAN.pulse u. a. animiert box-shadow; sonst Vergleich je nach Zeitpunkt, auch HEAD gegen HEAD rot)
+const neutralizeV22 = p => p.evaluate(() => {
+  const st = document.createElement('style'); st.textContent = '*, *::before, *::after { animation: none !important; transition: none !important; }'; document.head.appendChild(st);
+  for (const sh of document.styleSheets) {
+    let rules; try { rules = sh.cssRules; } catch (e) { continue; }
+    for (let i = rules.length - 1; i >= 0; i--) {
+      const r = rules[i];
+      if (r instanceof CSSMediaRule && /max-width:\s*767px/.test(r.conditionText) && [...r.cssRules].some(x => /textarea/.test(x.selectorText || '') && x.style.fontSize === '16px')) sh.deleteRule(i);
+    }
+  }
+  if (I18N.de.spec_name_none) ['de', 'en', 'it'].forEach(l => { I18N[l].spec_name_none = 'No management specialization'; });
+  renderAll();
+});
 const go = (p, v, s) => p.evaluate(([v, s]) => { setView(v); if (s) document.querySelector(`#subnav [data-sub="${s}"]`).click(); window.scrollTo(0, 0); }, [v, s]).then(() => p.waitForTimeout(450));
 const over = p => p.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
 // Berechnete Styles aller sichtbaren Elemente (ohne Einstellungs-Dialog, der ein Feld mehr hat)
@@ -112,6 +128,7 @@ const alpha = s => { const m = /rgba\([^)]*,\s*([\d.]+)\)/.exec(s); return m ? +
       const A = await open(browser, base, { scheme, theme, w, h });   // je Vergleich frisch (Unteransicht merkt sich die Seite)
       const B = await open(browser, neu, { scheme, theme, style: st, w, h });
       const nm = `Klassisch ${vn} System ${scheme}${theme ? ' + ' + theme : ''}${st ? ' (gespeichert classic)' : ' (Default)'}`;
+      await neutralizeV22(A.p); await neutralizeV22(B.p);
       let diff = 0, first = '', shotDiff = 0;
       for (const [v, s] of VIEWS) {
         await go(A.p, v, s); await go(B.p, v, s);

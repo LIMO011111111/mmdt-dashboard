@@ -76,12 +76,17 @@ python3 scripts/serve.py            # http://<pi>:8080/dashboard.html
 
 `serve.py` is a plain static server plus the two small endpoints the page uses when it is opened over
 http instead of as a file: `/api/mmdt-state` keeps everything you set by hand (status, notes, to-dos,
-plans) in `data/mmdt-state.json`, so phone and laptop show the same thing (newest change wins), and
+plans) in `data/mmdt-state.json`, so phone and laptop show the same thing (changes from both devices are
+merged entry by entry and field by field, the note line by line; an open, outdated tab cannot overwrite
+newer data), and
 `/api/kalender` serves your Google Calendar fresh (every 10 minutes, see below) instead of the copy baked
 in at build time (`/api/kalender` needs the same two packages as the calendar option below). Opened as a
 file, the dashboard still works and says so at the top, but your entries stay in that one browser. The same
 is true, silently, for a server without these endpoints (`python3 -m http.server`, nginx, ...). Any other
-server works as long as it answers `GET`/`PUT /api/mmdt-state` with `{"ts": <ms>, "state": {...}}`.
+server works as long as it answers `GET`/`PUT /api/mmdt-state` with `{"ts": <ms>, "state": {...}}`. Sync protocol
+(v22): the page sends `PUT {"ts", "base", "state"}` where `base` is the `ts` it last saw; a server that has a
+different `ts` answers `409 {"ts", "state"}` and the page merges and retries. A `PUT` without `base` (older
+pages) keeps the old rule "newer `ts` wins", and the page also works with servers that ignore `base`.
 
 **Do not publish the generated file**: it contains your grades. Keep the server in your home network
 (or put authentication in front of it).

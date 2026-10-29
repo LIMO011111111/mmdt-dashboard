@@ -1,9 +1,20 @@
 // Applied by build_dashboard.py right after TUM_LIVE. Runs before DOMContentLoaded, so init() renders with live data.
+// v22: Fehler hier brechen das Skript nicht mehr ab (sonst blieb GCAL_STATIC dahinter unerreichbar).
 (function applyTumLive() {
   const L = window.TUM_LIVE || (typeof TUM_LIVE !== 'undefined' ? TUM_LIVE : null);
   if (!L) return;
+  try {
   const known = new Set(MODULES.map(m => m.id));
   const name = id => { const m = MODULES.find(x => x.id === id); return m ? m.t : id; };
+
+  // v22: Kursdaten der Vorlage gelten nur fuer ihr Semester (TEMPLATE_SEM = 26W). Fuer ein anderes Semester zaehlen nur die
+  // Daten aus diesem Build: Angebot, Wochenraster, Blockkurse, Einzeltermine/Termintexte der Vorlage werden verworfen.
+  if (typeof TEMPLATE_SEM !== 'undefined' && /^\d{2}[WS]$/.test(String(L.semester)) && L.semester !== TEMPLATE_SEM) {
+    WS2627.clear(); (state.cust || []).forEach(c => WS2627.add(c.id));
+    Object.keys(SCHEDULE).forEach(c => { delete SCHEDULE[c]; });
+    Object.keys(SCHEDULE_BLOCKS).forEach(c => { delete SCHEDULE_BLOCKS[c]; });
+    Object.keys(SKAL_DATA).forEach(c => { SKAL_DATA[c].dates = []; delete SKAL_DATA[c].termine; delete SKAL_DATA[c].bewerbung; });
+  }
 
   // --- course offer, weekly plan, dates
   (L.ws || []).forEach(c => { if (known.has(c)) WS2627.add(c); });
@@ -42,7 +53,8 @@
   //     everything you set by hand for other courses (wait list, notes, plans) stays.
   const me = L.me;
   if (me && typeof state !== 'undefined') {
-    if (/^[1-4]$/.test(String(me.cursem))) state.cursem = String(me.cursem);
+    // v22: Semester aus TUMonline nur, solange du es nicht selbst gewaehlt hast (state.cursemManual, zuruecksetzen mit "Automatisch")
+    if (/^[1-4]$/.test(String(me.cursem)) && !state.cursemManual) state.cursem = String(me.cursem);
     // wait list from Moodle is only a guess: never overrides a semester or status you chose yourself
     const guess = c => me.cs && me.cs[c] && me.cs[c].src === 'moodle';
     const ownStatus = c => state.cs && state.cs[c] && state.cs[c].s && state.cs[c].s !== 'geplant';
@@ -73,4 +85,5 @@
     save();
     syncCourseStatus();
   }
+  } catch (e) { console.error('[Dashboard] TUM_LIVE konnte nicht uebernommen werden:', e); }
 })();

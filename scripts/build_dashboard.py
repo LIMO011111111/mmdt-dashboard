@@ -84,6 +84,14 @@ def write_atomic(path, text):
     os.replace(tmp, path)
 
 
+def script_json(obj):
+    """v22: JSON fuer ein <script>-Element: <, >, & und U+2028/U+2029 als \\u-Escape, damit ein Text wie
+    '</script><script>...' (Kalendertitel, Kursdaten) nicht aus dem Script ausbrechen kann. Gleicher Wert fuer JS."""
+    s = json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+    return (s.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e")
+            .replace("\u2028", "\\u2028").replace("\u2029", "\\u2029"))
+
+
 def short_room(room):
     """'L.1.11, Seminarraum (1902.01.111)' -> 'L.1.11'; 'Online: Videokonferenz' -> 'Online'."""
     room = (room or "").strip()
@@ -180,7 +188,8 @@ def load_offer(semester, codes_with_names, max_age_days, refresh):
         with open(path, encoding="utf-8") as fh:
             cached = json.load(fh)
         age = (datetime.now() - datetime.fromisoformat(cached["fetched_at"])).days
-        missing = [c for c, _ in codes_with_names if c not in cached["modules"]]
+        old_stale = set(cached.get("stale", []))   # v22: beim letzten Lauf nicht geholt, nur alter Stand -> erneut holen
+        missing = [c for c, _ in codes_with_names if c not in cached["modules"] or c in old_stale]
         if age <= max_age_days and not missing:
             log(f"Course offer {semester}: cache from {cached['fetched_at'][:10]} ({len(cached['modules'])} modules)")
             return cached
@@ -188,21 +197,50 @@ def load_offer(semester, codes_with_names, max_age_days, refresh):
         refresh = refresh or age > max_age_days   # too old: every module again, not only the missing ones
     else:
         cached = {"modules": {}}
+        if os.path.exists(path):   # v22: --refresh-offer: alter Cache bleibt Rueckfall, falls TUMonline nicht antwortet
+            try:
+                with open(path, encoding="utf-8") as fh:
+                    cached = json.load(fh)
+            except (OSError, ValueError):
+                cached = {"modules": {}}
         log(f"Course offer {semester}: fetching {len(codes_with_names)} modules from TUMonline (takes a few minutes)")
-    result = dict(cached.get("modules", {})) if not refresh else {}
+    old = dict(cached.get("modules", {}))
+    old_stale = set(cached.get("stale", []))
+    result = {c: v for c, v in old.items() if c not in old_stale} if not refresh else {}
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    fetched_at = datetime.now().isoformat(timespec="seconds")
+    failed, stale, fresh = [], {}, [0]
+
+    def save_cache():   # v22: laufend + atomar schreiben, ein Abbruch kostet hoechstens das laufende Modul.
+        # Nichts neu geholt (TUMonline down) -> alten Cache nicht anfassen. Alte Eintraege fehlgeschlagener Module bleiben
+        # als Rueckfall im Cache, markiert als "stale" (der naechste Lauf holt sie neu).
+        if not fresh[0]:
+            return
+        write_atomic(path, json.dumps({"semester": semester, "fetched_at": fetched_at, "modules": dict(stale, **result),
+                                       "stale": sorted(stale)}, indent=1, ensure_ascii=False))
+
     for i, (code, name) in enumerate(codes_with_names, 1):
         if code in result and not refresh:
             continue
         try:
             result[code] = tum.module(code, semester, name)
+            stale.pop(code, None)
+            fresh[0] += 1
             n = sum(len(p["appointments"]) for p in result[code]["parts"])
             log(f"  [{i}/{len(codes_with_names)}] {code:12} {len(result[code]['parts'])} course(s), {n} dates")
-        except tum.TumonlineError as e:
-            log(f"  [{i}/{len(codes_with_names)}] {code:12} SKIPPED: {e}")
-    data = {"semester": semester, "fetched_at": datetime.now().isoformat(timespec="seconds"), "modules": result}
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    write_atomic(path, json.dumps(data, indent=1, ensure_ascii=False))
-    return data
+            save_cache()
+        except Exception as e:   # v22: TumonlineError, Timeout, kaputtes XML ...: dieses Modul auslassen, weitermachen
+            failed.append(code)
+            if code in old:   # alter Stand fuer diesen Build (auch bei --refresh-offer)
+                stale[code] = old[code]
+            log(f"  [{i}/{len(codes_with_names)}] {code:12} SKIPPED: {type(e).__name__}: {e}")
+    save_cache()
+    if failed:
+        log(f"WARNING course offer {semester}: {len(failed)} module(s) not fetched ({', '.join(failed)}); "
+            f"{len(stale)} from the old cache; the next run fetches them again")
+    if not fresh[0] and cached.get("fetched_at"):   # v22: nichts neu -> Stand des alten Caches
+        fetched_at = cached["fetched_at"]
+    return {"semester": semester, "fetched_at": fetched_at, "modules": dict(stale, **result), "failed": failed}
 
 
 def appointments_of(module_entry):
@@ -219,6 +257,17 @@ def appointments_of(module_entry):
     return sorted(out)
 
 
+def end_minutes(start, end):
+    """v22: Ende in Minuten; Ende <= Beginn (ueber Mitternacht, TUMonline liefert nur die Uhrzeit) -> 24:00 = 1440."""
+    s, e = to_minutes(start), to_minutes(end)
+    return e if e > s else 24 * 60
+
+
+def end_hhmm(start, end):
+    """v22: wie end_minutes, als Text fuer den Kalender ('18:00-00:00' -> '18:00-24:00')."""
+    return end if to_minutes(end) > to_minutes(start) else "24:00"
+
+
 def weekly_slots(appts, min_count=3):
     """Regular weekly slots from a list of appointments: [{d, s, e}] for (weekday, start, end) seen >= min_count."""
     cnt = Counter()
@@ -226,7 +275,7 @@ def weekly_slots(appts, min_count=3):
         wd = datetime.strptime(d, "%Y-%m-%d").weekday()
         if wd <= 4:
             cnt[(wd, s, e)] += 1
-    slots = [{"d": wd, "s": to_minutes(s), "e": to_minutes(e)} for (wd, s, e), n in cnt.items() if n >= min_count]
+    slots = [{"d": wd, "s": to_minutes(s), "e": end_minutes(s, e)} for (wd, s, e), n in cnt.items() if n >= min_count]
     return sorted(slots, key=lambda x: (x["d"], x["s"]))
 
 
@@ -235,6 +284,7 @@ def block_text(appts):
     parts_de, parts_en = [], []
     for d, s, e, _ in appts[:12]:
         dt = datetime.strptime(d, "%Y-%m-%d")
+        e = end_hhmm(s, e)   # v22
         parts_de.append(f"{DAY_DE[dt.weekday()]} {dt.day:02d}.{dt.month:02d}. {s}-{e}")
         parts_en.append(f"{DAY_EN[dt.weekday()]} {dt.day} {dt.strftime('%b')} {s}-{e}")
     more = f" (+{len(appts) - 12} weitere)" if len(appts) > 12 else ""
@@ -246,7 +296,8 @@ def block_text(appts):
 def skal_entry(appts):
     rooms = Counter(short_room(r) for _, _, _, r in appts if short_room(r))
     ort = rooms.most_common(1)[0][0] if rooms else ""   # the most used room, or 'Online'
-    return {"ort": ort or "Heilbronn", "dates": [f"{de_date(d)} {s}-{e}" for d, s, e, _ in appts]}
+    # v22: Termine ueber Mitternacht enden im Kalender um 24:00 (Ende <= Beginn wuerde die Seite sonst verwerfen)
+    return {"ort": ort or "Heilbronn", "dates": [f"{de_date(d)} {s}-{end_hhmm(s, e)}" for d, s, e, _ in appts]}
 
 
 # ------------------------------------------------------------------ main
@@ -349,9 +400,17 @@ def main():
     # ---- 2. course offer
     ws, schedule, blocks, skal = [], {}, {}, {}
     offer_stand = ""
+    warnings = []
     if not a.no_offer:
         real = [(c, t) for c, t, _, _ in modules if MODULE_CODE.fullmatch(c)]   # skips placeholders like APS / THESIS
-        offer = load_offer(semester, real, a.offer_max_age, a.refresh_offer)
+        try:
+            offer = load_offer(semester, real, a.offer_max_age, a.refresh_offer)
+        except Exception as e:   # v22: Kursangebot kaputt -> Noten, Pruefungen und Kalender trotzdem bauen
+            log(f"WARNING course offer {semester} skipped: {type(e).__name__}: {e}")
+            warnings.append(f"course offer skipped ({type(e).__name__})")
+            offer = {"fetched_at": "", "modules": {}}
+        if offer.get("failed"):
+            warnings.append(f"course offer: {len(offer['failed'])} module(s) not fetched: {', '.join(offer['failed'])}")
         offer_stand = offer["fetched_at"][:10]
         for code, entry in offer["modules"].items():
             appts = appointments_of(entry)
@@ -384,7 +443,12 @@ def main():
             ws.append(code)
 
     # ---- 3. exam formats from the handbook
-    hb = handbook.load(os.path.join(ROOT, "data", "mhb", "processed"))
+    try:
+        hb = handbook.load(os.path.join(ROOT, "data", "mhb", "processed"))
+    except Exception as e:   # v22: Modulhandbuch kaputt/offline -> ohne Pruefungstexte weiter
+        log(f"WARNING handbook skipped: {type(e).__name__}: {e}")
+        warnings.append(f"handbook skipped ({type(e).__name__})")
+        hb = {"stand": "", "exams": {}, "modules": {}}
     hb_exams = {c: v for c, v in hb["exams"].items() if c in codes and c not in template_exams}
     missing_exam = sorted(c for c in ws if c not in template_exams and c not in hb["exams"])
     log(f"Handbook {hb['stand'] or '-'}: {len(hb['exams'])} exam descriptions, {len(hb_exams)} new for the template; "
@@ -404,11 +468,11 @@ def main():
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "live_patch.js"), encoding="utf-8") as fh:
         patch = fh.read()
     block = ("\n// ==== TUM_LIVE: generated by scripts/build_dashboard.py, do not edit (built " + live["built"] + ") ====\n"
-             "const TUM_LIVE = " + json.dumps(live, ensure_ascii=False, separators=(",", ":")) + ";\n" + patch + "\n")
+             "const TUM_LIVE = " + script_json(live) + ";\n" + patch + "\n")   # v22: script_json statt json.dumps
     if gcal.configured():   # optional: your Google Calendar (read-only), baked into the page so it also works from a file
         try:
             cal = gcal.fetch()
-            block += "const GCAL_STATIC = " + json.dumps(cal, ensure_ascii=False, separators=(",", ":")) + ";\n"
+            block += "const GCAL_STATIC = " + script_json(cal) + ";\n"
             log(f"Google Calendar: {len(cal['events'])} appointments, {sum(1 for e in cal['events'] if e['wichtig'])} red dots")
         except Exception as ex:   # missing package, wrong address, offline: the dashboard still builds
             log(f"Google Calendar skipped: {ex}")
@@ -440,11 +504,15 @@ def main():
         lines.append(f"- Sem {picked.get(code, '?')} · {code} {name_of.get(code, '')}: {s['s']}{extra}")
     lines += ["", "## Exam format missing (not in template, not in handbook)", ""]
     lines += [f"- {c} {name_of.get(c, '')}" for c in missing_exam] or ["- none"]
+    if warnings:   # v22
+        lines += ["", "## Warnings", ""] + [f"- {w}" for w in warnings]
     report = "\n".join(lines) + "\n"
     with open(os.path.join(ROOT, "data", "build-report.md"), "w", encoding="utf-8") as fh:
         fh.write(report)
     print(report)
     log(f"Written: {out_path}")
+    for w in warnings:   # v22: Warnung statt Abbruch
+        log(f"WARNING: {w}")
 
 
 if __name__ == "__main__":

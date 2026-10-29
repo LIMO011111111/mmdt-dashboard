@@ -70,10 +70,28 @@ def ensure_pdfs(mhb_dir, url=HANDBOOK_URL):
         if not os.path.exists(path):
             log(f"Downloading {name}")
             link = f"{base}wbModhbReport.downloadPublicMHBVersion?{urllib.parse.urlencode({'pOrgNr': _param(url, 'pOrgNr'), 'pStpStpNr': _param(url, 'pStpStpNr'), 'pDocNr': nr})}"
-            with urllib.request.urlopen(link, timeout=300) as resp, open(path, "wb") as fh:
-                fh.write(resp.read())
+            tmp = path + ".tmp"   # v22: erst komplett in .tmp, dann umbenennen (kein halbes PDF bei Abbruch)
+            try:
+                with urllib.request.urlopen(link, timeout=300) as resp:
+                    data = resp.read()
+                if not data.startswith(b"%PDF"):
+                    raise ValueError("response is not a PDF")
+                with open(tmp, "wb") as fh:
+                    fh.write(data)
+                os.replace(tmp, path)
+            except Exception as e:   # offline, Abbruch, Fehlerseite: dieses PDF auslassen, naechster Lauf versucht es erneut
+                log(f"Download of {name} failed ({type(e).__name__}: {e}); skipped")
+                _remove(tmp)
+                continue
         paths.append(path)
     return paths
+
+
+def _remove(path):
+    try:
+        os.remove(path)
+    except OSError:
+        pass
 
 
 def _param(url, key):
@@ -156,14 +174,23 @@ def load(mhb_dir=None, url=HANDBOOK_URL, download=True):
         os.path.join(mhb_dir, f) for f in os.listdir(mhb_dir) if f.lower().endswith(".pdf"))
     cache = os.path.join(mhb_dir, "handbook.json")
     sig = sorted([os.path.basename(p), os.path.getsize(p)] for p in paths)   # lists, like json.load returns them
-    if os.path.exists(cache):
+    try:
         with open(cache, encoding="utf-8") as fh:
             cached = json.load(fh)
         if cached.get("sig") == sig:
             return cached
+    except (OSError, ValueError):   # v22: fehlender oder kaputter Cache -> neu einlesen
+        pass
     result = {"sig": sig, "stand": "", "exams": {}, "modules": {}}
+    good = []
     for path in paths:
-        text = pdf_text(path)
+        try:
+            text = pdf_text(path)
+        except Exception as e:   # v22: kaputtes/abgeschnittenes PDF loeschen; der naechste Lauf laedt es neu
+            log(f"Handbook {os.path.basename(path)} unreadable ({type(e).__name__}: {e}); deleted, will be downloaded again")
+            _remove(path)
+            continue
+        good.append(path)
         if not text:
             continue
         parsed = parse(text)
@@ -172,8 +199,11 @@ def load(mhb_dir=None, url=HANDBOOK_URL, download=True):
             result["modules"].setdefault(code, {}).update({k: v for k, v in m.items() if k != "exam"})
             if m["exam"]:
                 result["exams"].setdefault(code, {})[parsed["lang"]] = m["exam"]
-    with open(cache, "w", encoding="utf-8") as fh:
+    result["sig"] = sorted([os.path.basename(p), os.path.getsize(p)] for p in good)   # v22: nur lesbare PDFs
+    tmp = cache + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as fh:
         json.dump(result, fh, indent=1, ensure_ascii=False)
+    os.replace(tmp, cache)
     return result
 
 

@@ -8,6 +8,9 @@ Aufruf:
   <root>     Ordner mit template.html und scripts/live_patch.js (Repo-Wurzel oder ein Basis-Stand aus `git show`)
   --variant  noceo   = Kurs MGTHN0130 (CEO Strategy Series) abgewaehlt: keine Sessions mit Pruefung
              nodates = MGTHN0130 gewaehlt, aber ohne Einzeltermine (kein Session-Punkt in der Semesterleiste)
+             crash   = v22: zusaetzlich ungueltige Termine (18:00-00:00 ueber Mitternacht, Ende vor Beginn, kaputtes Format)
+             sose    = v22: Sommersemester 27S ("SoSe 2027"), aktuelle Kurse in Semester 3 (mit --now 2027-05-10T10:00:00)
+             xss     = v22: boesartige Texte in TUM_LIVE und Kalender (HTML/Script), muessen escaped erscheinen
   --now      fester Zeitstempel (Berlin) fuer "built"/"stand". tests/run.sh gibt allen Builds denselben Wert, damit
              Basis- und Neu-Build byte-gleich sind, wo sich der Code nicht unterscheidet (kein Minutensprung dazwischen).
 
@@ -18,7 +21,7 @@ from zoneinfo import ZoneInfo
 
 ap = argparse.ArgumentParser()
 ap.add_argument("root"); ap.add_argument("out")
-ap.add_argument("--variant", choices=["noceo", "nodates"])
+ap.add_argument("--variant", choices=["noceo", "nodates", "crash", "sose", "xss"])
 ap.add_argument("--now")
 args = ap.parse_args()
 BERLIN = ZoneInfo("Europe/Berlin")   # unabhaengig von der Zeitzone des Rechners (CI laeuft in UTC)
@@ -78,8 +81,38 @@ if args.variant == "noceo":      # CEO Strategy Series nicht gewaehlt
     live["me"]["picked"].pop("MGTHN0130"); live["me"]["cs"].pop("MGTHN0130")
 elif args.variant == "nodates":  # gewaehlt, aber ohne Einzeltermine
     live["skal"]["MGTHN0130"]["dates"] = []
-block = ("\nconst TUM_LIVE = " + json.dumps(live, ensure_ascii=False) + ";\n" + patch + "\n"
-         "const GCAL_STATIC = " + json.dumps(gcal, ensure_ascii=False) + ";\n")
+if args.variant == "crash":     # v22: ungueltige Termine duerfen die Seite nicht lahmlegen
+    nx = mon + dt.timedelta(days=7)
+    live["skal"]["MGTHN0189"]["dates"] += [(nx + dt.timedelta(days=2)).strftime("%d.%m.%Y") + " 18:00-00:00",
+                                           (nx + dt.timedelta(days=3)).strftime("%d.%m.%Y") + " 20:00-19:00", "kaputt", "31.02.2027 10:00-12:00"]
+elif args.variant == "sose":    # v22: Sommersemester statt fest WS 26/27
+    live.update({"semester": "27S", "semesterLabel": "SoSe 2027"})
+    live["me"]["cursem"] = "3"
+    for c, sm in list(live["me"]["picked"].items()):
+        if sm == "2":
+            live["me"]["picked"][c] = "3"
+elif args.variant == "xss":     # v22: Texte aus Build/Kalender sind Daten, nie HTML
+    X = '<img src=x onerror="window.__xss=(window.__xss||0)+1">'
+    BRK = "</script><script>window.__xss=(window.__xss||0)+100;document.title='PWNED'</script>\u2028"   # v22: Ausbruch aus <script>
+    Y = '"><svg onload="window.__xss=1"><b x="'
+    live["blocks"]["MGTHN0111"] = {"de": "Block " + X, "en": "Block " + X}
+    live["exams"]["MGTHN0111"] = {"de": "Projekt " + X, "en": "Project " + Y}
+    live["skal"]["MGTHN0189"]["ort"] = "L.1.11 " + X
+    live["skal"]["MGTHN0189"].update({"hinweis": {"de": "Hinweis " + X, "en": Y}, "beschreibung": "Text " + Y, "pruefung": X, "klausur": "ja " + X,
+                                      "bewerbung": {"link": "javascript:window.__xss=1", "mail": Y, "frist": X, "text": {"de": X, "en": X}},
+                                      "status": "<b>x</b>", "ects": X, "name": X})
+    live["semesterLabel"] = X
+    live["stand"] = live["stand"] + BRK
+    for e in ev:
+        e["title"] = e["title"] + " " + X + " " + BRK
+        e["location"] = (e["location"] or "") + " " + Y
+        if e["wichtig"]:
+            e["wichtig"] = {"kurs": X, "was": Y, "abgabe": True}
+def script_json(o):   # v22: wie scripts/build_dashboard.py: </script> u. a. in Texten koennen nicht ausbrechen
+    j = json.dumps(o, ensure_ascii=False)
+    return j.replace("&", "\\u0026").replace("<", "\\u003c").replace(">", "\\u003e").replace("\u2028", "\\u2028").replace("\u2029", "\\u2029")
+block = ("\nconst TUM_LIVE = " + script_json(live) + ";\n" + patch + "\n"
+         "const GCAL_STATIC = " + script_json(gcal) + ";\n")
 marker = "document.addEventListener('DOMContentLoaded', init);"
 assert marker in html
 open(args.out, "w", encoding="utf-8").write(html.replace(marker, marker + block, 1))

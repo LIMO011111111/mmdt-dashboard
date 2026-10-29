@@ -13,11 +13,14 @@ Your token is read from .env (TUMONLINE_TOKEN=...) or the environment and is nev
 """
 
 import argparse
+import http.client
 import json
 import os
 import re
+import socket
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -53,16 +56,47 @@ TOKEN = None
 DETAILS_DOWN = False   # set when TUMonline refuses veranstaltungenDetails ("Auskunft derzeit nicht moeglich")
 
 
+def _scrub(text):
+    """v22: Token nie in Fehlermeldungen."""
+    text = str(text)
+    return text.replace(TOKEN, "***") if TOKEN else text
+
+
+def _fetch(url, endpoint):
+    """v22: GET mit 1 Wiederholung bei Timeout/5xx; Netz- und HTTP-Fehler werden zu TumonlineError."""
+    for attempt in (1, 2):
+        try:
+            with urllib.request.urlopen(url, timeout=30) as resp:
+                return resp.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:   # Unterklasse von OSError, darum zuerst
+            if e.code >= 500 and attempt == 1:
+                time.sleep(2)
+                continue
+            raise TumonlineError(f"TUMonline {endpoint}: HTTP {e.code}") from None
+        except (socket.timeout, TimeoutError) as e:
+            if attempt == 1:
+                continue
+            raise TumonlineError(f"TUMonline {endpoint}: timeout ({_scrub(e)})") from None
+        except http.client.HTTPException as e:   # v22: abgebrochene Antwort (IncompleteRead, kaputtes Chunking) -> 1 Wiederholung
+            if attempt == 1:
+                continue
+            raise TumonlineError(f"TUMonline {endpoint}: incomplete response ({type(e).__name__})") from None
+        except OSError as e:   # URLError, Verbindung abgebrochen, DNS ...
+            raise TumonlineError(f"TUMonline {endpoint}: {_scrub(getattr(e, 'reason', e))}") from None
+
+
 def api(endpoint, **params):
     global TOKEN
     TOKEN = TOKEN or load_token()
     params["pToken"] = TOKEN
     url = f"{BASE}.{endpoint}?" + urllib.parse.urlencode(params)
-    with urllib.request.urlopen(url, timeout=30) as resp:
-        body = resp.read().decode("utf-8")
-    root = ET.fromstring(body)
+    body = _fetch(url, endpoint)
+    try:
+        root = ET.fromstring(body)
+    except ET.ParseError as e:   # v22: Wartungsseite (HTML) oder leere Antwort statt XML
+        raise TumonlineError(f"TUMonline {endpoint}: no valid XML ({e}); maintenance?") from None
     if root.tag == "error":
-        message = (root.findtext("message") or "unknown error").replace(TOKEN, "***")
+        message = _scrub(root.findtext("message") or "unknown error")
         raise TumonlineError(f"TUMonline error: {message}  (see docs/1-get-your-token.md, section Troubleshooting)")
     return root
 

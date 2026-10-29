@@ -5,7 +5,8 @@
 #
 #   REF     Git-Stand fuer die "Klassisch unveraendert"-Vergleiche (Basis). Default: HEAD.
 #           Beispiel: tests/run.sh 95b7a4b   (Stand vor dem Glas-Stil)
-#   --only  nur diese Suites laufen lassen (Komma-getrennt)
+#   --only  nur diese Suites laufen lassen (Komma-getrennt: theme, ck, ceo, glass, bugs, py)
+#   MMDT_PAGES_FN=<pfad/functions/api/mmdt-state.js>  optional: Pages-Function (Hosting-Repo) in der Suite bugs mitpruefen
 #
 # Ablauf: Vorschau-Builds erzeugen (Basis aus `git show REF:...`, Neu aus dem Arbeitsverzeichnis, alle mit demselben
 # Zeitstempel) -> Cockpit-Mocks auf freien Ports starten -> Suites nacheinander -> Mocks beenden -> Zusammenfassung.
@@ -83,7 +84,9 @@ mp() { python3 "$T/make_preview.py" "$1" "$2" --now "$STAMP" ${3:+--variant "$3"
 B=$OUT/build
 mp "$ROOT" "$B/new.html" &&
 mp "$ROOT" "$B/new-noceo.html" noceo && mp "$OUT/build/base-root" "$B/base-noceo.html" noceo &&
-mp "$ROOT" "$B/new-nodates.html" nodates && mp "$OUT/build/base-root" "$B/base-nodates.html" nodates || {
+mp "$ROOT" "$B/new-nodates.html" nodates && mp "$OUT/build/base-root" "$B/base-nodates.html" nodates &&
+mp "$ROOT" "$B/v22-crash.html" crash && mp "$ROOT" "$B/v22-xss.html" xss &&
+python3 "$T/make_preview.py" "$ROOT" "$B/v22-sose.html" --now 2027-05-10T10:00:00 --variant sose >/dev/null || {   # v22: Sommersemester-Daten (fester Tag)
   echo "Vorschau-Build fehlgeschlagen" >&2; exit 2; }
 echo "Basis: $REF ($(git rev-parse --short "$REF"))   Neu: Arbeitsverzeichnis   Zeitstempel: $STAMP   Zeitzone: $TZ"
 echo
@@ -131,6 +134,10 @@ if want ceo; then
 fi
 
 run_suite glass node glass-test.js "$B/base-noceo.html" "$B/new-noceo.html" "$OUT/shots/glass"
+
+# v22: Bug-Fixes (Termine, Sync, XSS, Semester, iOS, Import, a11y) und Python-Robustheit
+run_suite bugs env PAGES_FN="${MMDT_PAGES_FN:-}" node bugs-test.js "$B" "$OUT/shots/bugs" "$ROOT"
+run_suite py python3 py-test.py
 
 # ---------------------------------------------------------------- Zusammenfassung
 echo

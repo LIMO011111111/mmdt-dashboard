@@ -10,6 +10,9 @@ import os
 import re
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from build_dashboard import script_json  # noqa: E402  (v22: sicher in <script> einbetten)
+
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src_path = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "data", "dashboard.html")
 out_path = sys.argv[2] if len(sys.argv) > 2 else os.path.join(ROOT, "data", "demo", "dashboard-demo.html")
@@ -26,7 +29,7 @@ for code, cs in live["me"]["cs"].items():
         cs["g"] = DEMO_GRADES[i % len(DEMO_GRADES)]
         i += 1
 live["stand"] = live["stand"] + " · Demo"
-html = html[:m.start(1)] + json.dumps(live, ensure_ascii=False, separators=(",", ":")) + html[m.end(1):]
+html = html[:m.start(1)] + script_json(live) + html[m.end(1):]
 html = html.replace("<title>MMDT · Study Dashboard</title>", "<title>MMDT · Study Dashboard (Demo)</title>", 1)
 os.makedirs(os.path.dirname(out_path), exist_ok=True)
 open(out_path, "w", encoding="utf-8").write(html)

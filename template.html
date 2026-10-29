@@ -1349,6 +1349,16 @@ html[data-style="glass"] .cs-fixplatz { background: color-mix(in srgb, var(--tum
 @media (prefers-color-scheme: dark) { html[data-style="glass"] .cs-fixplatz { background: color-mix(in srgb, var(--tum-blau) 30%, var(--g-card-solid)); } }
 /* Notizzettel bleibt Papier: alte Schrift */
 html[data-style="glass"] .note-dlg { --ff: Arial, Helvetica, sans-serif; font-family: var(--ff); }
+/* v22: iOS Safari zoomt beim Antippen in Felder unter 16px. Auf dem Handy alle Eingabefelder mind. 16px, in beiden Stilen
+   (!important schlaegt auch spezifischere Regeln wie die Notiz-Spalte der Kursliste). Klassisch aendert sich dadurch bewusst
+   minimal (Handy: Felder 1-4px groessere Schrift); tests/glass-test.js nimmt genau diese Regel beim Vergleich mit dem alten Stand heraus. */
+@media (max-width: 767px), (hover: none) and (pointer: coarse) {   /* v22: auch iPad / iPhone quer (Touch ohne Maus) */
+  html input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]):not([type=button]):not([type=submit]):not([type=reset]), html select, html textarea { font-size: 16px !important; }
+}
+/* v22: lange Woerter (eigene Kurse, Titel ohne Leerzeichen) brechen um statt die Seite auf 320px zu sprengen */
+.pruef-card-title, .pruef-card-code, .sem-item-name, .bd-card-t, .mod-name > span:first-child { overflow-wrap: anywhere; }
+.pruef-card-head > div:first-child { min-width: 0; }
+@media (max-width: 767px) { .reg-name { overflow-wrap: anywhere; } }   /* nur Handy: auf dem Desktop ist die Kursliste eine echte Tabelle (Spaltenbreiten bleiben) */
 </style>
 <script>
 // v18: Darstellung Automatisch / Hell / Dunkel, je Geraet (localStorage mmdt_theme; nicht in state, Export oder Sync).
@@ -1572,7 +1582,7 @@ styleApply(styleGet());
 
     <div class="mod-filter">
     <div class="mod-tools">
-      <input type="search" id="mod-search" class="mod-search" autocomplete="off" data-t-ph="mod_search_ph" placeholder="Kurs suchen (Name oder Code)">
+      <input type="search" id="mod-search" class="mod-search" autocomplete="off" data-t-ph="mod_search_ph" data-t-aria="mod_search_ph" aria-label="Kurs suchen (Name oder Code)" placeholder="Kurs suchen (Name oder Code)">
       <label class="mod-wsonly"><input type="checkbox" id="mod-wsonly"> <span data-t="mod_ws_only">Nur im WS 26/27 angeboten</span></label>
     </div>
     <div class="tabs" id="tabs"></div>
@@ -1654,7 +1664,7 @@ styleApply(styleGet());
       <div class="note-title" id="note-title" data-t="note_title">Notizzettel</div>
       <button type="button" class="note-x" id="close-note" data-t-aria="close" aria-label="Schließen">&times;</button>
     </div>
-    <textarea id="note-text" maxlength="20000" spellcheck="true"></textarea>
+    <textarea id="note-text" maxlength="100000" spellcheck="true" aria-labelledby="note-title" data-t-aria="note_title" aria-label="Notizzettel"></textarea>
     <div class="note-foot"><span id="note-status"></span><span id="note-count"></span></div>
   </div>
 </dialog>
@@ -1668,7 +1678,7 @@ styleApply(styleGet());
     <div class="note" id="gc-stand"></div>
     <div class="settings-grid">
       <div class="setting-cell">
-        <label data-t="spec_label">Specialization</label>
+        <label for="spec" data-t="spec_label">Specialization</label>
         <select id="spec">
           <option value="none" data-t="spec_none">Keine (No management specialization)</option>
           <option value="family">Family Enterprise</option>
@@ -1676,15 +1686,16 @@ styleApply(styleGet());
         </select>
       </div>
       <div class="setting-cell">
-        <label data-t="prog_label">Programmier-Auflage</label>
+        <label for="prog" data-t="prog_label">Programmier-Auflage</label>
         <select id="prog">
           <option value="no" data-t="prog_no">Keine Auflage</option>
           <option value="yes" data-t="prog_yes">MGTHN0144 bis Ende 2. Sem.</option>
         </select>
       </div>
       <div class="setting-cell">
-        <label data-t="cursem_label">Aktuelles Semester</label>
+        <label for="cursem" data-t="cursem_label">Aktuelles Semester</label>
         <select id="cursem">
+          <option value="auto" hidden disabled></option>
           <option value="1" data-t="sem_1">1. Semester</option>
           <option value="2" data-t="sem_2">2. Semester</option>
           <option value="3" data-t="sem_3">3. Semester</option>
@@ -1692,7 +1703,7 @@ styleApply(styleGet());
         </select>
       </div>
       <div class="setting-cell">
-        <label data-t="lang_label">Sprache / Language</label>
+        <label for="lang" data-t="lang_label">Sprache / Language</label>
         <select id="lang">
           <option value="de">🇩🇪 Deutsch</option>
           <option value="en">🇬🇧 English</option>
@@ -3044,6 +3055,25 @@ Object.assign(I18N.it, { bd_title: 'Categorie', bd_view_next: 'Superati + prossi
   bd_adv_ok: 'Requisito per la tesi soddisfatto', bd_adv_planned: 'Almeno 1 seminario · pianificato, non ancora superato', bd_adv_missing: 'Almeno 1 seminario necessario · requisito per la tesi',
   bd_thesis_req_title: 'Advanced Seminar per la tesi', bd_thesis_req_planned: 'Un Advanced Seminar è pianificato ma non ancora superato.', bd_thesis_req_missing: 'Nessun Advanced Seminar nel blocco specializzazione: è obbligatorio e requisito per la tesi.' });
 
+// v22: Texte fuer Semester (aus SEM statt fest "WS 26/27"), Specialization ohne Schwerpunkt, Barrierefreiheit, Semester-Wahl
+Object.assign(I18N.de, { sync_warn_limit: (w, n) => `Hinweis: ${n} ${w} beim Abgleich entfernt (zu viele Einträge, erledigte zuerst).`, sync_warn_notiz: n => `Notiz sehr lang (${n} Zeichen): bitte aufräumen.`,
+  sync_what_aufg: 'To-dos', sync_what_we: 'Wochenend-To-dos', sync_what_cust: 'eigene Kurse', sync_what_dl: 'Fristen', sync_what_notiz: 'Zeichen der Notiz' });
+Object.assign(I18N.en, { sync_warn_limit: (w, n) => `Note: ${n} ${w} removed while syncing (too many entries, done ones first).`, sync_warn_notiz: n => `Note is very long (${n} characters): please tidy up.`,
+  sync_what_aufg: 'to-dos', sync_what_we: 'weekend to-dos', sync_what_cust: 'own courses', sync_what_dl: 'deadlines', sync_what_notiz: 'note characters' });
+Object.keys(I18N.en).filter(k => /^sync_/.test(k)).forEach(k => { I18N.it[k] = I18N.en[k]; });
+Object.assign(I18N.de, { spec_name_none: 'Specialization (ohne Schwerpunkt)', mod_sem_aria: n => `Semester für ${n}`,
+  cursem_auto: n => `Automatisch (TUMonline: ${n}. Semester)`, skal_title: () => `Kalender ${SEM.short}`, mod_ws_only: () => `Nur im ${SEM.short} angeboten`,
+  mod_tag_nows: () => SEM.winter ? 'kein WS-Kurs' : 'kein SoSe-Kurs',
+  st_offer_sum: (n, a) => `Kursangebot ${SEM.short} · ${n} Kurse, ${a} im Rennen` });
+Object.assign(I18N.en, { spec_name_none: 'No management specialization', mod_sem_aria: n => `Semester for ${n}`,
+  cursem_auto: n => `Automatic (TUMonline: semester ${n})`, skal_title: () => `Calendar ${SEM.short}`, mod_ws_only: () => `Only offered in ${SEM.short}`,
+  mod_tag_nows: () => SEM.winter ? 'no WS course' : 'no SoSe course',
+  st_offer_sum: (n, a) => `Course offer ${SEM.short} · ${n} courses, ${a} in the running` });
+Object.assign(I18N.it, { spec_name_none: 'Specialization (senza indirizzo)', mod_sem_aria: n => `Semestre per ${n}`,
+  cursem_auto: n => `Automatico (TUMonline: semestre ${n})`, skal_title: () => `Calendario ${SEM.short}`, mod_ws_only: () => `Solo offerti nel ${SEM.short}`,
+  mod_tag_nows: () => SEM.winter ? 'nessun corso WS' : 'nessun corso SoSe',
+  st_offer_sum: (n, a) => `Offerta corsi ${SEM.short} · ${n} corsi, ${a} in gara` });
+
 const STORAGE_KEY = 'mmdt_blank_v1';
 const STATE_VERSION = 14;
 const DEFAULT_STATE = {
@@ -3067,7 +3097,26 @@ const DEFAULT_STATE = {
   aufgOff: {},           // offline geschaltete Kurse (Modul-ID -> true): To-do-Karte ausgeblendet
   notiz: '',             // Notizzettel (Freitext, Knopf neben "Planen")
   weTodo: [],            // To-dos fuers Wochenende, ohne Datum/Uhrzeit (Wochenplan): [{ id, t: Text, d: erledigt }]
+  cursemManual: false,   // v22: Semester selbst gewaehlt -> der Build (live_patch.js) ueberschreibt es nicht mehr
+  _t: {},                // v22: Aenderungszeit (ms) je Einstellung (Pfad -> ms), fuer den Geraete-Sync
+  _del: {},              // v22: Grabsteine geloeschter Eintraege ('aufg:<Kurs>|<id>', 'we:<id>', 'cust:<id>', 'dl:<id>' -> ms), 30 Tage
+  _tm: {},               // v22: Aenderungszeit je Schluessel der Zuordnungen ('picked|MGTHN0189' -> ms), auch fuer Entfernen
 };
+// v22: Sync-Schema. Alle Felder von state: Einstellungen (SYNC_SCALARS, eine Zahl/ein Text je Pfad), Zuordnungen je Schluessel
+// (SYNC_MAPS), Listen mit id (SYNC_LISTS, aufg = Liste je Kurs). v/todo sind fest, _t/_del Sync-Verwaltung.
+const SYNC_SCALARS = ['spec', 'prog', 'cursem', 'cursemManual', 'lang', 'activeCat', 'expandedMod', 'boardView', 'modWs', 'notiz', 'strat',
+  'thesis.start', 'thesis.ics', 'thesis.manual'];
+const SYNC_MAPS = ['picked', 'cs', 'board', 'aufgOff', 'collapsed', 'dl.done', 'thesis.done'];
+const SYNC_LISTS = [['weTodo', 'we'], ['cust', 'cust'], ['dl.custom', 'dl']];
+const SYNC_DEL_MS = 30 * 864e5;   // Grabsteine nach 30 Tagen aufraeumen
+const SYNC_ID = /^[\w-]{1,40}$/;
+const SYNC_TM_RE = /^(picked|cs|board|aufgOff|collapsed|dl\.done|thesis\.done)\|[\w:.-]{1,60}$/;
+// v22: Eintraege (To-dos, Kursstatus, eigene Kurse ...) tragen _t (letzte Aenderung) und _tf { feld: ms } (je Feld)
+function syncTf(v, x) {   // gueltige Feld-Zeitstempel fuer die Felder von x, sonst null
+  if (!v || typeof v !== 'object' || Array.isArray(v)) return null;
+  const out = {}; Object.keys(x).forEach(f => { if (f !== '_t' && f !== '_tf' && syncT(v[f])) out[f] = v[f]; });
+  return Object.keys(out).length ? out : null;
+}
 
 // ------------------------------------------------------------
 // COURSE_STATUS: Anmelde-/Studienstatus je gewaehltem Kurs, aufgebaut aus den eigenen Angaben (state.cs).
@@ -3085,13 +3134,15 @@ function parseGrade(g) { const v = parseFloat(String(g == null ? '' : g).replace
 function fmtGrade(v) { return v == null ? '' : v.toFixed(1).replace('.', ','); }
 function sanitizeCs(cs, picked) {   // importierte/gespeicherte Angaben nie ungeprueft uebernehmen
   const out = {};
-  if (cs && typeof cs === 'object' && !Array.isArray(cs)) Object.keys(cs).forEach(id => {
+  // v22: nicht mehr an picked gebunden: ein Status bleibt, auch wenn der Kurs (auf einem anderen Geraet) abgewaehlt wurde;
+  // angezeigt wird er nur fuer gewaehlte Kurse (syncCourseStatus), bei erneuter Wahl ist er wieder da
+  if (cs && typeof cs === 'object' && !Array.isArray(cs)) Object.keys(cs).slice(0, 400).forEach(id => {
     const e = cs[id];
-    if (!e || typeof e !== 'object' || !picked || picked[id] === undefined) return;
+    if (!e || typeof e !== 'object' || !SYNC_ID.test(id)) return;
     const st = CS_OPTIONS.indexOf(e.s) >= 0 ? e.s : 'geplant';
     const g = st === 'bestanden' ? parseGrade(e.g) : null;
     const n = String(e.n == null ? '' : e.n).slice(0, 160);
-    if (st !== 'geplant' || n) out[id] = { s: st, g: fmtGrade(g), n };
+    if (st !== 'geplant' || n) { out[id] = { s: st, g: fmtGrade(g), n }; if (syncT(e._t)) out[id]._t = e._t; const tf = syncTf(e._tf, out[id]); if (tf) out[id]._tf = tf; }   // v22: _t/_tf = Aenderungszeiten (Sync)
   });
   return out;
 }
@@ -3111,21 +3162,46 @@ function freshState() {
   return JSON.parse(JSON.stringify(DEFAULT_STATE));   // v14: tiefe Kopie (verschachtelte Felder)
 }
 // v14: neue Felder additiv und tief kopiert ergaenzen/validieren
-function mergeV14(s, old) {
+function syncT(v) { return typeof v === 'number' && v > 1e12 && v < 1e14; }   // v22: gueltiger Zeitstempel (ms seit 1970, ab 2001)
+function syncNewId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function syncCleanId(v) { const x = String(v == null ? '' : v).replace(/[^\w-]/g, '').slice(0, 20); return x || syncNewId(); }   // v22: ids nur [A-Za-z0-9_-]
+// v22: Grenzen. Import wie bisher; Laden/Sync doppelt so viel (Grabsteine zaehlen nicht). Wird es trotzdem zu viel, fallen zuerst
+// die aeltesten erledigten To-dos weg, mit sichtbarem Hinweis (syncWarnShow). Die Notiz wird beim Laden/Sync nie gekuerzt
+// (nur eine harte Sicherung bei 1 Mio. Zeichen), ab 100.000 Zeichen erscheint eine Warnung.
+const LIMITS_IMPORT = { aufg: 100, we: 100, cust: 40, dl: 200, notiz: 20000 }, LIMITS_SYNC = { aufg: 200, we: 200, cust: 80, dl: 400, notiz: 1e6 };
+const NOTIZ_WARN = 100000;   // (Listen ueber 10.000 Eintraege werden vorab verworfen: Schutz vor praeparierten Dateien)
+var SYNC_WARN = [];   // Hinweise fuer die Anzeige (var: mergeV14 laeuft schon beim Laden)
+function syncLimit(list, lim, what) {   // zu lange Liste: erst erledigte, dann aelteste (nach _t) entfernen, Reihenfolge bleibt
+  if (list.length <= lim) return list;
+  const drop = new Set(list.map((x, i) => [i, x.d === true ? 0 : 1, x._t || 0]).sort((a, b) => a[1] - b[1] || a[2] - b[2]).slice(0, list.length - lim).map(x => x[0]));
+  SYNC_WARN.push({ k: 'limit', what, n: drop.size });
+  return list.filter((x, i) => !drop.has(i));
+}
+function mergeV14(s, old, opts) {
   const d = JSON.parse(JSON.stringify(DEFAULT_STATE)), o = (old && typeof old === 'object') ? old : {};
+  const LIM = opts && opts.import ? LIMITS_IMPORT : LIMITS_SYNC;
   const obj = v => (v && typeof v === 'object' && !Array.isArray(v)) ? v : {};
+  const withT = (x, src) => { if (syncT(src._t)) x._t = src._t; const tf = syncTf(src._tf, x); if (tf) x._tf = tf; return x; };   // v22
+  const flags = (v, re) => { const out = {}; Object.keys(obj(v)).slice(0, 400).forEach(k => { if (v[k] === true && re.test(k)) out[k] = true; }); return out; };   // v22: nur true-Flags mit gueltigem Schluessel
   s.dl = Object.assign(d.dl, obj(o.dl));
-  s.dl.done = Object.assign({}, obj(s.dl.done));
+  s.dl.done = flags(s.dl.done, /^[\w:.-]{1,60}$/);
   s.dl.custom = (Array.isArray(s.dl.custom) ? s.dl.custom : []).filter(c => c && typeof c.id === 'string' && typeof c.title === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(String(c.date)))
-    .map(c => ({ id: c.id.slice(0, 40), title: c.title.slice(0, 120), date: String(c.date), time: /^\d{2}:\d{2}$/.test(String(c.time)) ? String(c.time) : '',
-      type: ['anmeldung', 'abmeldung', 'bewerbung', 'pruefung', 'info'].indexOf(c.type) >= 0 ? c.type : 'info', action: String(c.action == null ? '' : c.action).slice(0, 200) }));
+    .slice(0, 10000).map(c => withT({ id: c.id.slice(0, 40), title: c.title.slice(0, 120), date: String(c.date), time: /^\d{2}:\d{2}$/.test(String(c.time)) ? String(c.time) : '',
+      type: ['anmeldung', 'abmeldung', 'bewerbung', 'pruefung', 'info'].indexOf(c.type) >= 0 ? c.type : 'info', action: String(c.action == null ? '' : c.action).slice(0, 200) }, c));
+  s.dl.custom = syncLimit(s.dl.custom, LIM.dl, 'dl');
   s.cust = (Array.isArray(o.cust) ? o.cust : []).filter(c => c && /^X-[\w-]{3,30}$/.test(String(c.id)) && typeof c.t === 'string' && c.t.trim())
-    .slice(0, 40).map(c => ({ id: String(c.id), t: c.t.trim().slice(0, 100), c: Math.min(30, Math.max(1, Math.round(Number(c.c)) || 6)),
-      cat: ['methods', 'digital_tech', 'mgmt_family', 'mgmt_digital', 'mgmt_other'].indexOf(c.cat) >= 0 ? c.cat : 'mgmt_other' }));
-  s.strat = Object.assign(d.strat, obj(o.strat));
-  s.strat.need = Object.assign({}, d.strat.need, obj(obj(o.strat).need));
-  s.thesis = Object.assign(d.thesis, obj(o.thesis));
-  s.thesis.done = Object.assign({}, obj(s.thesis.done));
+    .slice(0, 10000).map(c => withT({ id: String(c.id), t: c.t.trim().slice(0, 100), c: Math.min(30, Math.max(1, Math.round(Number(c.c)) || 6)),
+      cat: ['methods', 'digital_tech', 'mgmt_family', 'mgmt_digital', 'mgmt_other'].indexOf(c.cat) >= 0 ? c.cat : 'mgmt_other' }, c));
+  s.cust = syncLimit(s.cust, LIM.cust, 'cust');
+  // v22: Planer-Einstellungen nur mit erwarteten Typen
+  const os = obj(o.strat), num = (v, def, lo, hi) => { const n = Math.round(Number(v)); return isFinite(n) && n >= lo && n <= hi ? n : def; };
+  s.strat = d.strat;
+  ['noExam', 'noFri', 'noBlock', 'noZusatz', 'onlyReg'].forEach(k => { s.strat[k] = os[k] === true; });
+  s.strat.maxEcts = num(os.maxEcts, d.strat.maxEcts, 0, 120); s.strat.target = num(os.target, d.strat.target, 0, 120);
+  Object.keys(d.strat.need).forEach(k => { s.strat.need[k] = num(obj(os.need)[k], d.strat.need[k], 0, 120); });
+  const ot = obj(o.thesis);
+  s.thesis = { start: ot.start, done: flags(ot.done, /^[a-z]{1,20}$/), ics: ot.ics === true };
+  if (ot.manual === true) s.thesis.manual = true;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(String(s.thesis.start))) s.thesis.start = '2028-04-01';
   s.cs = sanitizeCs(o.cs, s.picked);
   const b = obj(o.board); s.board = {};
@@ -3135,25 +3211,36 @@ function mergeV14(s, old) {
   const cl = obj(o.collapsed); s.collapsed = {};
   Object.keys(cl).forEach(k => { if (cl[k] === true && /^[\w-]{1,40}$/.test(k)) s.collapsed[k] = true; });
   const ag = obj(o.aufg); s.aufg = {};
-  Object.keys(ag).forEach(k => { if (!/^[\w-]{1,40}$/.test(k) || !Array.isArray(ag[k])) return;
-    const l = ag[k].filter(x => x && typeof x.t === 'string' && x.t.trim()).slice(0, 100)
-      .map(x => ({ id: String(x.id || Math.random().toString(36).slice(2, 10)).slice(0, 20), t: x.t.trim().slice(0, 300), d: x.d === true, p: [1, 2, 3].indexOf(x.p) >= 0 ? x.p : 0 }));
+  Object.keys(ag).slice(0, 200).forEach(k => { if (!/^[\w-]{1,40}$/.test(k) || !Array.isArray(ag[k])) return;
+    const seen = new Set();
+    const l = syncLimit(ag[k].filter(x => x && typeof x.t === 'string' && x.t.trim()).slice(0, 10000)
+      .map(x => withT({ id: syncCleanId(x.id), t: x.t.trim().slice(0, 300), d: x.d === true, p: [1, 2, 3].indexOf(x.p) >= 0 ? x.p : 0 }, x))
+      .filter(x => !seen.has(x.id) && seen.add(x.id)), LIM.aufg, 'aufg');   // v22: ids eindeutig (Merge nach id)
     if (l.length) s.aufg[k] = l; });
   const ao = obj(o.aufgOff); s.aufgOff = {};
   Object.keys(ao).forEach(k => { if (ao[k] === true && /^[\w-]{1,40}$/.test(k)) s.aufgOff[k] = true; });
-  s.notiz = typeof o.notiz === 'string' ? o.notiz.slice(0, 20000) : '';
-  s.weTodo = (Array.isArray(o.weTodo) ? o.weTodo : []).filter(x => x && typeof x.t === 'string' && x.t.trim()).slice(0, 100)
-    .map(x => ({ id: String(x.id || Math.random().toString(36).slice(2, 10)).slice(0, 20), t: x.t.trim().slice(0, 300), d: x.d === true }));
+  s.notiz = typeof o.notiz === 'string' ? o.notiz.slice(0, LIM.notiz) : '';   // v22: Import 20.000, sonst nicht kuerzen (Sicherung 1 Mio.)
+  if (s.notiz.length < (typeof o.notiz === 'string' ? o.notiz.length : 0)) SYNC_WARN.push({ k: 'limit', what: 'notiz', n: o.notiz.length - s.notiz.length });
+  const seenWe = new Set();
+  s.weTodo = syncLimit((Array.isArray(o.weTodo) ? o.weTodo : []).filter(x => x && typeof x.t === 'string' && x.t.trim()).slice(0, 10000)
+    .map(x => withT({ id: syncCleanId(x.id), t: x.t.trim().slice(0, 300), d: x.d === true }, x)).filter(x => !seenWe.has(x.id) && seenWe.add(x.id)), LIM.we, 'we');
+  s.cursemManual = o.cursemManual === true;   // v22
+  const tt = obj(o._t); s._t = {};   // v22: Sync-Zeitstempel und Grabsteine nur mit gueltigen Schluesseln/Zahlen
+  SYNC_SCALARS.forEach(k => { if (syncT(tt[k])) s._t[k] = tt[k]; });
+  const dd = obj(o._del), cut = Date.now() - SYNC_DEL_MS; s._del = {};
+  Object.keys(dd).filter(k => /^(aufg|we|cust|dl):[\w|:.-]{1,90}$/.test(k) && syncT(dd[k]) && dd[k] > cut).slice(0, 3000).forEach(k => { s._del[k] = dd[k]; });
+  const tm = obj(o._tm); s._tm = {};
+  Object.keys(tm).filter(k => SYNC_TM_RE.test(k) && syncT(tm[k])).slice(0, 3000).forEach(k => { s._tm[k] = tm[k]; });
   return s;
 }
-function migrateState(old) {   // gespeicherten oder importierten Stand uebernehmen und validieren
+function migrateState(old, opts) {   // gespeicherten oder importierten Stand uebernehmen und validieren (v22: opts.import = strenge Grenzen)
   old = (old && typeof old === 'object') ? old : {};
   const s = JSON.parse(JSON.stringify(DEFAULT_STATE));
   Object.keys(DEFAULT_STATE).forEach(k => { if (k in old) s[k] = old[k]; });   // unbekannte Felder werden verworfen
   const picked = {};
-  if (old.picked && typeof old.picked === 'object') Object.keys(old.picked).forEach(id => {
+  if (old.picked && typeof old.picked === 'object') Object.keys(old.picked).slice(0, 400).forEach(id => {
     const sm = String(old.picked[id]);
-    if (/^[1-4]$/.test(sm)) picked[id] = sm;
+    if (/^[1-4]$/.test(sm) && SYNC_ID.test(id)) picked[id] = sm;   // v22: nur gueltige Modul-IDs
   });
   s.picked = picked;
   s.todo = {};
@@ -3162,18 +3249,21 @@ function migrateState(old) {   // gespeicherten oder importierten Stand ueberneh
   if (!/^[1-4]$/.test(String(s.cursem))) s.cursem = '1'; else s.cursem = String(s.cursem);
   if (['de', 'en', 'it'].indexOf(s.lang) < 0) s.lang = 'de';
   if (['all', 'methods', 'digital_tech', 'mgmt_family', 'mgmt_digital', 'mgmt_other', 'project', 'thesis'].indexOf(s.activeCat) < 0) s.activeCat = 'all';
-  s.expandedMod = typeof s.expandedMod === 'string' ? s.expandedMod.slice(0, 40) : null;
+  s.expandedMod = typeof s.expandedMod === 'string' && SYNC_ID.test(s.expandedMod) ? s.expandedMod : null;   // v22
   s.v = STATE_VERSION;
-  return mergeV14(s, old);
+  return mergeV14(s, old, opts);
 }
+var STATE_RAW = null;   // v22: gespeicherter Text beim Start (passt das Sync-Meta dazu? siehe syncLoadMeta)
 function loadState() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
+    STATE_RAW = raw;
     if (raw) return migrateState(JSON.parse(raw));
   } catch (e) {}
   return freshState();
 }
 let state = loadState();
+var STAMP_PREV = JSON.parse(JSON.stringify(state));   // v22: zuletzt gespeicherter Stand (Vergleich fuer _t/_del in save())
 function injectCustomMods() {   // eigene Kurse in den Katalog aufnehmen, dann laufen ECTS, Tafel und Semesterplan wie bei allen Kursen
   for (let i = MODULES.length - 1; i >= 0; i--) if (MODULES[i].custom) MODULES.splice(i, 1);
   state.cust.forEach(c => { MODULES.push({ id: c.id, t: c.t, c: c.c, cat: c.cat, sem: 'flex', custom: true }); WS2627.add(c.id); });
@@ -3182,46 +3272,312 @@ injectCustomMods();
 syncCourseStatus();
 
 function save() {
-  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e) {}
-  if (SYNC && SYNC.ready) { lsSet(SYNC_TS_KEY, String(Date.now())); syncPushSoon(); }
+  syncStamp(STAMP_PREV, state, syncNow());   // v22: geaenderte Eintraege/Felder bekommen Zeitstempel, geloeschte einen Grabstein
+  STAMP_PREV = JSON.parse(JSON.stringify(state));
+  const raw = JSON.stringify(state);
+  try { localStorage.setItem(STORAGE_KEY, raw); } catch(e) {}
+  if (typeof SYNC === 'object' && SYNC) {
+    syncSaveMeta(raw);   // v22: state und Sync-Meta dieses Tabs immer zusammen (zwei Tabs, ein localStorage)
+    if (SYNC.ready) { lsSet(SYNC_TS_KEY, String(Date.now())); syncPushSoon(); }
+  }
+}
+
+// ------------------------------------------------------------
+// v22: Sync-Helfer. Pfade ('thesis.start'), Vergleich ohne _t/_tf, Zeitstempel/Grabsteine beim Speichern,
+// 3-Wege-Zusammenfuehren (gemeinsamer Stand B, lokal L, Server R). Zeitstempel in Serverzeit (syncNow).
+// ------------------------------------------------------------
+function syncNow() { return Date.now() + ((typeof SYNC === 'object' && SYNC && SYNC.skew) || 0); }   // Uhrversatz aus dem Date-Header des Servers
+function syncHash(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return (h >>> 0).toString(36) + '.' + str.length; }
+function syncGet(o, p) { return p.split('.').reduce((a, k) => (a && typeof a === 'object') ? a[k] : undefined, o); }
+function syncSet(o, p, v) {
+  const ks = p.split('.'), last = ks.pop();
+  const t = ks.reduce((a, k) => { if (!a[k] || typeof a[k] !== 'object' || Array.isArray(a[k])) a[k] = {}; return a[k]; }, o);
+  if (v === undefined) delete t[last]; else t[last] = v;
+}
+function syncNoT(v) { if (!v || typeof v !== 'object' || Array.isArray(v) || !('_t' in v || '_tf' in v)) return v; const c = Object.assign({}, v); delete c._t; delete c._tf; return c; }
+function syncJson(v) {   // JSON mit sortierten Schluesseln (Reihenfolge der Felder egal)
+  return JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)) ? Object.keys(x).sort().reduce((o, kk) => { o[kk] = x[kk]; return o; }, {}) : x);
+}
+function syncEq(a, b) { return syncJson(syncNoT(a)) === syncJson(syncNoT(b)); }
+function syncClone(v) { return v === undefined ? undefined : JSON.parse(JSON.stringify(v)); }
+function syncListsOf(st) {   // [prefix, Liste] fuer alle Listen mit id, aufg je Kurs
+  const out = SYNC_LISTS.map(([p, pre]) => [pre + ':', syncGet(st, p) || [], p]);
+  Object.keys((st && st.aufg) || {}).forEach(k => out.push(['aufg:' + k + '|', st.aufg[k] || [], 'aufg.' + k]));
+  return out;
+}
+function syncStampItem(p, x, now) {   // Feld-Zeitstempel eines Eintrags; true = geaendert
+  const tf = Object.assign({}, (p && p._tf) || {}, x._tf || {}); let ch = false;
+  Object.keys(x).forEach(f => { if (f !== '_t' && f !== '_tf' && (!p || syncJson(p[f]) !== syncJson(x[f]))) { tf[f] = now; ch = true; } });
+  if (p) Object.keys(p).forEach(f => { if (f !== '_t' && f !== '_tf' && !(f in x)) { delete tf[f]; ch = true; } });
+  if (ch) { x._tf = tf; x._t = now; }
+  else if (p) { if (p._tf && !x._tf) x._tf = syncClone(p._tf); if (p._t && !x._t) x._t = p._t; }   // unveraendert neu gebaut (z. B. live_patch): Zeiten behalten
+  return ch;
+}
+function syncStamp(prev, cur, now) {   // geaenderte Eintraege/Felder/Schluessel: Zeitstempel = now; entfernte: Grabstein; Altes nach 30 Tagen weg
+  if (!prev || !cur) return;
+  cur._t = cur._t || {}; cur._del = cur._del || {}; cur._tm = cur._tm || {};
+  SYNC_SCALARS.forEach(p => { if (!syncEq(syncGet(prev, p), syncGet(cur, p))) cur._t[p] = now; });
+  SYNC_MAPS.forEach(p => {
+    const a = syncGet(prev, p) || {}, c = syncGet(cur, p) || {};
+    new Set(Object.keys(a).concat(Object.keys(c))).forEach(k => { if (!syncEq(a[k], c[k])) cur._tm[p + '|' + k] = now; });
+  });
+  const csP = prev.cs || {}, csC = cur.cs || {};
+  Object.keys(csC).forEach(k => syncStampItem(csP[k], csC[k], now));
+  const pl = {}; syncListsOf(prev).forEach(([pre, l]) => l.forEach(x => { pl[pre + x.id] = x; }));
+  const cl = {}; syncListsOf(cur).forEach(([pre, l]) => l.forEach(x => {
+    const k = pre + x.id; cl[k] = 1;
+    if (syncStampItem(pl[k], x, now)) delete cur._del[k];
+  }));
+  Object.keys(pl).forEach(k => { if (!cl[k]) cur._del[k] = now; });
+  Object.keys(cur._del).forEach(k => { if (now - cur._del[k] > SYNC_DEL_MS) delete cur._del[k]; });
+  Object.keys(cur._tm).forEach(k => { const i = k.indexOf('|'), m = syncGet(cur, k.slice(0, i)) || {}; if (!(k.slice(i + 1) in m) && now - cur._tm[k] > SYNC_DEL_MS) delete cur._tm[k]; });
+}
+function syncPick(b, l, r, lt, rt) {   // ein Wert: nur eine Seite geaendert -> diese; beide -> neuerer Zeitstempel, ohne Zeitstempel lokal (dirty)
+  if (syncEq(l, b)) return r;
+  if (syncEq(r, b) || syncEq(l, r)) return l;
+  return (lt && rt && rt > lt) ? r : l;
+}
+function syncMergeEntry(b, l, r, cap) {   // beide Seiten haben denselben Eintrag geaendert: feldweise (abgehakt von A + Prioritaet von B)
+  const out = { }, tf = {}, ltf = l._tf || {}, rtf = r._tf || {};
+  new Set(Object.keys(b || {}).concat(Object.keys(l), Object.keys(r))).forEach(f => {
+    if (f === '_t' || f === '_tf') return;
+    const bv = b ? b[f] : undefined, lv = l[f], rv = r[f], same = (x, y) => syncJson(x) === syncJson(y);
+    let v, t;
+    if (same(lv, bv)) { v = rv; t = cap(rtf[f]); }
+    else if (same(rv, bv) || same(lv, rv)) { v = lv; t = ltf[f]; }
+    else { const lt = ltf[f], rt = cap(rtf[f]); if (lt && rt && rt > lt) { v = rv; t = rt; } else { v = lv; t = lt; } }
+    if (v !== undefined) out[f] = syncClone(v);
+    if (t) tf[f] = t;
+  });
+  const t = Math.max(l._t || 0, cap(r._t) || 0);
+  if (t) out._t = t;
+  if (Object.keys(tf).length) out._tf = tf;
+  return out;
+}
+function syncLcs(a, b) {   // Zeilenpaare der laengsten gemeinsamen Teilfolge, null wenn zu gross
+  const n = a.length, m = b.length; if (n * m > 4e6) return null;
+  const dp = []; for (let i = 0; i <= n; i++) dp.push(new Uint16Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) for (let j = m - 1; j >= 0; j--) dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+  const out = []; let i = 0, j = 0;
+  while (i < n && j < m) { if (a[i] === b[j]) { out.push([i, j]); i++; j++; } else if (dp[i + 1][j] >= dp[i][j + 1]) i++; else j++; }
+  return out;
+}
+function syncText(base, loc, rem) {   // Notiz: zeilenweiser 3-Wege-Merge; nicht aufloesbare Stellen: beide Fassungen nur dieses Abschnitts, nie eine verwerfen
+  base = base || ''; loc = loc || ''; rem = rem || '';
+  if (loc === rem || rem === base) return loc;
+  if (loc === base) return rem;
+  if (loc.startsWith(rem) && rem.startsWith(base)) return loc;   // v22: lokal = Server + weitergetippt (z. B. PUT-Antwort verloren)
+  if (rem.startsWith(loc) && loc.startsWith(base)) return rem;   //      und umgekehrt
+  const lines = x => x === '' ? [] : x.split('\n');
+  const stamp = new Date(syncNow()).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const block = (ca, cc) => ['--- Konflikt ' + stamp + ': dieses Gerät ---'].concat(ca, ['--- andere Fassung ---'], cc, ['--- Ende Konflikt ---']);
+  return syncText3(lines(base), lines(loc), lines(rem), block).join('\n');
+}
+function syncText3(B, A, C, block) {   // Zeilen; gemeinsamer Anfang/Ende zuerst ab, dann diff3 ueber den Mittelteil
+  let p = 0; while (p < A.length && p < B.length && p < C.length && A[p] === B[p] && B[p] === C[p]) p++;
+  let q = 0; while (q < A.length - p && q < B.length - p && q < C.length - p && A[A.length - 1 - q] === B[B.length - 1 - q] && B[B.length - 1 - q] === C[C.length - 1 - q]) q++;
+  const head = A.slice(0, p), tail = A.slice(A.length - q), Bm = B.slice(p, B.length - q), Am = A.slice(p, A.length - q), Cm = C.slice(p, C.length - q);
+  const ma = syncLcs(Bm, Am), mc = syncLcs(Bm, Cm);
+  if (!ma || !mc) {   // Mittelteil zu gross fuer den Zeilenvergleich: je Seite ein Aenderungsbereich gegen die Basis
+    const hunk = X => { let i = 0; while (i < X.length && i < Bm.length && X[i] === Bm[i]) i++; let j = 0; while (j < X.length - i && j < Bm.length - i && X[X.length - 1 - j] === Bm[Bm.length - 1 - j]) j++; return { b0: i, b1: Bm.length - j, x1: X.length - j }; };
+    const ha = hunk(Am), hc = hunk(Cm);
+    if (ha.b1 <= hc.b0) return head.concat(Bm.slice(0, ha.b0), Am.slice(ha.b0, ha.x1), Bm.slice(ha.b1, hc.b0), Cm.slice(hc.b0, hc.x1), Bm.slice(hc.b1), tail);   // getrennte Stellen: beide uebernehmen
+    if (hc.b1 <= ha.b0) return head.concat(Bm.slice(0, hc.b0), Cm.slice(hc.b0, hc.x1), Bm.slice(hc.b1, ha.b0), Am.slice(ha.b0, ha.x1), Bm.slice(ha.b1), tail);
+    const lo = Math.min(ha.b0, hc.b0), hi = Math.max(ha.b1, hc.b1);   // ueberlappend: nur diesen Bereich als Konflikt markieren
+    return head.concat(Bm.slice(0, lo), block(Am.slice(lo, hi + ha.x1 - ha.b1), Cm.slice(lo, hi + hc.x1 - hc.b1)), Bm.slice(hi), tail);
+  }
+  const am = new Map(ma), cm = new Map(mc), anchors = [];
+  for (let i = 0; i < Bm.length; i++) if (am.has(i) && cm.has(i)) anchors.push([i, am.get(i), cm.get(i)]);
+  anchors.push([Bm.length, Am.length, Cm.length]);
+  const eq = (x, y) => x.length === y.length && x.every((v, k) => v === y[k]);
+  let out = [], pb = 0, pa = 0, pc = 0;
+  for (const [ib, ia, ic] of anchors) {
+    const cb = Bm.slice(pb, ib), ca = Am.slice(pa, ia), cc = Cm.slice(pc, ic);
+    if (eq(ca, cb)) out = out.concat(cc);
+    else if (eq(cc, cb) || eq(ca, cc)) out = out.concat(ca);
+    else if (!cb.length) out = out.concat(ca, cc);   // beide haben an derselben Stelle Zeilen angefuegt: beide behalten (teilweise gleiche Zeilen doppelt)
+    else out = out.concat(block(ca, cc));            // nur dieser Abschnitt ist strittig
+    if (ib < Bm.length) out.push(Bm[ib]);
+    pb = ib + 1; pa = ia + 1; pc = ic + 1;
+  }
+  return head.concat(out, tail);
+}
+function syncHasUserData(st) {   // v22: eigene Eintraege (nicht nur Vorgaben und TUMonline-Daten aus dem Build)?
+  const L = tumLive(), tp = (L && L.me && L.me.picked) || {}, tcs = (L && L.me && L.me.cs) || {};
+  return !!((st.notiz || '').trim() || st.weTodo.length || st.cust.length || Object.keys(st.aufg).length || (st.dl.custom || []).length
+    || Object.keys(st.thesis.done).length || Object.keys(st.board).length || Object.keys(st.aufgOff).length || st.spec !== 'none' || st.prog !== 'no'
+    || st.cursemManual || st.thesis.manual || Object.keys(st.picked).some(k => k !== 'THESIS' && tp[k] === undefined)
+    || Object.keys(st.dl.done).length || Object.keys(st.collapsed).length || st.lang !== DEFAULT_STATE.lang || syncJson(st.strat) !== syncJson(DEFAULT_STATE.strat)   // v22: auch Einstellungen
+    || st.thesis.ics || (st.thesis.start !== THESIS_DEFAULT_START && !(typeof semesterStartIso === 'function' && st.thesis.start === semesterStartIso(4)))
+    || Object.keys(st.cs).some(k => st.cs[k].n || !tcs[k] || tcs[k].s !== st.cs[k].s));
+}
+function syncMerge(B, L, R) {
+  B = B || {};
+  const out = syncClone(R), now = syncNow();
+  const cap = v => (typeof v === 'number' && v > now + 120e3) ? now : v;   // v22: Zeiten vom anderen Geraet hoechstens 2 Min in der Zukunft
+  const maxMap = (a, b) => { const o = {}; Object.keys(b || {}).forEach(k => { o[k] = cap(b[k]); }); Object.keys(a || {}).forEach(k => { if (!(o[k] >= a[k])) o[k] = a[k]; }); return o; };
+  out._t = maxMap(L._t, R._t); out._tm = maxMap(L._tm, R._tm);
+  const del = maxMap(L._del, R._del);
+  Object.keys(del).forEach(k => { if (now - del[k] > SYNC_DEL_MS) delete del[k]; });
+  out._del = del;
+  SYNC_SCALARS.forEach(p => {
+    const b = syncGet(B, p), l = syncGet(L, p), r = syncGet(R, p);
+    const v = (p === 'notiz' && !syncEq(l, b) && !syncEq(r, b) && !syncEq(l, r)) ? syncText(b, l, r)   // Notiz: Text zusammenfuehren
+      : syncPick(b, l, r, (L._t || {})[p], cap((R._t || {})[p]));
+    syncSet(out, p, syncClone(v));
+  });
+  SYNC_MAPS.forEach(p => {
+    const b = syncGet(B, p) || {}, l = syncGet(L, p) || {}, r = syncGet(R, p) || {}, m = {};
+    new Set(Object.keys(b).concat(Object.keys(l), Object.keys(r))).forEach(k => {
+      let v;
+      const lt = (L._tm || {})[p + '|' + k], rt = cap((R._tm || {})[p + '|' + k]);
+      if (l[k] && r[k] && typeof l[k] === 'object' && typeof r[k] === 'object' && !syncEq(l[k], b[k]) && !syncEq(r[k], b[k]) && !syncEq(l[k], r[k])) v = syncMergeEntry(b[k], l[k], r[k], cap);   // Kursstatus feldweise
+      else if (b[k] === undefined && (l[k] === undefined) !== (r[k] === undefined)) {   // v22 (F4): nur eine Seite hat den Schluessel, kein gemeinsamer Stand
+        const have = l[k] !== undefined ? lt : rt, gone = l[k] !== undefined ? rt : lt;   // Entfernen auf der anderen Seite traegt _tm
+        v = gone && gone >= (have || 0) ? undefined : (l[k] !== undefined ? l[k] : r[k]);
+      }
+      else v = syncPick(b[k], l[k], r[k], lt, rt);
+      if (v !== undefined) m[k] = syncClone(v);
+    });
+    syncSet(out, p, m);
+  });
+  // v22 (F6): Kurs anderswo abgewaehlt, Kursstatus hier spaeter geaendert -> Kurs bleibt gewaehlt
+  Object.keys(out.cs || {}).forEach(k => {
+    if (out.picked[k] !== undefined) return;
+    const was = (L.picked || {})[k] !== undefined ? L.picked[k] : (R.picked || {})[k];
+    const gone = Math.max((L._tm || {})['picked|' + k] || 0, cap((R._tm || {})['picked|' + k]) || 0);
+    if (was !== undefined && (out.cs[k]._t || 0) > gone) { out.picked[k] = was; out._tm['picked|' + k] = out.cs[k]._t; }
+  });
+  const mergeList = (pre, bl, ll, rl) => {   // Vereinigung nach id; Reihenfolge der Seite, die umsortiert hat
+    const by = l => { const o = {}; (l || []).forEach(x => { o[x.id] = x; }); return o; };
+    const bm = by(bl), lm = by(ll), rm = by(rl), ids = (l => l.map(x => x.id));
+    const lOrd = ids(ll || []), rOrd = ids(rl || []), bOrd = ids(bl || []).filter(i => lm[i]);
+    const order = (JSON.stringify(lOrd.filter(i => bm[i])) !== JSON.stringify(bOrd) ? lOrd.concat(rOrd) : rOrd.concat(lOrd));
+    const res = [], seen = new Set();
+    order.forEach(id => {
+      if (seen.has(id)) return; seen.add(id);
+      const k = pre + id, l = lm[id], r = rm[id], b = bm[id];
+      let v = (l && r && !syncEq(l, b) && !syncEq(r, b) && !syncEq(l, r)) ? syncMergeEntry(b, l, r, cap)   // feldweise
+        : syncPick(b, l, r, l ? l._t : (L._del || {})[k], cap(r ? r._t : (R._del || {})[k]));
+      if (v && del[k] && del[k] >= (v._t || 0)) v = undefined;   // Grabstein neuer als der Eintrag: bleibt geloescht
+      if (v) res.push(syncClone(v));
+    });
+    return res;
+  };
+  SYNC_LISTS.forEach(([p, pre]) => syncSet(out, p, mergeList(pre + ':', syncGet(B, p), syncGet(L, p), syncGet(R, p))));
+  const ag = {};
+  new Set(Object.keys(B.aufg || {}).concat(Object.keys(L.aufg || {}), Object.keys(R.aufg || {}))).forEach(k => {
+    const l = mergeList('aufg:' + k + '|', (B.aufg || {})[k], (L.aufg || {})[k], (R.aufg || {})[k]);
+    if (l.length) ag[k] = l;
+  });
+  out.aufg = ag;
+  return out;
 }
 
 // ------------------------------------------------------------
 // Geräte-Sync: Wird die Seite über den Pi-Server ausgeliefert (http), liegt der Stand
-// zusätzlich in /api/mmdt-state. Neuerer Zeitstempel gewinnt. Als Datei (file://) oder
-// ohne diese Schnittstelle bleibt alles wie bisher nur im Browser.
+// zusätzlich in /api/mmdt-state. Als Datei (file://) oder ohne diese Schnittstelle bleibt alles nur im Browser.
 // var statt const: save() läuft schon beim Laden (syncCourseStatus), bevor dieser Block dran ist.
-// Vor dem ersten Abgleich zählen Speichervorgänge nicht als Änderung, sonst würde ein
-// veraltetes Gerät beim Öffnen den neueren Stand überschreiben.
+// Vor dem ersten Abgleich zählen Speichervorgänge nicht als Änderung (kein Push).
+// v22: Zusammenführen statt "neuester Stand gewinnt". SYNC.base = ts des zuletzt vom Server gesehenen Stands,
+// SYNC.shadow = dieser Stand (gemeinsamer Vorfahr). Vor jedem Push: GET, bei anderem Server-ts 3-Wege-Merge
+// (syncMerge), dann PUT { ts, base, state }. Neuer Server: 409 + aktueller Stand, wenn base veraltet ist ->
+// zusammenführen, erneut (max. 3 Versuche). Alter Server (kein "stored" in der Antwort): gespeichert nur, wenn
+// die Antwort unseren ts zurückgibt. base/shadow liegen je Tab im Speicher und für den nächsten Start in localStorage,
+// zusammen mit einer Pruefsumme des gespeicherten state (save() schreibt beides; passt sie nicht, gilt "ohne shadow").
+// Ohne shadow: hat das Geraet keine eigenen Eintraege, gilt der Server; sonst Vereinigung (nichts geht verloren).
 // ------------------------------------------------------------
 var SYNC_URL = '/api/mmdt-state';
 var SYNC_TS_KEY = STORAGE_KEY + '_ts';
-var SYNC = { on: /^https?:$/.test(location.protocol), ready: false, timer: null };
+var SYNC_META_KEY = STORAGE_KEY + '_sync';   // v22: { base, shadow, h: Pruefsumme des state }
+var SYNC_SKEW_KEY = STORAGE_KEY + '_skew';   // v22: Uhrversatz zum Server (ms)
+var SYNC = { on: /^https?:$/.test(location.protocol), ready: false, timer: null, busy: false, again: false, base: null, shadow: null, skew: 0 };
 if (!SYNC.on) { var fw = document.getElementById('file-warn'); if (fw) fw.hidden = false; }   // als Datei geoeffnet: kein Sync
+(function syncLoadMeta() {   // v22
+  try {
+    const o = JSON.parse(lsGet(SYNC_META_KEY) || 'null');
+    if (o && typeof o.base === 'number' && isFinite(o.base) && o.shadow && typeof o.shadow === 'object' && STATE_RAW && o.h === syncHash(STATE_RAW)) { SYNC.base = o.base; SYNC.shadow = migrateState(o.shadow); }
+    const sk = Number(lsGet(SYNC_SKEW_KEY)); if (isFinite(sk) && Math.abs(sk) < 3e10) SYNC.skew = sk;
+  } catch (e) {}
+})();
+function syncSaveMeta(raw) {   // Meta immer mit der Pruefsumme des gerade gespeicherten state
+  lsSet(SYNC_META_KEY, SYNC.shadow ? JSON.stringify({ base: SYNC.base || 0, shadow: SYNC.shadow, h: syncHash(raw || lsGet(STORAGE_KEY) || '') }) : null);   // ohne raw: der gespeicherte Text
+}
+function syncClock(r) {   // Uhrversatz aus dem Date-Header (Sekunden-genau, darum erst ab 3 s)
+  const d = Date.parse((r && r.headers && r.headers.get('Date')) || ''); if (!isFinite(d)) return;
+  const off = d + 500 - Date.now(); SYNC.skew = Math.abs(off) > 3000 ? Math.round(off) : 0; lsSet(SYNC_SKEW_KEY, SYNC.skew ? String(SYNC.skew) : null);
+}
 function syncLocalTs() { return Number(lsGet(SYNC_TS_KEY)) || 0; }
+function syncClean() { return !!SYNC.shadow && syncJson(state) === syncJson(SYNC.shadow); }   // nichts Neues fuer den Server
+function syncCapStamps(st, now) {   // v22 (F2): alle Zeitstempel hoechstens 2 Min in der Zukunft (lokal wie vom Server), sonst = now
+  if (!st) return st;
+  const lim = now + 120e3, fix = v => (typeof v === 'number' && v > lim) ? now : v;
+  const map = o => { if (o && typeof o === 'object') Object.keys(o).forEach(k => { o[k] = fix(o[k]); }); };
+  const item = x => { if (x && typeof x === 'object') { if ('_t' in x) x._t = fix(x._t); map(x._tf); } };
+  map(st._t); map(st._tm); map(st._del); Object.keys(st.cs || {}).forEach(k => item(st.cs[k]));
+  syncListsOf(st).forEach(([pre, l]) => l.forEach(item));
+  return st;
+}
+function syncAdopt(rts, rstate) {   // v22: Serverstand (ts, state) einarbeiten; true = lokaler Stand hat sich geaendert
+  const R = rstate && typeof rstate === 'object' && !Array.isArray(rstate) ? syncCapStamps(migrateState(rstate), syncNow()) : null;
+  syncCapStamps(state, syncNow());
+  if (!R) { SYNC.base = rts; if (!SYNC.shadow) SYNC.shadow = freshState(); syncSaveMeta(); return false; }   // Server leer: gemeinsamer Stand = leer
+  let B = SYNC.shadow;
+  // v22: erster Abgleich ohne gemeinsamen Stand: ohne eigene Eintraege gilt der Server, sonst Vereinigung mit leerem Vorfahren
+  if (!B) B = syncHasUserData(state) ? freshState() : syncClone(state);
+  const before = syncJson(state), M = migrateState(syncMerge(B, state, R));
+  SYNC.base = rts; SYNC.shadow = R;
+  const changed = syncJson(M) !== before;
+  const raw = JSON.stringify(changed ? M : state);
+  if (changed) {
+    state = M; STAMP_PREV = syncClone(state);
+    try { localStorage.setItem(STORAGE_KEY, raw); } catch (e) {}
+  }
+  syncSaveMeta(raw);
+  if (changed) stateRefresh();
+  return changed;
+}
+function syncFetch() {   // GET; anderer Server-ts -> zusammenfuehren
+  return fetch(SYNC_URL, { cache: 'no-store' })
+    .then(r => { syncClock(r); return r.ok ? r.json() : Promise.reject(r.status); })
+    .then(remote => {
+      const rts = Number(remote && remote.ts) || 0, rst = remote && remote.state;
+      if (rts === 0 && !rst && SYNC.base > 0) { SYNC.hold = true; return; }   // v22 (F7c): Server meldet "leer", kannte aber schon Daten -> nichts zusammenfuehren, nicht pushen
+      SYNC.hold = false;
+      if (rts === SYNC.base) return;
+      if (SYNC.sent && rst && syncJson(migrateState(rst)) === syncJson(migrateState(SYNC.sent))) {   // v22 (F3): unser letzter PUT ist angekommen (Antwort verloren)
+        SYNC.base = rts; SYNC.shadow = migrateState(rst); SYNC.sent = null; syncSaveMeta(); return;
+      }
+      syncAdopt(rts, rst);
+    });
+}
 function syncPush() {
-  if (!SYNC.on) return;
-  fetch(SYNC_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ts: syncLocalTs(), state: state }) }).catch(() => {});
+  if (!SYNC.on || !SYNC.ready) return;
+  if (SYNC.busy) { SYNC.again = true; return; }
+  SYNC.busy = true;
+  let tries = 0;
+  const put = () => {
+    if (syncClean() || SYNC.hold) return;   // v22 (F7c): bei verdaechtig leerem Server nicht pushen
+    const body = syncClone(state), sent = Math.max(Date.now(), (SYNC.base || 0) + 1);
+    SYNC.sent = body;   // v22 (F3): zuletzt gesendeter Stand
+    return fetch(SYNC_URL, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ts: sent, base: SYNC.base || 0, state: body }) })
+      .then(r => { syncClock(r); return r.json().catch(() => ({})).then(j => ({ status: r.status, j: j || {} })); })
+      .then(({ status, j }) => {
+        if (status === 200 && j.ok && (j.stored === true || (j.stored === undefined && Number(j.ts) === sent))) {
+          SYNC.base = Number(j.ts); SYNC.shadow = body; SYNC.sent = null; syncSaveMeta(); return;
+        }
+        if (++tries >= 3) return;   // aufgeben; naechste Aenderung oder Rueckkehr in den Tab versucht es erneut
+        if (status === 409 && 'ts' in j) { syncAdopt(Number(j.ts) || 0, j.state); return put(); }
+        if (status === 200 && j.ok) return syncFetch().then(put);   // alter Server hat nicht gespeichert: ziehen, zusammenfuehren, nochmal
+      });
+  };
+  syncFetch().then(put).catch(() => {}).then(() => { SYNC.busy = false; if (SYNC.again) { SYNC.again = false; syncPushSoon(); } });
 }
 function syncPushSoon() { clearTimeout(SYNC.timer); SYNC.timer = setTimeout(syncPush, 800); }
 function syncPull() {
   if (!SYNC.on) { SYNC.ready = true; return; }
-  fetch(SYNC_URL, { cache: 'no-store' })
-    .then(r => r.ok ? r.json() : Promise.reject(r.status))
-    .then(remote => {
-      const rts = Number(remote && remote.ts) || 0, lts = syncLocalTs();
-      if (rts > lts && remote.state && typeof remote.state === 'object') {
-        clearTimeout(SYNC.timer);
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(remote.state)); } catch (e) {}
-        lsSet(SYNC_TS_KEY, String(rts));
-        location.reload();
-        return;
-      }
-      SYNC.ready = true;
-      if (lts > rts) syncPush();
-    })
-    .catch(() => { SYNC.ready = true; });
+  if (SYNC.busy) return;
+  syncFetch().catch(() => {}).then(() => { SYNC.ready = true; if (!syncClean() && !SYNC.hold) syncPushSoon(); });
 }
 window.addEventListener('load', syncPull);
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') syncPull(); });
@@ -3257,7 +3613,7 @@ function ectsBySem(sem) { return semSpan(sem).lo; }
 function total() { return [1, 2, 3, 4].reduce((a, s) => a + semSpan(s).lo, 0); }
 function totalMax() { return [1, 2, 3, 4].reduce((a, s) => a + semSpan(s).hi, 0); }
 function specCat() { return state.spec === 'family' ? 'mgmt_family' : state.spec === 'digital' ? 'mgmt_digital' : null; }
-function specName() { return state.spec === 'family' ? 'Family Enterprise' : state.spec === 'digital' ? 'Digital Enterprises' : 'No management specialization'; }
+function specName() { return state.spec === 'family' ? 'Family Enterprise' : state.spec === 'digital' ? 'Digital Enterprises' : t('spec_name_none'); }   // v22: ohne Schwerpunkt in der UI-Sprache
 
 // ------------------------------------------------------------
 // CURRICULUM-BAUM: in welchen Knoten ein Modul zaehlen darf. methods, ns_*, dt, el_*: TUMonline "My Studies" (Stand 15.10.2026);
@@ -3524,7 +3880,7 @@ initBoard();
 
 function renderAlerts() {
   const alerts = [];
-  if (new Date() <= new Date('2026-10-07T23:59:59')) {   // Hinweis nur bis zur Abmeldefrist nach der Platzvergabe
+  if (SEM.regUntil && new Date() <= new Date(SEM.regUntil + 'T23:59:59')) {   // Hinweis nur bis zur Abmeldefrist nach der Platzvergabe (v22: je Semester aus SEM_TABLE)
     alerts.push({type:'info', title:t('alert_reg_title'), text:t('alert_reg_text')});
   }
   if (state.prog === 'yes') {
@@ -3558,14 +3914,14 @@ function renderAlerts() {
   const el = document.getElementById('alerts');
   const icons = {danger:'!', warn:'!', ok:'✓', info:'i'}, order = {danger: 0, warn: 1, info: 2, ok: 3};
   el.innerHTML = alerts.sort((x, y) => order[x.type] - order[y.type]).map(a => `<button type="button" class="chip chip-${a.type}" aria-expanded="false">
-    <span class="chip-i" aria-hidden="true">${icons[a.type]}</span><span class="chip-t">${a.title}</span><span class="chip-x">${a.text}</span></button>`).join('');
+    <span class="chip-i" aria-hidden="true">${icons[a.type]}</span><span class="chip-t">${escH(a.title)}</span><span class="chip-x">${escH(a.text)}</span></button>`).join('');   // v22: escaped
 }
 
 let pathSel = null;   // gewaehlte Station im Pfad (1-4); Standard = aktuelles Semester
 function renderSemesters() {
   const el = document.getElementById('semesters'); if (!el) return;
   const cur = +state.cursem; if (pathSel == null) pathSel = cur;
-  const item = m => `<div class="sem-item ${m.cat}"><div class="sem-item-name">${m.t}</div><div class="sem-item-meta">${m.id} · ${m.c} ECTS</div>${csBadge(m.id) ? `<div class="sem-item-badge">${csBadge(m.id)}</div>` : ''}</div>`;
+  const item = m => `<div class="sem-item ${escH(m.cat)}"><div class="sem-item-name">${escH(m.t)}</div><div class="sem-item-meta">${escH(m.id)} · ${m.c} ECTS</div>${csBadge(m.id) ? `<div class="sem-item-badge">${csBadge(m.id)}</div>` : ''}</div>`;   // v22: escaped
   const CAP = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 9.5 12 5l9.5 4.5L12 14 2.5 9.5Z"/><path d="M6.5 11.5v4.2c1.6 1.4 3.4 2.1 5.5 2.1s3.9-.7 5.5-2.1v-4.2"/><path d="M21.5 9.5v5"/></svg>';
   let line = '';
   for (let s = 1; s <= 4; s++) {
@@ -3718,7 +4074,7 @@ function renderPruefungen() {
     {label: t('pruef_sum_project'), val: cProject},
   ];
   sumEl.className = 'pruef-summary';
-  sumEl.innerHTML = cells.map(c => `<div class="pruef-sum-cell"><div class="pruef-sum-label">${c.label}</div><div class="pruef-sum-num ${c.val===0?'zero':''}">${c.val}</div></div>`).join('');
+  sumEl.innerHTML = cells.map(c => `<div class="pruef-sum-cell"><div class="pruef-sum-label">${escH(c.label)}</div><div class="pruef-sum-num ${c.val===0?'zero':''}">${c.val}</div></div>`).join('');
 
   // Color map for bar segments
   const SEG_COLOR = { exam:'var(--red)', pres:'var(--blue)', paper:'var(--purple)', project:'var(--green)', report:'var(--label-2)', part:'var(--orange)' };
@@ -3730,7 +4086,7 @@ function renderPruefungen() {
     if (!p) {
       return `<div class="pruef-card">
         <div class="pruef-card-head">
-          <div><div class="pruef-card-title">${m.t}</div><div class="pruef-card-code">${m.id} · ${m.c} ECTS</div></div>
+          <div><div class="pruef-card-title">${escH(m.t)}</div><div class="pruef-card-code">${escH(m.id)} · ${m.c} ECTS</div></div>
           <div class="pruef-card-flag warn">⚠</div>
         </div>
         <div class="pruef-tags"><span class="pruef-tag pruef-t-unknown">${t('pruef_unknown')}</span></div>
@@ -3739,25 +4095,25 @@ function renderPruefungen() {
     if (!p.v && !p.parts) {
       return `<div class="pruef-card">
         <div class="pruef-card-head">
-          <div><div class="pruef-card-title">${m.t}</div><div class="pruef-card-code">${m.id} · ${m.c} ECTS</div></div>
+          <div><div class="pruef-card-title">${escH(m.t)}</div><div class="pruef-card-code">${escH(m.id)} · ${m.c} ECTS</div></div>
           <div class="pruef-card-flag warn">⚠</div>
         </div>
         <div class="pruef-tags"><span class="pruef-tag pruef-t-unknown">${t('pruef_unknown')}</span></div>
-        <div class="pruef-card-desc">${p.desc}</div>
+        <div class="pruef-card-desc">${escH(p.desc)}</div>
       </div>`;
     }
     const parts = p.parts || [];
-    const bar = parts.map(part => `<div class="pruef-bar-seg" style="width:${part.w}%; background:${SEG_COLOR[part.t]||'var(--label-3)'};" title="${part.n} · ${part.w}%"></div>`).join('');
-    const tags = parts.map(part => `<span class="pruef-tag pruef-t-${part.t}"><span class="pruef-tag-dot" style="background:${SEG_COLOR[part.t]||'var(--label-3)'};"></span>${part.n} · ${part.w}%</span>`).join('');
+    const bar = parts.map(part => `<div class="pruef-bar-seg" style="width:${+part.w || 0}%; background:${SEG_COLOR[part.t]||'var(--label-3)'};" title="${escH(part.n)} · ${+part.w || 0}%"></div>`).join('');
+    const tags = parts.map(part => `<span class="pruef-tag pruef-t-${escH(part.t)}"><span class="pruef-tag-dot" style="background:${SEG_COLOR[part.t]||'var(--label-3)'};"></span>${escH(part.n)} · ${+part.w || 0}%</span>`).join('');
     const flag = p.v ? '<span class="pruef-card-flag">✓</span>' : '<span class="pruef-card-flag warn">⚠</span>';
     return `<div class="pruef-card">
       <div class="pruef-card-head">
-        <div><div class="pruef-card-title">${m.t}</div><div class="pruef-card-code">${m.id} · ${m.c} ECTS</div></div>
+        <div><div class="pruef-card-title">${escH(m.t)}</div><div class="pruef-card-code">${escH(m.id)} · ${m.c} ECTS</div></div>
         ${flag}
       </div>
       <div class="pruef-bar">${bar}</div>
       <div class="pruef-tags">${tags}</div>
-      <div class="pruef-card-desc">${p.desc}</div>
+      <div class="pruef-card-desc">${escH(p.desc)}</div>
     </div>`;
   }).join('');
 }
@@ -3818,31 +4174,31 @@ function renderModList() {
       detailHTML = `<div class="mod-detail open">
         ${exam ? `<div class="mod-detail-block ${examClass}">
           <div class="mod-detail-label">${examLabel}</div>
-          <div class="mod-detail-text">${exam.text}</div>
+          <div class="mod-detail-text">${escH(exam.text)}</div>
         </div>` : ''}
         ${prereq ? `<div class="mod-detail-block prereq">
           <div class="mod-detail-label">${t('prereq')}</div>
-          <div class="mod-detail-text">${prereq}</div>
+          <div class="mod-detail-text">${escH(prereq)}</div>
         </div>` : ''}
       </div>`;
     }
 
-    return `<div class="mod ${picked ? 'picked' : ''}" data-id="${m.id}">
-      <input type="checkbox" class="check" data-id="${m.id}" ${picked ? 'checked' : ''}/>
-      <div class="mod-info" data-toggle="${m.id}">
+    return `<div class="mod ${picked ? 'picked' : ''}" data-id="${escH(m.id)}">
+      <input type="checkbox" class="check" data-id="${escH(m.id)}" ${picked ? 'checked' : ''} aria-label="${escH(m.t)}"/>
+      <div class="mod-info" data-toggle="${escH(m.id)}" role="button" tabindex="0" aria-expanded="${expanded}">
         <div class="mod-name">
-          <span>${m.t}</span>
+          <span>${escH(m.t)}</span>
           ${csBadge(m.id)}
           ${isAdv ? '<span class="mod-tag advseminar">Adv. Seminar</span>' : ''}
           ${isBach ? '<span class="mod-tag bachelor">Bachelor</span>' : ''}
           ${m.neu ? '<span class="mod-tag neu">Neu 26W</span>' : ''}
           ${m.custom ? `<span class="mod-tag neu">${escH(t('cu_tag'))}</span><button type="button" class="dl-del" data-cu-del="${escH(m.id)}">${escH(t('cu_del'))}</button>` : ''}
           ${(PRUEFUNG_DATA[m.id]&&PRUEFUNG_DATA[m.id].parts&&PRUEFUNG_DATA[m.id].parts.some(p=>p.t==='exam')) ? '<span class="mod-tag klausur">Klausur</span>' : ''}
-          ${WS2627.has(m.id) ? '<span class="mod-tag ws">WS 26/27</span>' : '<span class="mod-tag nows">kein WS-Kurs</span>'}
+          ${WS2627.has(m.id) ? `<span class="mod-tag ws">${escH(SEM.short)}</span>` : `<span class="mod-tag nows">${escH(t('mod_tag_nows'))}</span>`}
         </div>
-        <div class="mod-meta"><span>${m.id}</span><span>${m.sem}</span></div>
+        <div class="mod-meta"><span>${escH(m.id)}</span><span>${escH(m.sem)}</span></div>
       </div>
-      <select class="mod-sem" data-sem-for="${m.id}" ${picked ? '' : 'disabled'}>
+      <select class="mod-sem" data-sem-for="${escH(m.id)}" ${picked ? '' : 'disabled'} aria-label="${escH(t('mod_sem_aria', m.t))}">
         <option value="">–</option>
         <option value="1" ${sem==='1'?'selected':''}>${t('sem_option_n', 1)}</option>
         <option value="2" ${sem==='2'?'selected':''}>${t('sem_option_n', 2)}</option>
@@ -3850,7 +4206,7 @@ function renderModList() {
         <option value="4" ${sem==='4'?'selected':''}>${t('sem_option_n', 4)}</option>
       </select>
       <div class="mod-ects">${m.c} ECTS</div>
-      <div class="mod-toggle ${expanded ? 'open' : ''}" data-toggle="${m.id}">
+      <div class="mod-toggle ${expanded ? 'open' : ''}" data-toggle="${escH(m.id)}" aria-hidden="true">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor"><path d="M5 3l4 4-4 4V3z"/></svg>
       </div>
     </div>${detailHTML}`;
@@ -3901,10 +4257,16 @@ function renderModList() {
     });
   });
   el.querySelectorAll('[data-toggle]').forEach(el => {
-    el.addEventListener('click', e => {
+    const toggle = () => {
       const id = el.dataset.toggle;
       state.expandedMod = state.expandedMod === id ? null : id;
       save(); renderModList();
+    };
+    el.addEventListener('click', toggle);
+    el.addEventListener('keydown', e => {   // v22: per Tastatur (Enter/Leertaste) wie ein Knopf; Fokus bleibt auf dem Modul
+      if (e.target !== el || (e.key !== 'Enter' && e.key !== ' ')) return;
+      e.preventDefault(); toggle();
+      const again = document.querySelector(`#mod-list .mod-info[data-toggle="${CSS.escape(el.dataset.toggle)}"]`); if (again) again.focus();
     });
   });
 
@@ -4058,13 +4420,13 @@ function renderWochenplan() {
     ? `<div class="wp-note conflict">&#9888; ${escH(t('wp_conflict_note'))}</div>` : '';
   const asNote = asOverlap ? `<div class="wp-note">${t('wp_as_note')}</div>` : '';
   const seen = new Set(), noteItems = [];
-  slots.forEach(s => { if (s.note && !seen.has(s.m.id)) { seen.add(s.m.id); noteItems.push(`<strong>${s.m.t}</strong> (${s.m.id}): ${escH(L(s.note))}`); } });
+  slots.forEach(s => { if (s.note && !seen.has(s.m.id)) { seen.add(s.m.id); noteItems.push(`<strong>${escH(s.m.t)}</strong> (${escH(s.m.id)}): ${escH(L(s.note))}`); } });   // v22: escaped
   const notesHTML = noteItems.length ? `<div class="wp-note">${t('wp_notes')}: ${noteItems.join(' &middot; ')}</div>` : '';
   const unvMods = mods.filter(m => (SCHEDULE[m.id]||[]).some(s => s.unv));
-  const unvHTML = unvMods.length ? `<div class="wp-note">${t('wp_unverified', unvMods.map(m => `${m.t} (${m.id})`).join(', '))}</div>` : '';
+  const unvHTML = unvMods.length ? `<div class="wp-note">${escH(t('wp_unverified', unvMods.map(m => `${m.t} (${m.id})`).join(', ')))}</div>` : '';   // v22: escaped
   const statusLegend = `<div class="wp-legend"><span class="wp-leg st-fixplatz"></span>${t('cs_fixplatz')} <span class="wp-leg st-warteliste"></span>${t('cs_warteliste')} <span class="wp-leg unv"></span>${t('wp_unverified_tag')}</div>`;
   const blockHTML = blocks.length
-    ? `<div class="wp-note">${escH(t('wp_blocks'))}: ${blocks.map(m => `<strong>${m.t}</strong> (${SCHEDULE_BLOCKS[m.id]})`).join(' &middot; ')}</div>` : '';
+    ? `<div class="wp-note">${escH(t('wp_blocks'))}: ${blocks.map(m => `<strong>${escH(m.t)}</strong> (${escH(SCHEDULE_BLOCKS[m.id])})`).join(' &middot; ')}</div>` : '';   // v22: escaped
   const noTimeHTML = noTime.length
     ? `<div class="wp-note">${escH(t('wp_no_time', noTime.map(m => `${m.t} (${m.id})`).join(', ')))}</div>` : '';
   const wdOf = n => t('wd', D14.dow(n));
@@ -4494,12 +4856,10 @@ function createSkal() {
     const j4 = dnOf(y, 1, 4), w1 = j4 - dowOf(j4);
     return Math.floor((th - w1) / 7) + 1;
   }
-  function parseTermin(s) {
-    const m = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(s);
-    if (!m) throw new Error('Ungültiges Terminformat: ' + s);
-    const start = +m[4] * 60 + +m[5], end = +m[6] * 60 + +m[7];
-    if (end <= start) throw new Error('Ende vor Beginn: ' + s);
-    return { day: dnOf(+m[3], +m[2], +m[1]), start, end };
+  function parseTermin(s) {   // v22: ungueltig -> null + Warnung (vorher Ausnahme = ganze App tot); Ende 00:00 = 24:00
+    const r = parseDateRange(s);
+    if (!r) { console.warn('Kalender: ungültiger Termin übersprungen (Format oder Ende vor Beginn):', s); return null; }
+    return { day: r.dn, start: r.s, end: r.e };
   }
   function parseDay(s) { const p = s.split('.').map(Number); return dnOf(p[2], p[1], p[0]); }
 
@@ -4509,10 +4869,15 @@ function createSkal() {
   function loadCourses() {
     const cur = String(state.cursem), labels = getCatLabels();
     ALLC = MODULES.filter(m => state.picked[m.id] === cur && m.cat !== 'thesis' && m.cat !== 'project' && !isDropped(m.id)).map(m => {
-      const cs = COURSE_STATUS[m.id] || { status: 'geplant' }, raw = SKAL_DATA[m.id] || {};
-      return Object.assign({ code: m.id, name: m.t, bereich: labels[m.cat] || '', ects: m.c,
+      const cs = COURSE_STATUS[m.id] || { status: 'geplant' }, raw = SKAL_DATA[m.id] || {}, d = {};
+      // v22: aus den Kursdaten (auch TUM_LIVE) nur bekannte Felder mit passendem Typ; Code/Name/ECTS/Status nie ueberschreibbar
+      ['beschreibung', 'pruefung', 'vorkenntnisse'].forEach(k => { if (typeof raw[k] === 'string') d[k] = raw[k]; });
+      ['termine', 'hinweis'].forEach(k => { if (typeof raw[k] === 'string' || (raw[k] && typeof raw[k] === 'object')) d[k] = raw[k]; });
+      if (typeof raw.klausur === 'boolean') d.klausur = raw.klausur;
+      if (raw.bewerbung && typeof raw.bewerbung === 'object') d.bewerbung = raw.bewerbung;
+      return Object.assign(d, { code: m.id, name: m.t, bereich: labels[m.cat] || '', ects: m.c,
         status: cs.status, verfahren: cs.verfahren || null, praef: null, likely: cs.status !== 'warteliste' || !!cs.likely,
-        ort: 'Heilbronn', dates: [] }, raw);
+        ort: typeof raw.ort === 'string' && raw.ort ? raw.ort : 'Heilbronn', dates: Array.isArray(raw.dates) ? raw.dates.filter(x => typeof x === 'string') : [] });
     });
     COURSES = ALLC.filter(c => c.dates.length > 0);          // Kurse mit Terminen (Kalender, Filter)
     CIDX = Object.fromEntries(ALLC.map((c, i) => [c.code, i]));
@@ -4520,11 +4885,12 @@ function createSkal() {
     COURSES.forEach(c => {
       const ci = CIDX[c.code];
       c.dates.forEach((s, k) => {
-        const tt = parseTermin(s);
+        const tt = parseTermin(s); if (!tt) return;   // v22
         EVENTS.push({ id: c.code + '#' + k, code: c.code, ci, day: tt.day, start: tt.start, end: tt.end, ort: c.ort });
       });
     });
     EVENTS.sort((a, b) => a.day - b.day || a.start - b.start || a.end - b.end || a.ci - b.ci);
+    if (rangeOn) calcRange();   // v22: Monate/Wochen folgen den Terminen (rangeOn: erst nach dem Aufbau unten)
     // Advanced Seminars auf der Warteliste sind Alternativen (nur 1 Platz): Ueberschneidungen untereinander zaehlen nicht als Konflikt
     EXCL = new Set(ALLC.filter(c => isASCode(c.code)).map(c => c.code));
     // Preset "Nur wahrscheinliche Zuteilung" = alles ausser "Warteliste (unsicher)"
@@ -4587,12 +4953,27 @@ function createSkal() {
 
   /* ---- UI ---- */
   const cvar = ci => '--skal-cc:var(--skal-c' + ((ci % 16) + 1) + ')';
-  const MONTH_LIST = [[2026, 10], [2026, 11], [2026, 12], [2027, 1], [2027, 2]];
-  const W_MIN = dnOf(2026, 10, 5), W_MAX = dnOf(2027, 2, 1);
-  const START_WEEK = dnOf(2026, 10, 12);
+  // v22: Monate und Wochen aus Vorlesungszeit (SEM) und vorhandenen Terminen statt fest Okt 2026 - Feb 2027;
+  // Woche startet in der aktuellen Woche (falls im Bereich), sonst in der ersten Woche mit Terminen
   const H = 56, T0 = 8 * 60, T1 = 19 * 60, PADTOP = 6;
-  const S = { view: 'month', month: 0, week: START_WEEK, active: new Set(COURSES.map(c => c.code)), ov: false, sel: null, cf: null };
   const TODAY = (() => { const n = new Date(); return dnOf(n.getFullYear(), n.getMonth() + 1, n.getDate()); })();
+  let MONTH_LIST = [], W_MIN = 0, W_MAX = 0, START_WEEK = 0;
+  var rangeOn;   // var: beim ersten loadCourses() oben noch undefined (kein TDZ)
+  const S = { view: 'month', month: 0, week: 0, active: new Set(COURSES.map(c => c.code)), ov: false, sel: null, cf: null };
+  function calcRange() {
+    const monOf = dn => dn - dowOf(dn);
+    let a = SEM.lecStart, b = SEM.lecEnd;
+    if (EVENTS.length) { a = Math.min(a, EVENTS[0].day); b = Math.max(b, EVENTS[EVENTS.length - 1].day); }
+    W_MIN = monOf(a) - 7; W_MAX = monOf(b);
+    MONTH_LIST = [];
+    const da = dateOf(a), db = dateOf(b);
+    for (let y = da.getUTCFullYear(), m = da.getUTCMonth() + 1; y < db.getUTCFullYear() || (y === db.getUTCFullYear() && m <= db.getUTCMonth() + 1); m === 12 ? (m = 1, y++) : m++) MONTH_LIST.push([y, m]);
+    const tw = monOf(TODAY);
+    START_WEEK = tw >= W_MIN && tw <= W_MAX ? tw : EVENTS.length ? monOf(EVENTS[0].day) : monOf(SEM.lecStart);
+    S.month = Math.max(0, Math.min(S.month, MONTH_LIST.length - 1));
+    S.week = S.week ? Math.min(W_MAX, Math.max(W_MIN, S.week)) : START_WEEK;
+  }
+  calcRange(); rangeOn = true;
   const nameOf = code => ALLC[CIDX[code]].name;
   const ortL = o => o === 'Extern' ? t('skal_ort_ext') : o === 'Ort offen' ? t('skal_ort_tbd') : o;
   const WD = () => t('skal_wd'), WDL = () => t('skal_wdl');
@@ -4616,8 +4997,8 @@ function createSkal() {
     $('courses').innerHTML = COURSES.map(c => {
       const i = CIDX[c.code];
       const meta = [procTxt(c), praefTxt(c)].filter(Boolean).join(' · ');
-      return '<label class="skal-course" style="' + cvar(i) + '" data-skal-code="' + c.code + '">'
-        + '<input type="checkbox" data-skal-code="' + c.code + '" checked>'
+      return '<label class="skal-course" style="' + cvar(i) + '" data-skal-code="' + esc(c.code) + '">'
+        + '<input type="checkbox" data-skal-code="' + esc(c.code) + '" checked>'
         + '<span class="skal-sw" aria-hidden="true"></span>'
         + '<span class="skal-ct"><b>' + esc(c.code) + '</b> ' + esc(c.name)
         + '<span class="skal-meta">' + badge(c)
@@ -4752,7 +5133,7 @@ function createSkal() {
       + '<p>' + esc(t('skal_cf_intro')) + '</p>'
       + stats.map(s => {
         const a = s.codes[0], b = s.codes[1];
-        return '<div class="skal-pairrow"><div class="skal-grow"><span class="skal-dot" style="' + cvar(CIDX[a]) + '"></span><b>' + a + '</b> &nbsp;/&nbsp; <span class="skal-dot" style="' + cvar(CIDX[b]) + '"></span><b>' + b + '</b></div>'
+        return '<div class="skal-pairrow"><div class="skal-grow"><span class="skal-dot" style="' + cvar(CIDX[a]) + '"></span><b>' + esc(a) + '</b> &nbsp;/&nbsp; <span class="skal-dot" style="' + cvar(CIDX[b]) + '"></span><b>' + esc(b) + '</b></div>'
           + '<span class="skal-tag bad">' + esc(t('skal_n_days', s.days.size)) + '</span><span class="skal-tag">' + esc(t('skal_min_total', s.min)) + '</span></div>';
       }).join('')
       + '</div>';
@@ -4791,8 +5172,8 @@ function createSkal() {
       dl += '<dt>' + esc(t('skal_dt_apply')) + '</dt><dd><div class="skal-apply">'
         + (b.frist ? '<span class="skal-fr">' + esc(t('skal_apply_deadline')) + ' ' + esc(b.frist) + '</span> · ' + esc(dueText(b.frist)) : '')
         + '<div>' + esc(L(b.text)) + '</div>'
-        + (b.link ? '<div><a href="' + esc(b.link) + '" target="_blank" rel="noopener noreferrer">' + esc(b.link) + '</a></div>' : '')
-        + (b.mail ? '<div><a href="mailto:' + esc(b.mail) + '">' + esc(b.mail) + '</a></div>' : '')
+        + (/^https?:\/\//i.test(String(b.link || '')) ? '<div><a href="' + esc(b.link) + '" target="_blank" rel="noopener noreferrer">' + esc(b.link) + '</a></div>' : '')   // v22: nur http(s)
+        + (typeof b.mail === 'string' && b.mail ? '<div><a href="mailto:' + esc(b.mail) + '">' + esc(b.mail) + '</a></div>' : '')
         + '</div></dd>';
     }
     if (c.hinweis) dl += '<dt>' + esc(t('skal_dt_note')) + '</dt><dd>' + esc(L(c.hinweis)) + '</dd>';
@@ -4845,7 +5226,7 @@ function createSkal() {
     const now = new Date();
     const dtstamp = now.getUTCFullYear() + pad2(now.getUTCMonth() + 1) + pad2(now.getUTCDate()) + 'T' + pad2(now.getUTCHours()) + pad2(now.getUTCMinutes()) + pad2(now.getUTCSeconds()) + 'Z';
     const L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//MMDT Study Planner//v13.1//DE', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH',
-      'X-WR-CALNAME:' + icsEsc('MMDT WS 26/27'), 'X-WR-TIMEZONE:Europe/Berlin'].concat(ICS_TZ);
+      'X-WR-CALNAME:' + icsEsc('MMDT ' + SEM.short), 'X-WR-TIMEZONE:Europe/Berlin'].concat(ICS_TZ);   // v22
     for (const e of evs) {
       const c = ALLC[CIDX[e.code]];
       const desc = [t('ics_status') + ': ' + t('cs_' + c.status)];
@@ -4869,7 +5250,7 @@ function createSkal() {
     try {
       const url = URL.createObjectURL(new Blob([r.text], { type: 'text/calendar;charset=utf-8' }));
       const a = document.createElement('a');
-      a.href = url; a.download = 'mmdt-termine-ws2627.ics'; a.rel = 'noopener'; a.style.display = 'none';
+      a.href = url; a.download = 'mmdt-termine-' + SEM.file + '.ics'; a.rel = 'noopener'; a.style.display = 'none';   // v22
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(url), 4000);
       ok = true;
@@ -4984,6 +5365,53 @@ const D14 = {
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function lsSet(k, v) { try { if (v == null || v === '') localStorage.removeItem(k); else localStorage.setItem(k, v); } catch (e) {} }
 const $id = id => document.getElementById(id);
+
+// ============================================================
+// v22: SEMESTER dynamisch statt fest WS 26/27. Quelle: TUM_LIVE.semester/semesterLabel (Build), sonst das heutige Datum
+// (WiSe 01.10.-31.03., SoSe 01.04.-30.09.). Vorlesungszeit aus SEM_TABLE; unbekannte Semester per FALLBACK-Regel.
+// TUM_LIVE steht erst am Skriptende (const, TDZ): beim Laden zaehlt nur das Datum, init() rechnet mit TUM_LIVE neu (semApply).
+// ============================================================
+const TEMPLATE_SEM = '26W';   // Semester der fest eingebauten Kursdaten (WS2627, SCHEDULE, SKAL_DATA)
+const SEM_TABLE = {           // Vorlesungsbeginn/-ende (TUM-Rundschreiben "Termine und Feiertage"); weitere Semester hier ergaenzen
+  '26W': { lec: ['2026-10-12', '2027-02-05'], weeks: 15, brk: ['2026-12-24', '2027-01-06'], regUntil: '2026-10-07' },
+};
+function tumLive() { try { return typeof TUM_LIVE !== 'undefined' && TUM_LIVE ? TUM_LIVE : null; } catch (e) { return null; } }
+function semCodeOf(y, m) { const p = n => String(((n % 100) + 100) % 100).padStart(2, '0'); return m >= 10 ? p(y) + 'W' : m <= 3 ? p(y - 1) + 'W' : p(y) + 'S'; }
+function semCompute(live) {
+  const n = new Date(), lc = live && /^\d{2}[WS]$/.test(String(live.semester)) ? String(live.semester) : '';
+  const code = lc || semCodeOf(n.getFullYear(), n.getMonth() + 1), yy = +code.slice(0, 2), y = 2000 + yy, winter = code[2] === 'W';
+  const p2 = v => String(v % 100).padStart(2, '0');
+  const tab = SEM_TABLE[code];
+  let lecStart, lecEnd, weeks, brk;
+  if (tab) {
+    lecStart = D14.fromIso(tab.lec[0]); lecEnd = D14.fromIso(tab.lec[1]); weeks = tab.weeks; brk = tab.brk ? tab.brk.map(D14.fromIso) : null;
+  } else if (winter) {   // FALLBACK (nicht in SEM_TABLE): zweiter Montag im Oktober, 15 Vorlesungswochen + Weihnachtspause, Ende Freitag der 17. Woche
+    const o1 = D14.dn(y, 10, 1); lecStart = o1 + (7 - D14.dow(o1)) % 7 + 7; lecEnd = lecStart + 7 * 16 + 4; weeks = 15;
+    brk = [D14.dn(y, 12, 24), D14.dn(y + 1, 1, 6)];
+  } else {               // FALLBACK (nicht in SEM_TABLE): Mitte April = erster Montag ab 12.04., 14 Vorlesungswochen, Ende Freitag der 14. Woche
+    const a = D14.dn(y, 4, 12); lecStart = a + (7 - D14.dow(a)) % 7; lecEnd = lecStart + 7 * 13 + 4; weeks = 14; brk = null;
+  }
+  const label = lc && typeof live.semesterLabel === 'string' && live.semesterLabel.trim() ? live.semesterLabel.trim().slice(0, 40)
+    : (winter ? `WS ${y}/${p2(yy + 1)}` : `SoSe ${y}`);
+  return { code, winter, label, short: winter ? `WS ${p2(yy)}/${p2(yy + 1)}` : `SoSe ${p2(yy)}`, file: winter ? `ws${p2(yy)}${p2(yy + 1)}` : `sose${p2(yy)}`,
+    lecStart, lecEnd, weeks, brk, termStart: winter ? D14.dn(y, 10, 1) : D14.dn(y, 4, 1), termEnd: winter ? D14.dn(y + 1, 3, 31) : D14.dn(y, 9, 30),
+    regUntil: tab && tab.regUntil || '', fallback: !tab };
+}
+let SEM, SEM_START, SEM_END_FALLBACK, SEM_TERM_END, STRAT_MON0, STRAT_WEEKS, STRAT_BREAK;
+function semApply(live) {   // Semesterleiste: Start = Vorlesungsbeginn, Ende = spaetester wichtiger Termin (Fallback Vorlesungsende); Push bis Semesterende
+  SEM = semCompute(live);
+  SEM_START = SEM.lecStart; SEM_END_FALLBACK = SEM.lecEnd; SEM_TERM_END = SEM.termEnd;
+  STRAT_MON0 = SEM.lecStart; STRAT_WEEKS = SEM.weeks; STRAT_BREAK = SEM.brk;   // Wochenraster: Vorlesungswochen ab Beginn, Pause ausgenommen
+}
+semApply(null);
+// v22: "DD.MM.YYYY HH:MM-HH:MM" -> { dn, s, e } oder null (ungueltig). Ende 00:00 bzw. 24:00 = Mitternacht (1440).
+function parseDateRange(str) {
+  const m = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(String(str));
+  if (!m) return null;
+  const s = +m[4] * 60 + +m[5], e0 = +m[6] * 60 + +m[7], e = e0 === 0 ? 1440 : e0, dn = D14.dn(+m[3], +m[2], +m[1]), p = D14.parts(dn);
+  if (+m[5] > 59 || +m[7] > 59 || s >= 1440 || e > 1440 || e <= s || p.d !== +m[1] || p.m !== +m[2]) return null;
+  return { dn, s, e };
+}
 
 // ICS-Bausteine (Fristen.ics): gleiche VTIMEZONE und Faltung wie beim Kalender-Export
 const ICS14_TZ = ['BEGIN:VTIMEZONE', 'TZID:Europe/Berlin',
@@ -5108,7 +5536,7 @@ function renderThesis() {
 // ============================================================
 // TERMIN-HELFER: Termine je Kurs aus SKAL_DATA (konkrete Tage) bzw. SCHEDULE (woechentlich, auf 15 Vorlesungswochen hochgerechnet)
 // ============================================================
-const STRAT_MON0 = D14.dn(2026, 10, 12), STRAT_WEEKS = 15, STRAT_BREAK = [D14.dn(2026, 12, 24), D14.dn(2027, 1, 6)];
+// v22: STRAT_MON0/STRAT_WEEKS/STRAT_BREAK kommen aus semApply() (Vorlesungszeit des aktuellen Semesters)
 
 // ---- Datenaufbau ----
 const STRAT_DAYS = ['Mo', 'Di', 'Mi', 'Do', 'Fr'];
@@ -5120,10 +5548,10 @@ function stratEvents(id) {
   const sk = SKAL_DATA[id], sl = SCHEDULE[id];
   if (sk && sk.dates && sk.dates.length) {
     src = 'kalender';
-    sk.dates.forEach(s => { const m = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(s); if (m) push(D14.dn(+m[3], +m[2], +m[1]), +m[4] * 60 + +m[5], +m[6] * 60 + +m[7]); });
+    sk.dates.forEach(s => { const r = parseDateRange(s); if (r) push(r.dn, r.s, r.e); });   // v22: ungueltige Termine auslassen
   } else if (sl) {
     src = 'wochenplan'; unv = sl.some(s => s.unv);
-    for (let w = 0; w < STRAT_WEEKS; w++) sl.forEach(s => { const day = STRAT_MON0 + 7 * w + s.d; if (day >= STRAT_BREAK[0] && day <= STRAT_BREAK[1]) return; push(day, s.s, s.e); });
+    for (let w = 0; w < STRAT_WEEKS; w++) sl.forEach(s => { const day = STRAT_MON0 + 7 * w + s.d; if (STRAT_BREAK && day >= STRAT_BREAK[0] && day <= STRAT_BREAK[1]) return; push(day, s.s, s.e); });
   }
   const r = { map, src, unv, nDates: sk && sk.dates ? sk.dates.length : 0 };
   stratEvCache.set(id, r); return r;
@@ -5163,8 +5591,8 @@ function exSessions() {   // v20: Sessions aktiver Kurse; Quelle SKAL_DATA (TUMo
     const m = MODULES.find(y => y.id === code); if (!m || !exActive(code)) return;
     const cfg = EXAM_EVERY_SESSION[code], days = new Map(), name = tdShort(m.t);
     ((SKAL_DATA[code] || {}).dates || []).forEach(s => {
-      const r = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2})-(\d{2}):(\d{2})$/.exec(s), dn = r && D14.dn(+r[3], +r[2], +r[1]);
-      if (r && !days.has(dn)) days.set(dn, { s: +r[4] * 60 + +r[5], e: +r[6] * 60 + +r[7], src: 'tum' });
+      const r = parseDateRange(s);   // v22: ungueltige Termine auslassen
+      if (r && !days.has(r.dn)) days.set(r.dn, { s: r.s, e: r.e, src: 'tum' });
     });
     const tum = [...days.entries()], nm = s => String(s || '').toLowerCase().replace(/[^a-z0-9äöüß]/g, ''), key = nm(name.split(/\s+/).slice(0, 2).join(''));
     if (GCAL && tum.length) GCAL.ev.forEach(x => {
@@ -5390,12 +5818,12 @@ function aufgabenDrag() {
   sec.addEventListener('pointercancel', end);
 }
 
-function renderAll() {
+function renderAll() {   // v22: jede Ansicht einzeln abgesichert
   syncCourseStatus();
-  renderStart(); renderHero(); renderProgress(); renderBoard(); renderAlerts(); renderSemesters(); renderRegistration(); renderPruefungen(); renderModList(); renderWochenplan(); renderNow(); renderAufgaben();
-  semRefresh();   // v20: Session-Punkte folgen der Kursauswahl
-  if (v14Ready) renderV14();
-  if (window.SKAL) window.SKAL.reload();
+  [renderStart, renderHero, renderProgress, renderBoard, renderAlerts, renderSemesters, renderRegistration, renderPruefungen, renderModList, renderWochenplan, renderNow, renderAufgaben,
+    semRefresh].forEach(f => safe(f.name, f));   // semRefresh (v20): Session-Punkte folgen der Kursauswahl
+  if (v14Ready) safe('renderV14', renderV14);
+  if (window.SKAL) safe('Kalender', () => window.SKAL.reload());
 }
 
 // ============================================================
@@ -5427,10 +5855,12 @@ function initViews() {
   window.addEventListener('hashchange', () => { const q = parse(location.hash); setView(q[0], q[1]); });
   setView(p[0], p[1]);
 }
+let noteRefresh = () => {};   // v22: Notizfeld aus state neu befuellen (Import, Sync)
 function initNote() {   // Notizzettel: speichert beim Tippen (kurz verzoegert) in den synchronisierten Stand
   const dlg = $id('note-dlg'), ta = $id('note-text'), st = $id('note-status'), cnt = $id('note-count'), dot = $id('note-dot');
   let timer = null;
-  const meta = () => { cnt.textContent = t('note_count', ta.value.length); dot.hidden = !state.notiz.trim(); };
+  const meta = () => { cnt.textContent = t('note_count', ta.value.length) + (ta.value.length > NOTIZ_WARN ? ' · ' + t('sync_warn_notiz', ta.value.length) : ''); dot.hidden = !state.notiz.trim(); };   // v22: Warnung statt Kuerzen
+  noteRefresh = () => { if (ta.value !== state.notiz) ta.value = state.notiz; meta(); };
   const close = () => { if (dlg.close) dlg.close(); else dlg.removeAttribute('open'); };
   ta.placeholder = t('note_ph'); ta.value = state.notiz; meta();
   $id('open-note').addEventListener('click', () => {
@@ -5473,10 +5903,8 @@ function gcalParse(list) {
   });
 }
 function gcalAllDay(dn) { return GCAL ? GCAL.ev.filter(x => x.allDay && x.dn <= dn && dn < x.dnE) : []; }
-// Semesterleiste: Start = Vorlesungsbeginn WiSe 2026/27 (TUM-Rundschreiben "Termine und Feiertage 2026/27": 12.10.2026),
-// Ende = spaetester wichtiger Termin im Kalender (wandert mit, wenn ein spaeterer dazukommt).
-const SEM_START = D14.dn(2026, 10, 12), SEM_END_FALLBACK = D14.dn(2027, 2, 5);
-const SEM_TERM_END = D14.dn(2027, 3, 31);   // v20: Ende Wintersemester 2026/27 (Push von Session-Pruefungen nur bis hier)
+// Semesterleiste: Start = Vorlesungsbeginn, Ende = spaetester wichtiger Termin im Kalender (wandert mit, wenn ein spaeterer dazukommt).
+// v22: SEM_START/SEM_END_FALLBACK/SEM_TERM_END aus semApply() (SEM_TABLE, 26W: 12.10.2026 / 05.02.2027 / 31.03.2027)
 let SEM_EV = [], SEM_CAL = [];   // v17: SEM_CAL = wichtige Kalendertermine, SEM_EV = SEM_CAL + offene Cockpit-Fristen
 function semParse(list) {
   return list.filter(x => x.wichtig).map(x => {
@@ -6002,8 +6430,54 @@ function initCockpit() {
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') cockpitLoad(); });
 }
 
+// v22: Teilfehler beim Start/Neuzeichnen legen nicht mehr die ganze App lahm
+function safe(name, fn) { try { return fn(); } catch (e) { console.error('[Dashboard] ' + name + ' fehlgeschlagen:', e); return undefined; } }
+let INIT_DONE = false;
+function settingsSync() {   // v22: Auswahlfelder im Einstellungs-Sheet aus state (Start, Import, Sync)
+  const L = tumLive(), tc = L && L.me && /^[1-4]$/.test(String(L.me.cursem)) ? String(L.me.cursem) : '';
+  const cur = $id('cursem'), auto = cur && cur.querySelector('option[value="auto"]');
+  if (auto) { auto.hidden = auto.disabled = !tc; auto.textContent = tc ? t('cursem_auto', tc) : ''; }
+  $id('spec').value = state.spec; $id('prog').value = state.prog; $id('lang').value = state.lang;
+  if (cur) cur.value = tc && !state.cursemManual ? 'auto' : state.cursem;
+  const ws = $id('mod-wsonly'); if (ws) ws.checked = state.modWs;
+}
+function inputKeep() {   // v22: halb getippte To-dos ueber das Neuzeichnen retten
+  const a = document.activeElement, f = a && a.tagName === 'INPUT' && a.closest('[data-td-add],[data-we-add],[data-ck-add]');
+  if (!f) return null;
+  const attr = ['data-td-add', 'data-we-add', 'data-ck-add'].find(x => f.hasAttribute(x));
+  return { attr, key: f.getAttribute(attr), v: a.value };
+}
+function inputRestore(k) {
+  if (!k) return;
+  const f = document.querySelector(`[${k.attr}="${CSS.escape(k.key)}"]`), i = f && f.querySelector('input');
+  if (i) { i.value = k.v; i.focus(); }
+}
+function syncWarnShow() {   // v22: sichtbarer Hinweis statt stillem Kuerzen (Element erst bei Bedarf, sonst bleibt das DOM wie bisher)
+  const msgs = [], add = m => { if (msgs.indexOf(m) < 0) msgs.push(m); };
+  const per = {}; SYNC_WARN.forEach(w => { per[w.what] = Math.max(per[w.what] || 0, w.n); });   // je Art einmal (groesste Zahl)
+  Object.keys(per).forEach(k => add(t('sync_warn_limit', t('sync_what_' + k), per[k])));
+  if (state.notiz.length > NOTIZ_WARN) add(t('sync_warn_notiz', state.notiz.length));
+  let el = $id('sync-warn');
+  if (!msgs.length) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'sync-warn'; el.className = 'disclaimer'; el.setAttribute('role', 'status'); const c = document.querySelector('main.container'); if (c) c.insertBefore(el, c.firstChild); }
+  el.textContent = msgs.join(' ');
+}
+function stateRefresh() {   // v22: nach Import oder Sync alles aus dem neuen state: eigene Kurse, Formulare, Notiz, Kalender, alle Ansichten
+  if (!INIT_DONE) return;
+  safe('Hinweise', syncWarnShow);
+  const keep = inputKeep();
+  injectCustomMods(); syncCourseStatus();
+  safe('Einstellungen', settingsSync); safe('Notiz', noteRefresh);
+  safe('Texte', applyTranslations); safe('Tabs', renderTabs); renderAll();
+  if (window.SKAL) safe('Kalender', () => window.SKAL.rebuild());
+  safe('Thesis', () => { syncV14Forms(); renderV14(); cuFillCats(); });
+  safe('Darstellung', themeUi);
+  inputRestore(keep);
+}
+
 function init() {
-  aufgabenEvents(); aufgabenDrag(); initNote();
+  semApply(tumLive()); stratEvCache.clear();   // v22: Semester aus TUM_LIVE (steht erst jetzt sicher bereit)
+  safe('To-dos', () => { aufgabenEvents(); aufgabenDrag(); }); safe('Notiz', initNote);
   // Hoehe der Kopfzeile als CSS-Variable, damit die Filterleiste der Modulwahl auf dem Handy direkt darunter haften kann
   const top = document.querySelector('.top');
   if (top && 'ResizeObserver' in window) new ResizeObserver(() => document.documentElement.style.setProperty('--top-h', top.offsetHeight + 'px')).observe(top);
@@ -6013,13 +6487,17 @@ function init() {
   const progSel = document.getElementById('prog');
   const curSel = document.getElementById('cursem');
   const langSel = document.getElementById('lang');
-  specSel.value = state.spec; progSel.value = state.prog; curSel.value = state.cursem;
-  langSel.value = state.lang;
+  safe('Einstellungen', settingsSync);
 
   specSel.addEventListener('change', e => { state.spec = e.target.value; save(); renderAll(); });
   progSel.addEventListener('change', e => { state.prog = e.target.value; save(); renderAll(); });
-  curSel.addEventListener('change', e => { state.cursem = e.target.value; save(); renderAll(); });
-  langSel.addEventListener('change', e => { state.lang = e.target.value; save(); applyTranslations(); renderTabs(); renderAll(); if (window.SKAL) window.SKAL.rebuild(); themeUi(); });
+  curSel.addEventListener('change', e => {   // v22: eigene Wahl hat Vorrang vor TUMonline; "Automatisch" setzt zurueck
+    const L = tumLive(), tc = L && L.me && /^[1-4]$/.test(String(L.me.cursem)) ? String(L.me.cursem) : '';
+    if (e.target.value === 'auto') { state.cursemManual = false; if (tc) state.cursem = tc; }
+    else if (/^[1-4]$/.test(e.target.value)) { state.cursem = e.target.value; state.cursemManual = true; }
+    save(); renderAll(); settingsSync();
+  });
+  langSel.addEventListener('change', e => { state.lang = e.target.value; save(); applyTranslations(); renderTabs(); renderAll(); if (window.SKAL) window.SKAL.rebuild(); themeUi(); settingsSync(); });
 
   document.getElementById('reset').addEventListener('click', () => {
     if (confirm(t('confirm_reset'))) { state.picked = {}; state.cs = {}; save(); renderAll(); }
@@ -6041,12 +6519,10 @@ function init() {
         const imported = JSON.parse(ev.target.result);
         if (!imported || typeof imported !== 'object' || Array.isArray(imported) || !imported.picked || typeof imported.picked !== 'object') throw new Error('kein Dashboard-Export');
         if (chosenMods().length && !confirm(t('import_confirm'))) return;
-        state = migrateState(imported);   // importierten Stand validieren
+        state = migrateState(imported, { import: true });   // importierten Stand validieren (Typen, Laengen, IDs; Grenzen wie bisher)
+        syncCapStamps(state, syncNow());   // v22: Zeitstempel aus der Datei nicht in der Zukunft
         save();
-        specSel.value = state.spec; progSel.value = state.prog; curSel.value = state.cursem;
-        langSel.value = state.lang;
-        applyTranslations(); renderTabs(); renderAll(); if (window.SKAL) window.SKAL.rebuild();
-        syncV14Forms(); renderV14();
+        stateRefresh();   // v22: alles neu (eigene Kurse, Notizfeld, Einstellungen, Kalender)
         alert(t('import_success'));
       } catch(err) { alert(t('import_fail')); }
     };
@@ -6054,14 +6530,16 @@ function init() {
     e.target.value = '';   // dieselbe Datei kann erneut gewaehlt werden
   });
 
-  applyTranslations();
-  renderTabs();
+  safe('Texte', applyTranslations);
+  safe('Tabs', renderTabs);
   renderAll();
-  window.SKAL = createSkal();   // Kalender WS 26/27 (Namespace skal-)
-  initViews(); initSettings(); initChips(); initPath(); initTheme(); initStyle();
-  renderSemBar(); initCockpit(); gcalLoad(); setInterval(gcalLoad, 10 * 60 * 1000);   // Google-Kalender alle 10 Min neu (v17: Cockpit zuerst, sonst Server/eingebacken)
-  initRegistration();
-  initV14();   // v14: Thesis, eigene Kurse
+  window.SKAL = safe('Kalender', createSkal) || null;   // Kalender des aktuellen Semesters (Namespace skal-); v22: Fehler darin legt den Rest nicht lahm
+  safe('Ansichten', initViews); safe('Einstellungen', initSettings); safe('Auflagen', initChips); safe('Pfad', initPath); safe('Darstellung', initTheme); safe('Stil', initStyle);
+  safe('Semesterleiste', renderSemBar); safe('Cockpit', initCockpit); safe('Google-Kalender', gcalLoad); setInterval(() => safe('Google-Kalender', gcalLoad), 10 * 60 * 1000);   // Google-Kalender alle 10 Min neu (v17: Cockpit zuerst, sonst Server/eingebacken)
+  safe('Kurse', initRegistration);
+  safe('Thesis', initV14);   // v14: Thesis, eigene Kurse
+  safe('Hinweise', syncWarnShow);   // v22
+  INIT_DONE = true;
 }
 
 document.addEventListener('DOMContentLoaded', init);
