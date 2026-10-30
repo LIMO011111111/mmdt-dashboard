@@ -1359,6 +1359,25 @@ html[data-style="glass"] .note-dlg { --ff: Arial, Helvetica, sans-serif; font-fa
 .pruef-card-title, .pruef-card-code, .sem-item-name, .bd-card-t, .mod-name > span:first-child { overflow-wrap: anywhere; }
 .pruef-card-head > div:first-child { min-width: 0; }
 @media (max-width: 767px) { .reg-name { overflow-wrap: anywhere; } }   /* nur Handy: auf dem Desktop ist die Kursliste eine echte Tabelle (Spaltenbreiten bleiben) */
+/* ===== v23: Design "Modern" (neues Design-System). Greift nur bei html[data-style="glass"][data-design="modern"].
+   Klassisch und Glas bleiben unverändert. Nacht-Werte stehen in @media (prefers-color-scheme: dark),
+   damit auch der Hell/Dunkel-Umschalter sie mitsteuert. Akzent: html[data-accent] = blue | orange | pink. ===== */
+html[data-style="glass"][data-design="modern"] { --m-accent: #0297DE; --m-accent-soft: #4FC3FF; --m-accent-deep: #0A5F96; --m-on-accent: #02070A; --m-ui: var(--m-accent-deep); --m-ink: var(--m-accent-deep); }
+@media (prefers-color-scheme: dark) { html[data-style="glass"][data-design="modern"] { --m-ui: var(--m-accent); --m-ink: var(--m-accent-soft); } }
+html[data-style="glass"][data-design="modern"][data-accent="orange"] { --m-accent: #FC734D; --m-accent-soft: #FF9272; --m-accent-deep: #B03A14; }
+html[data-style="glass"][data-design="modern"][data-accent="pink"] { --m-accent: #FD91CC; --m-accent-soft: #FFB3D9; --m-accent-deep: #A3206F; }
+html[data-style="glass"][data-design="modern"] { --g-base: #F5F8FC; --g-rgb: 255, 255, 255; --g-rgb3: 255, 255, 255; --g-a1: 0.64; --g-a2: 0.84; --g-a3: 0.84; --g-bf1: blur(20px) saturate(150%); --g-bf2: blur(28px) saturate(160%); --g-bf3: blur(32px) saturate(170%); --g-solid: #FFFFFF; --g-card-solid: #FFFFFF; --bg: rgba(2, 16, 36, 0.06); --bg-tinted: rgba(2, 16, 36, 0.05); --separator: rgba(2, 16, 36, 0.10); --separator-strong: rgba(2, 16, 36, 0.16); --pill-bg: rgba(2, 16, 36, 0.07); --label: #02070A; --label-2: #3F5068; --label-3: #4A5C73; --label-4: #5B6B80; --blue: var(--m-ui); --blue-soft: color-mix(in srgb, var(--m-ui) 12%, transparent); --blue-ink: var(--m-ink); --g-nav-on: var(--m-ink); }
+@media (prefers-color-scheme: dark) { html[data-style="glass"][data-design="modern"] { --g-base: #021024; --g-rgb: 11, 24, 48; --g-rgb3: 11, 24, 48; --g-a1: 0.62; --g-a2: 0.84; --g-a3: 0.84; --g-solid: #0B1830; --g-card-solid: #0B1830; --bg: rgba(0, 0, 0, 0.24); --bg-tinted: rgba(255, 255, 255, 0.08); --separator: rgba(193, 232, 255, 0.14); --separator-strong: rgba(193, 232, 255, 0.22); --pill-bg: rgba(242, 246, 250, 0.10); --label: #F2F6FA; --label-2: #C3D1E3; --label-3: #9DB4CF; --label-4: #8FA6C2; } }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { html[data-style="glass"][data-design="modern"] { --g-a1: 1; --g-a2: 1; --g-a3: 1; --g-bf1: none; --g-bf2: none; --g-bf3: none; }
+}
+@media (prefers-reduced-transparency: reduce) { html[data-style="glass"][data-design="modern"] { --g-a1: 1; --g-a2: 1; --g-a3: 1; --g-bf1: none; --g-bf2: none; --g-bf3: none; }
+}
+html[data-style="glass"][data-design="modern"] body { background: var(--g-base); }
+html[data-style="glass"][data-design="modern"] body::before { background: radial-gradient(40% 35% at 20% 12%, color-mix(in srgb, var(--m-accent) 42%, transparent), transparent 70%), radial-gradient(35% 30% at 85% 62%, color-mix(in srgb, var(--m-accent) 26%, transparent), transparent 70%), linear-gradient(180deg, #C1E8FF 0%, #F5F8FC 100%); }
+@media (prefers-color-scheme: dark) { html[data-style="glass"][data-design="modern"] body::before { background: radial-gradient(40% 35% at 20% 12%, color-mix(in srgb, var(--m-accent) 46%, transparent), transparent 70%), radial-gradient(35% 30% at 85% 62%, color-mix(in srgb, var(--m-accent) 28%, transparent), transparent 70%), linear-gradient(180deg, #021024 0%, #052659 100%); } }
+html[data-style="glass"][data-design="modern"] .now-main { background: linear-gradient(135deg, var(--m-accent-deep) 0%, color-mix(in srgb, var(--m-accent-deep) 70%, #02070A) 100%); box-shadow: 0 12px 34px color-mix(in srgb, var(--m-accent-deep) 35%, transparent); }
+html[data-style="glass"][data-design="modern"] .btn.primary { background: var(--m-accent); color: var(--m-on-accent); box-shadow: inset 1px 1px 0 rgba(255,255,255,0.35), 0 4px 14px color-mix(in srgb, var(--m-accent) 35%, transparent); }
+#accent-cell[hidden] { display: none !important; }
 </style>
 <script>
 // v18: Darstellung Automatisch / Hell / Dunkel, je Geraet (localStorage mmdt_theme; nicht in state, Export oder Sync).
@@ -1405,16 +1424,22 @@ themeApply(themeGet());
 // v19: Stil Klassisch / Glas, je Geraet (localStorage mmdt_style; nicht in state, Export oder Sync). Setzt html[data-style]
 // ebenfalls vor dem ersten Rendern; alle Glas-Regeln haengen an html[data-style="glass"]. Statusleiste im Glas-Stil = Hintergrundfarbe.
 var STYLE_KEY = 'mmdt_style';
-function styleGet() { try { return localStorage.getItem(STYLE_KEY) === 'glass' ? 'glass' : 'classic'; } catch (e) { return 'classic'; } }
+function styleGet() { try { var v = localStorage.getItem(STYLE_KEY); return (v === 'glass' || v === 'modern') ? v : 'classic'; } catch (e) { return 'classic'; } }
+// v23: Akzentfarbe für "Modern" (nur auf diesem Gerät, nicht in state/Export/Sync)
+var ACCENT_KEY = 'mmdt_accent';
+function accentGet() { try { var v = localStorage.getItem(ACCENT_KEY); return (v === 'orange' || v === 'pink') ? v : 'blue'; } catch (e) { return 'blue'; } }
 function styleApply(s) {
-  if (s !== 'glass') s = 'classic';
-  document.documentElement.setAttribute('data-style', s);
+  if (s !== 'glass' && s !== 'modern') s = 'classic';
+  var root = document.documentElement;
+  root.setAttribute('data-style', s === 'modern' ? 'glass' : s);   // Modern = Glas-Struktur + data-design
+  if (s === 'modern') root.setAttribute('data-design', 'modern'); else root.removeAttribute('data-design');
+  root.setAttribute('data-accent', accentGet());
   var metas = document.querySelectorAll('meta[name="theme-color"]');
   for (var j = 0; j < metas.length; j++) {
     var el = metas[j];
     if (!el.hasAttribute('data-content')) el.setAttribute('data-content', el.getAttribute('content') || '');
     var dark = /dark/i.test(el.getAttribute('data-media') || el.getAttribute('media') || '');
-    el.setAttribute('content', s === 'glass' ? (dark ? '#060913' : '#F1EEE6') : el.getAttribute('data-content'));
+    el.setAttribute('content', s === 'modern' ? (dark ? '#021024' : '#F5F8FC') : s === 'glass' ? (dark ? '#060913' : '#F1EEE6') : el.getAttribute('data-content'));
   }
 }
 styleApply(styleGet());
@@ -1723,6 +1748,15 @@ styleApply(styleGet());
         <select id="style">
           <option value="classic" data-t="style_classic">Klassisch</option>
           <option value="glass" data-t="style_glass">Glas</option>
+          <option value="modern" data-t="style_modern">Modern</option>
+        </select>
+      </div>
+      <div class="setting-cell" id="accent-cell" hidden>
+        <label for="accent" data-t="accent_label">Akzent</label>
+        <select id="accent">
+          <option value="blue" data-t="accent_blue">Blau</option>
+          <option value="orange" data-t="accent_orange">Orange</option>
+          <option value="pink" data-t="accent_pink">Pink</option>
         </select>
       </div>
     </div>
@@ -2931,7 +2965,7 @@ const I18N_V15 = {
     // v18: Darstellung
     theme_label: 'Darstellung', theme_auto: 'Automatisch (System)', theme_light: 'Hell', theme_dark: 'Dunkel', theme_btn: m => `Darstellung: ${m} (antippen zum Wechseln)`,
     // v19: Stil
-    style_label: 'Stil', style_classic: 'Klassisch', style_glass: 'Glas',
+    style_label: 'Stil', style_classic: 'Klassisch', style_glass: 'Glas', style_modern: 'Modern', accent_label: 'Akzent', accent_blue: 'Blau', accent_orange: 'Orange', accent_pink: 'Pink',
     // v17: Cockpit
     ck_title: 'Cockpit', ck_optional: 'optional', ck_token: 'Geräte-Token', ck_url: 'Adresse der Funktion', ck_test: 'Verbindung testen',
     ck_hint: 'Mit Geräte-Token kommen Uni-Aufgaben, Fristen und dein Google-Kalender live aus dem Cockpit. Deine lokalen To-dos bleiben gespeichert. Token und Adresse bleiben nur in diesem Browser (nicht im Export, nicht im Sync).',
@@ -2973,7 +3007,7 @@ const I18N_V15 = {
     // v18: Darstellung
     theme_label: 'Appearance', theme_auto: 'Automatic (system)', theme_light: 'Light', theme_dark: 'Dark', theme_btn: m => `Appearance: ${m} (tap to switch)`,
     // v19: Stil
-    style_label: 'Style', style_classic: 'Classic', style_glass: 'Glass',
+    style_label: 'Style', style_classic: 'Classic', style_glass: 'Glass', style_modern: 'Modern', accent_label: 'Accent', accent_blue: 'Blue', accent_orange: 'Orange', accent_pink: 'Pink',
     // v17: Cockpit
     ck_title: 'Cockpit', ck_optional: 'optional', ck_token: 'Device token', ck_url: 'Function address', ck_test: 'Test connection',
     ck_hint: 'With a device token, uni tasks, deadlines and your Google Calendar come live from the Cockpit. Your local to-dos stay saved. Token and address stay in this browser only (not in the export, not in sync).',
@@ -2993,7 +3027,7 @@ const I18N_V15 = {
   it: {
     v_today: 'Oggi', v_progress: 'Progressi', v_courses: 'Corsi', v_plan: 'Piano', k_gpa: 'Media', close: 'Chiudi', wp_title: 'Questa settimana',
     wd: i => ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'][i],
-    style_label: 'Stile', style_classic: 'Classico', style_glass: 'Vetro',   // v19
+    style_label: 'Stile', style_classic: 'Classico', style_glass: 'Vetro', style_modern: 'Moderno', accent_label: 'Accento', accent_blue: 'Blu', accent_orange: 'Arancione', accent_pink: 'Rosa',   // v19
     sem_pruef: 'Esame', sem_more: n => `+${n} altri`,   // v20
   },
 };
@@ -6388,10 +6422,12 @@ function initTheme() {
 }
 // v19: Stil (styleApply/styleGet im <head>): Auswahl im Sheet, kein eigener Kopfzeilen-Knopf (Platz auf dem Handy)
 function initStyle() {
-  const sel = $id('style');
-  sel.value = styleGet();
-  sel.addEventListener('change', () => { try { localStorage.setItem(STYLE_KEY, sel.value); } catch (e) {} styleApply(sel.value); });
-  window.addEventListener('storage', e => { if (e.key === STYLE_KEY) { styleApply(styleGet()); sel.value = styleGet(); } });   // anderer Tab
+  const sel = $id('style'), acc = $id('accent'), cell = $id('accent-cell');
+  const zeigen = () => { if (cell) cell.hidden = styleGet() !== 'modern'; };   // Akzent nur bei Modern
+  sel.value = styleGet(); acc.value = accentGet(); zeigen();
+  sel.addEventListener('change', () => { try { localStorage.setItem(STYLE_KEY, sel.value); } catch (e) {} styleApply(sel.value); zeigen(); });
+  acc.addEventListener('change', () => { try { localStorage.setItem(ACCENT_KEY, acc.value); } catch (e) {} styleApply(styleGet()); });
+  window.addEventListener('storage', e => { if (e.key === STYLE_KEY || e.key === ACCENT_KEY) { styleApply(styleGet()); sel.value = styleGet(); acc.value = accentGet(); zeigen(); } });   // anderer Tab
 }
 function initCockpit() {
   const tok = $id('ck-token'), url = $id('ck-url'), sec = $id('aufgaben-section');
