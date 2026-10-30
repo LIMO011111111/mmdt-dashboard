@@ -4338,7 +4338,7 @@ const SCHEDULE = {
   'MGTHN0195': [{d:1, s:855, e:1065, src:'TUMonline', note:{de:'14-tägig (8 Termine ab 13.10.)', en:'biweekly (8 sessions from 13 Oct)'}}],
   'MGTHN0177': [{d:0, s:615, e:825, src:'TUMonline'}],                                          // Mo 10:15-13:45
   'WIHN0034':  [{d:4, s:615, e:825, src:'TUMonline'}],                                          // Fr 10:15-13:45
-  'WIHN0033':  [{d:3, s:735, e:945, src:'TUMonline'}],                                          // Do 12:15-15:45
+  'WIHN0033':  [{d:3, s:735, e:825, src:'TUMonline'},{d:3, s:855, e:945, src:'TUMonline'}],      // Do VO 12:15-13:45 + UE 14:15-15:45, L.0.10 (Mail 29.10.)
   'MGTHN0130': [{d:2, s:870, e:1035, src:'TUMonline', note:{de:'zusätzlich 3 Freitage: 23.10., 20.11., 27.11. (14:30–17:15, alle drei kollidieren mit MGTHN0122)', en:'plus 3 Fridays: 23 Oct, 20 Nov, 27 Nov (14:30–17:15, all three clash with MGTHN0122)'}}], // Mi 14:30-17:15
   'MGTHN0122': [{d:4, s:960, e:1080, src:'TUMonline'}],                                         // Fr 16:00-18:00
   'MGTHN0108': [{d:3, s:615, e:1020, src:'TUMonline', note:{de:'nur 4 Termine: 29.10., 19.11., 17.12., 14.01.', en:'only 4 sessions: 29 Oct, 19 Nov, 17 Dec, 14 Jan'}}], // Do 10:15-17:00
@@ -4742,30 +4742,42 @@ const SKAL_DATA = {
   }
  },
  "WIHN0033": {
-  "ort": "Heilbronn",
+  "ort": "L.0.10",
   "dates": [
    "15.10.2026 12:15-15:45",
    "22.10.2026 12:15-15:45",
-   "29.10.2026 12:15-15:45",
-   "05.11.2026 12:15-15:45",
-   "12.11.2026 12:15-15:45",
-   "19.11.2026 12:15-15:45",
-   "26.11.2026 12:15-15:45",
-   "10.12.2026 12:15-15:45",
-   "17.12.2026 12:15-15:45",
-   "07.01.2027 12:15-15:45",
-   "14.01.2027 12:15-15:45",
-   "21.01.2027 12:15-15:45",
-   "28.01.2027 12:15-15:45",
-   "04.02.2027 12:15-15:45"
+   "29.10.2026 12:15-13:45",
+   "29.10.2026 14:15-15:45",
+   "05.11.2026 12:15-13:45",
+   "05.11.2026 14:15-15:45",
+   "12.11.2026 12:15-13:45",
+   "12.11.2026 14:15-15:45",
+   "19.11.2026 12:15-13:45",
+   "19.11.2026 14:15-15:45",
+   "26.11.2026 12:15-13:45",
+   "26.11.2026 14:15-15:45",
+   "10.12.2026 12:15-13:45",
+   "10.12.2026 14:15-15:45",
+   "17.12.2026 12:15-13:45",
+   "17.12.2026 14:15-15:45",
+   "07.01.2027 12:15-13:45",
+   "07.01.2027 14:15-15:45",
+   "14.01.2027 12:15-13:45",
+   "14.01.2027 14:15-15:45",
+   "21.01.2027 12:15-13:45",
+   "21.01.2027 14:15-15:45",
+   "28.01.2027 12:15-13:45",
+   "28.01.2027 14:15-15:45",
+   "04.02.2027 12:15-13:45",
+   "04.02.2027 14:15-15:45"
   ],
   "beschreibung": "Deep Reinforcement Learning: MDPs, Dynamic Programming, Monte Carlo, TD, Q-Learning, SARSA, Policy Gradient, PPO, Actor-Critic; Umsetzung in Python.",
   "pruefung": "Laborbasiert in Zweiergruppen: Hausaufgaben (30 %), Bericht (50 %), Präsentation (20 %).",
   "klausur": false,
   "vorkenntnisse": "Solide höhere Mathematik; ML/Deep Learning und Python-Erfahrung von Vorteil.",
   "termine": {
-   "de": "Do 12:15-15:45, meist wöchentlich 15.10.-04.02. (Lücken: 03.12., 24.12.-06.01.)",
-   "en": "Thu 12:15-15:45, mostly weekly 15 Oct-4 Feb (gaps: 3 Dec, 24 Dec-6 Jan)"
+   "de": "Do VO 12:15-13:45 + UE 14:15-15:45 (L.0.10), meist wöchentlich 15.10.-04.02. (Lücken: 03.12., 24.12.-06.01.)",
+   "en": "Thu lecture 12:15-13:45 + exercise 14:15-15:45 (L.0.10), mostly weekly 15 Oct-4 Feb (gaps: 3 Dec, 24 Dec-6 Jan)"
   }
  },
  "MGTHN0130": {
